@@ -1,0 +1,34 @@
+{
+  "name": "swipex",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SwipeX — AI-Powered Swipe-Based Job Discovery Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "cd apps/backend && uvicorn app.main:app --reload --port 8000",
+    "build": "turbo run build",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "test:backend": "cd apps/backend && python -m pytest tests/ -v",
+    "db:migrate": "cd apps/backend && alembic upgrade head",
+    "db:revision": "cd apps/backend && alembic revision --autogenerate",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose up -d --build",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "npm@10.0.0"
+}
