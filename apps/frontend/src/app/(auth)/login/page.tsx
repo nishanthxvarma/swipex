@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean().default(false),
+  rememberMe: z.boolean(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -32,9 +32,11 @@ export default function LoginPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<LoginFormValues>({
+  } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+      email: '',
+      password: '',
       rememberMe: false,
     },
   });

@@ -38,7 +38,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           exit={{ scale: 0.95, y: -20, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="w-full max-w-2xl bg-background rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[80vh]"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {/* Search Input Header */}
           <div className="flex items-center p-4 border-b gap-3">

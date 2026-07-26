@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { 
   Sparkles, Sun, Moon, Menu, X, 
   Layers, FileSearch, Brain, Zap, BarChart3, TrendingUp,
-  Github, Twitter, Linkedin, ChevronRight, Star,
+  Globe, Send, ExternalLink, ChevronRight, Star,
   MapPin, Briefcase, DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -588,9 +588,9 @@ function Footer() {
               The AI-powered career discovery platform that helps you land your dream job with a single swipe.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Github className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><ExternalLink className="w-5 h-5" /></a>
             </div>
           </div>
           

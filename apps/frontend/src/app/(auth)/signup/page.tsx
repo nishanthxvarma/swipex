@@ -64,11 +64,15 @@ export default function SignupPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<SignupFormValues>({
+  } = useForm({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      role: 'JOB_SEEKER',
-      terms: undefined, // ensure they have to click it
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: 'JOB_SEEKER' as const,
+      terms: true as const,
     },
   });
 
