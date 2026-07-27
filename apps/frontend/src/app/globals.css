@@ -189,7 +189,7 @@
 /* ── Base Styles ──────────────────────────────── */
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--color-border);
   }
 
   html {
@@ -200,7 +200,9 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   }
 
@@ -234,7 +236,8 @@
 
   /* Focus visible styles */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-ring;
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
 }
 
@@ -242,11 +245,15 @@
 @layer utilities {
   /* Gradient text */
   .text-gradient {
-    @apply bg-clip-text text-transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
     background-image: linear-gradient(135deg, oklch(0.65 0.22 275), oklch(0.7 0.18 195));
   }
   .text-gradient-warm {
-    @apply bg-clip-text text-transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
     background-image: linear-gradient(135deg, oklch(0.65 0.22 275), oklch(0.6 0.22 330));
   }
 
@@ -305,11 +312,15 @@
 
   /* Skeleton shimmer */
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-muted;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background-color: var(--color-muted);
   }
   .skeleton::after {
     content: '';
-    @apply absolute inset-0;
+    position: absolute;
+    inset: 0;
     background: linear-gradient(
       90deg,
       transparent 0%,
@@ -322,7 +333,7 @@
 
   /* Hover card lift effect */
   .hover-lift {
-    @apply transition-all duration-300;
+    transition: all 300ms ease;
   }
   .hover-lift:hover {
     transform: translateY(-2px);
