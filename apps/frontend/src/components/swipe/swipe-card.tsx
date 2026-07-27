@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, X, Bookmark, Heart, Info, DollarSign, Clock, MapPin, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,16 +12,22 @@ export interface Job {
   companyInitials: string;
   location: string;
   type: string;
+  jobType?: string;
   salary: string;
   postedTime: string;
   skills: string[];
   matchPercentage: number;
+  atsScore?: number;
   competition: "Low" | "Medium" | "High";
   verified: boolean;
   color: string;
   description?: string;
   requirements?: string[];
   benefits?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  isSaved?: boolean;
 }
 
 interface SwipeCardProps {
@@ -29,9 +35,11 @@ interface SwipeCardProps {
   isTop: boolean;
   onSwipe: (direction: "left" | "right") => void;
   onShowDetails?: () => void;
+  onToggleSave?: (job: Job) => void;
 }
 
-export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps) {
+export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: SwipeCardProps) {
+  const [isSaved, setIsSaved] = useState(job.isSaved || false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-10, 10]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
@@ -48,6 +56,15 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
     }
   };
 
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextSaved = !isSaved;
+    setIsSaved(nextSaved);
+    if (onToggleSave) {
+      onToggleSave({ ...job, isSaved: nextSaved });
+    }
+  };
+
   const competitionColors = {
     Low: "bg-green-500",
     Medium: "bg-yellow-500",
@@ -56,7 +73,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
 
   return (
     <motion.div
-      className="absolute w-full max-w-sm h-[520px] bg-card rounded-2xl shadow-xl border overflow-hidden flex flex-col bg-white dark:bg-zinc-900"
+      className="absolute w-full max-w-sm h-[520px] bg-card rounded-2xl shadow-xl border overflow-hidden flex flex-col bg-white dark:bg-zinc-900 select-none"
       style={{
         x: isTop ? x : 0,
         rotate: isTop ? rotate : 0,
@@ -72,7 +89,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
         className="absolute inset-0 bg-green-500/20 z-10 flex items-center justify-center pointer-events-none"
         style={{ opacity: likeOpacity }}
       >
-        <div className="bg-green-500 text-white p-4 rounded-full">
+        <div className="bg-green-500 text-white p-4 rounded-full shadow-lg">
           <Check size={48} />
         </div>
       </motion.div>
@@ -81,7 +98,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
         className="absolute inset-0 bg-red-500/20 z-10 flex items-center justify-center pointer-events-none"
         style={{ opacity: skipOpacity }}
       >
-        <div className="bg-red-500 text-white p-4 rounded-full">
+        <div className="bg-red-500 text-white p-4 rounded-full shadow-lg">
           <X size={48} />
         </div>
       </motion.div>
@@ -91,7 +108,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
         <div className="flex justify-between items-start mb-4">
           <div className="flex gap-3 items-center">
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
               style={{ backgroundColor: job.color }}
             >
               {job.companyInitials}
@@ -101,7 +118,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
                 <span className="font-semibold">{job.company}</span>
                 {job.verified && <Check className="w-4 h-4 text-blue-500 bg-blue-100 rounded-full p-[2px]" />}
               </div>
-              <div className="text-sm text-muted-foreground flex items-center gap-1">
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {job.postedTime}
               </div>
@@ -132,66 +149,76 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails }: SwipeCardProps
         <h2 className="text-2xl font-bold mb-2 leading-tight">{job.title}</h2>
         
         <div className="flex flex-wrap gap-2 mb-4">
-          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-secondary rounded-md">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg">
             <MapPin className="w-3 h-3" />
             {job.location}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-secondary rounded-md">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg">
             <Briefcase className="w-3 h-3" />
             {job.type}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-secondary rounded-md font-medium text-green-600 dark:text-green-400">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg font-semibold text-emerald-600 dark:text-emerald-400">
             <DollarSign className="w-3 h-3" />
             {job.salary}
           </span>
         </div>
 
         <div className="mb-4">
-          <div className="text-xs font-medium text-muted-foreground mb-2">Required Skills</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="text-xs font-semibold text-muted-foreground mb-2">Required Skills</div>
+          <div className="flex flex-wrap gap-1.5">
             {job.skills.map((skill, i) => (
-              <span key={i} className="text-xs px-2 py-1 border rounded-md">
+              <span key={i} className="text-xs px-2.5 py-1 border rounded-lg bg-background/50 font-medium">
                 {skill}
               </span>
             ))}
           </div>
         </div>
         
-        <div className="mt-auto pt-4 border-t flex justify-between items-center text-sm">
+        <div className="mt-auto pt-4 border-t flex justify-between items-center text-xs">
           <div className="flex items-center gap-2">
-            <div className="text-muted-foreground">Competition:</div>
+            <span className="text-muted-foreground">Competition:</span>
             <div className="flex items-center gap-1">
               <div className={cn("w-2 h-2 rounded-full", competitionColors[job.competition])}></div>
-              <span className="font-medium">{job.competition}</span>
+              <span className="font-semibold">{job.competition}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="p-4 bg-muted/50 flex justify-center gap-4">
+      <div className="p-4 bg-muted/40 border-t flex justify-center items-center gap-4">
         <button
           onClick={() => onSwipe("left")}
-          className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-red-500 hover:scale-105 transition-transform"
+          title="Skip"
+          className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-red-500 hover:scale-110 active:scale-95 transition-transform"
         >
           <X className="w-6 h-6" />
         </button>
         <button
-          className="w-12 h-12 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-yellow-500 hover:scale-105 transition-transform mt-2"
+          onClick={handleBookmarkClick}
+          title={isSaved ? "Saved" : "Save Job"}
+          className={cn(
+            "w-12 h-12 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95",
+            isSaved
+              ? "bg-amber-500 text-white border-amber-500"
+              : "bg-white dark:bg-zinc-800 text-amber-500 hover:bg-amber-50 dark:hover:bg-zinc-700"
+          )}
         >
-          <Bookmark className="w-5 h-5" />
+          <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
         </button>
         <button
           onClick={onShowDetails}
-          className="w-12 h-12 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-blue-500 hover:scale-105 transition-transform mt-2"
+          title="Job Details"
+          className="w-12 h-12 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-blue-500 hover:scale-110 active:scale-95 transition-transform"
         >
           <Info className="w-5 h-5" />
         </button>
         <button
           onClick={() => onSwipe("right")}
-          className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-green-500 hover:scale-105 transition-transform"
+          title="Apply / Match"
+          className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-emerald-500 hover:scale-110 active:scale-95 transition-transform"
         >
-          <Heart className="w-6 h-6" />
+          <Heart className="w-6 h-6 fill-current" />
         </button>
       </div>
     </motion.div>

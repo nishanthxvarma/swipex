@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowUpRight,
@@ -9,6 +10,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Eye,
   FileText,
   MapPin,
   MoreHorizontal,
@@ -17,14 +19,107 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/auth-store';
+import { JobDetailModal } from '@/components/jobs/job-detail-modal';
+import { Job } from '@/components/swipe/swipe-card';
+
+const sampleJobs: Job[] = [
+  {
+    id: '1',
+    company: 'Vercel',
+    companyInitials: 'V',
+    color: '#000000',
+    verified: true,
+    title: 'Senior Frontend Engineer',
+    location: 'Remote (US/EU)',
+    type: 'Full-time',
+    jobType: 'Full-time',
+    salary: '$140K - $180K',
+    salaryMin: 140000,
+    salaryMax: 180000,
+    salaryCurrency: '$',
+    skills: ['Next.js', 'React', 'TypeScript', 'TailwindCSS', 'GraphQL'],
+    matchPercentage: 95,
+    atsScore: 95,
+    competition: 'Medium',
+    postedTime: '2 hours ago',
+    description: 'We are looking for a Senior Frontend Engineer to help us build the next generation of web development tools at Vercel. You will work on Next.js, Vercel Platform, and design system components used by millions of developers worldwide.',
+    requirements: [
+      '5+ years of production frontend software engineering experience',
+      'Expert proficiency in React 19, Next.js App Router, and TypeScript',
+      'Deep understanding of web performance optimization and Core Web Vitals',
+      'Experience building design systems and accessible UI components',
+    ],
+    benefits: ['Full remote flexibility', 'Unlimited PTO', '$3,000 learning stipend', 'Top tier health/dental/vision coverage'],
+  },
+  {
+    id: '2',
+    company: 'Stripe',
+    companyInitials: 'S',
+    color: '#635BFF',
+    verified: true,
+    title: 'Full Stack Developer',
+    location: 'San Francisco, CA (Hybrid)',
+    type: 'Full-time',
+    jobType: 'Full-time',
+    salary: '$150K - $200K',
+    salaryMin: 150000,
+    salaryMax: 200000,
+    salaryCurrency: '$',
+    skills: ['Node.js', 'React', 'TypeScript', 'PostgreSQL', 'Ruby'],
+    matchPercentage: 88,
+    atsScore: 88,
+    competition: 'High',
+    postedTime: '5 hours ago',
+    description: 'Stripe is building financial infrastructure for the internet. Join our Core Products team to design and implement developer-friendly payment APIs and web platforms powering billions in transactions.',
+    requirements: [
+      '4+ years building distributed full stack web apps',
+      'Experience with relational databases (PostgreSQL) and API design',
+      'Strong engineering discipline in automated testing and CI/CD',
+    ],
+    benefits: ['Competitive equity package', 'Flexible hybrid office policy', 'Wellness stipends', '401(k) matching'],
+  },
+  {
+    id: '3',
+    company: 'Airbnb',
+    companyInitials: 'A',
+    color: '#FF5A5F',
+    verified: true,
+    title: 'React Native Engineer',
+    location: 'Remote',
+    type: 'Full-time',
+    jobType: 'Full-time',
+    salary: '$130K - $170K',
+    salaryMin: 130000,
+    salaryMax: 170000,
+    salaryCurrency: '$',
+    skills: ['React Native', 'TypeScript', 'iOS', 'Android', 'Redux'],
+    matchPercentage: 82,
+    atsScore: 82,
+    competition: 'Low',
+    postedTime: '1 day ago',
+    description: 'Help craft the mobile experience for millions of travelers and hosts around the world. As a React Native Engineer at Airbnb, you will ship features directly to our iOS and Android mobile apps.',
+    requirements: [
+      '3+ years React Native or cross-platform mobile development',
+      'Understanding of native mobile modules (Swift/Kotlin)',
+      'Passion for pixel-perfect animations and mobile UX',
+    ],
+    benefits: ['$2,000 annual travel credit', 'Flexible work from anywhere', 'Comprehensive parental leave'],
+  },
+];
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500); // Simulate brief load
+    const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  const name = user?.fullName ? user.fullName.split(' ')[0] : 'Nishanth';
 
   const stats = [
     {
@@ -35,6 +130,7 @@ export default function DashboardPage() {
       icon: FileText,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
+      href: '/applications',
     },
     {
       title: 'Interviews Scheduled',
@@ -44,6 +140,7 @@ export default function DashboardPage() {
       icon: Calendar,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
+      href: '/applications',
     },
     {
       title: 'Resume Score',
@@ -53,6 +150,7 @@ export default function DashboardPage() {
       icon: Award,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10',
+      href: '/profile',
     },
     {
       title: 'Profile Strength',
@@ -62,6 +160,7 @@ export default function DashboardPage() {
       icon: Shield,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10',
+      href: '/profile',
     },
   ];
 
@@ -100,46 +199,16 @@ export default function DashboardPage() {
     },
   ];
 
-  const recommendedJobs = [
-    {
-      id: 1,
-      title: 'Senior Frontend Engineer',
-      company: 'Vercel',
-      location: 'Remote',
-      salary: '$140k - $180k',
-      match: 95,
-      logo: 'V',
-    },
-    {
-      id: 2,
-      title: 'Full Stack Developer',
-      company: 'Stripe',
-      location: 'San Francisco, CA',
-      salary: '$150k - $200k',
-      match: 88,
-      logo: 'S',
-    },
-    {
-      id: 3,
-      title: 'React Native Engineer',
-      company: 'Airbnb',
-      location: 'Remote',
-      salary: '$130k - $170k',
-      match: 82,
-      logo: 'A',
-    },
-  ];
-
   const container = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 },
+      transition: { staggerChildren: 0.08 },
     },
   };
 
   const item = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0 },
   };
 
@@ -167,15 +236,19 @@ export default function DashboardPage() {
       animate="show"
       className="space-y-8 pb-20 md:pb-0"
     >
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Good morning, John 👋</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Good morning, {name} 👋</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Here's what's happening with your job search today.
           </p>
         </div>
-        <Button className="w-full md:w-auto">
-          <Sparkles className="mr-2 h-4 w-4" />
+        <Button
+          onClick={() => router.push('/jobs')}
+          className="w-full md:w-auto h-11 px-6 font-semibold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-all"
+        >
+          <Sparkles className="mr-2 h-4 w-4 text-amber-300 animate-pulse" />
           Find Matches
         </Button>
       </div>
@@ -186,7 +259,8 @@ export default function DashboardPage() {
           <motion.div
             key={i}
             variants={item}
-            className="group relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md"
+            onClick={() => router.push(stat.href)}
+            className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
             <div className="relative flex items-center justify-between">
@@ -194,12 +268,12 @@ export default function DashboardPage() {
                 <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
                 <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
               </div>
-              <div className={cn("flex h-12 w-12 items-center justify-center rounded-full", stat.bgColor, stat.color)}>
+              <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
                 <stat.icon className="h-6 w-6" />
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-xs">
-              <span className={cn("font-medium", stat.trendUp ? "text-emerald-500" : "text-amber-500")}>
+            <div className="mt-4 flex items-center gap-1 text-xs">
+              <span className={cn("font-semibold", stat.trendUp ? "text-emerald-500" : "text-amber-500")}>
                 {stat.trend}
               </span>
             </div>
@@ -207,127 +281,110 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-7">
-        {/* Recommended Jobs */}
-        <motion.div variants={item} className="space-y-4 lg:col-span-4">
+      {/* Main Grid Section */}
+      <div className="grid gap-6 md:grid-cols-7">
+        {/* Recommended Jobs Column */}
+        <motion.div variants={item} className="md:col-span-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight">Recommended Jobs</h2>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              View all
+            <h2 className="text-xl font-bold tracking-tight">Recommended Jobs</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/jobs')}
+              className="text-xs font-semibold text-primary hover:text-primary/80"
+            >
+              View all <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           </div>
-          <div className="grid gap-4">
-            {recommendedJobs.map((job) => (
+
+          <div className="space-y-3">
+            {sampleJobs.map((job) => (
               <div
                 key={job.id}
-                className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
+                onClick={() => setSelectedJob(job)}
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xl font-bold text-primary">
-                    {job.logo}
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-white shadow-xs transition-transform group-hover:scale-105"
+                    style={{ backgroundColor: job.color }}
+                  >
+                    {job.companyInitials}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{job.title}</h3>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> {job.company}</span>
+                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                      {job.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      <span className="font-medium text-foreground">{job.company}</span>
                       <span>•</span>
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {job.location}</span>
+                      <span>{job.location}</span>
                     </div>
                   </div>
                 </div>
-                <div className="hidden sm:flex flex-col items-end gap-2">
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-500">
-                    {job.match}% Match
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground">{job.salary}</span>
+
+                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0">
+                  <div className="text-right">
+                    <span className="inline-block rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      {job.atsScore}% Match
+                    </span>
+                    <p className="text-xs font-medium text-muted-foreground mt-1">
+                      {job.salary || '$140k - $180k'}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" className="rounded-xl group-hover:border-primary group-hover:text-primary">
+                    View
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" className="sm:hidden">
-                  <MoreHorizontal className="h-5 w-5" />
-                </Button>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* Recent Activity */}
-        <motion.div variants={item} className="space-y-4 lg:col-span-3">
+        {/* Recent Activity Column */}
+        <motion.div variants={item} className="md:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight">Recent Activity</h2>
+            <h2 className="text-xl font-bold tracking-tight">Recent Activity</h2>
           </div>
-          <div className="rounded-xl border bg-card p-5 shadow-sm">
-            <div className="space-y-6">
-              {recentActivity.map((activity, i) => (
-                <div key={activity.id} className="relative flex gap-4">
-                  {i !== recentActivity.length - 1 && (
-                    <div className="absolute left-4 top-10 -bottom-6 w-px bg-border" />
-                  )}
-                  <div className={cn("relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full", activity.iconBg)}>
-                    <activity.icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 space-y-1 pt-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium leading-none">{activity.title}</p>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
-                        <Clock className="h-3 w-3" /> {activity.time}
+
+          <div className="rounded-2xl border bg-card p-6 shadow-xs space-y-6">
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+              {recentActivity.map((act) => {
+                const Icon = act.icon;
+                return (
+                  <div key={act.id} className="relative flex items-start gap-4">
+                    <div className={cn("absolute -left-6 flex h-4 w-4 items-center justify-center rounded-full border-2 border-card bg-background", act.iconBg)}>
+                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xs font-bold text-foreground">{act.title}</p>
+                      <p className="text-xs text-muted-foreground">{act.description}</p>
+                      <span className="text-[10px] text-muted-foreground font-medium block pt-0.5">
+                        {act.time}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {activity.description}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <Button variant="outline" className="w-full mt-6">
+
+            <Button
+              variant="outline"
+              onClick={() => router.push('/applications')}
+              className="w-full text-xs font-semibold rounded-xl"
+            >
               View All Activity
             </Button>
           </div>
         </motion.div>
       </div>
 
-      {/* Application Pipeline */}
-      <motion.div variants={item} className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Application Pipeline</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {['Applied', 'Reviewing', 'Interview', 'Offer'].map((stage, i) => {
-            const counts = [12, 5, 3, 1];
-            return (
-              <div key={stage} className="rounded-xl border bg-card p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium">{stage}</h3>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-medium">
-                    {counts[i]}
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: `${(counts[i] / 21) * 100}%` }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </motion.div>
+      {/* Modal for detailed job view */}
+      <JobDetailModal
+        job={selectedJob}
+        isOpen={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </motion.div>
-  );
-}
-
-// Icon component needed that was used above
-function Eye(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
   );
 }
