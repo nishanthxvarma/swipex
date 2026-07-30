@@ -34,13 +34,22 @@ import { useUIStore } from '@/stores/ui-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { SearchModal } from '@/components/search/search-modal';
 
-const navigation = [
+const candidateNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Job Feed', href: '/jobs', icon: Layers },
   { name: 'Applications', href: '/applications', icon: FileText },
   { name: 'Saved Jobs', href: '/saved', icon: Heart },
   { name: 'Companies', href: '/companies', icon: Building2 },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+];
+
+const recruiterNavigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Candidate Feed', href: '/jobs', icon: Layers },
+  { name: 'Candidate Pipeline', href: '/applications', icon: FileText },
+  { name: 'Saved Candidates', href: '/saved', icon: Heart },
+  { name: 'Company Profile', href: '/companies', icon: Building2 },
+  { name: 'Hiring Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 const bottomNavigation = [
@@ -182,7 +191,7 @@ export default function DashboardLayout({
         {/* Navigation */}
         <div className="flex flex-1 flex-col justify-between overflow-y-auto px-3 py-4">
           <nav className="space-y-1">
-            {navigation.map((item) => {
+            {(user?.role === 'RECRUITER' ? recruiterNavigation : candidateNavigation).map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -290,6 +299,21 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Role Switcher Badge */}
+            {user && (
+              <button
+                onClick={() => {
+                  const nextRole = user.role === 'RECRUITER' ? 'JOB_SEEKER' : 'RECRUITER';
+                  useAuthStore.getState().setUser({ ...user, role: nextRole });
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all cursor-pointer"
+                title="Click to toggle between Candidate View and Recruiter View"
+              >
+                <span>{user.role === 'RECRUITER' ? '🏢 Recruiter View' : '👤 Candidate View'}</span>
+                <span className="text-[10px] opacity-60 underline">Switch</span>
+              </button>
+            )}
+
             {/* Search Button */}
             <div className="relative hidden md:block">
               <Button
@@ -433,7 +457,7 @@ export default function DashboardLayout({
 
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background flex justify-around p-3 z-40 pb-safe shadow-lg">
-        {navigation.slice(0, 4).map((item) => {
+        {(user?.role === 'RECRUITER' ? recruiterNavigation : candidateNavigation).slice(0, 4).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1">
