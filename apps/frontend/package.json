@@ -40,6 +40,7 @@
   },
   "optionalDependencies": {
     "lightningcss-linux-x64-gnu": "1.32.0",
-    "@next/swc-linux-x64-gnu": "16.2.12"
+    "@next/swc-linux-x64-gnu": "16.2.12",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3"
   }
 }
