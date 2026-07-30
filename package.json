@@ -30,5 +30,9 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "supportedArchitectures": {
+    "os": ["current", "linux"],
+    "cpu": ["current", "x64"]
+  },
   "packageManager": "npm@10.0.0"
 }
