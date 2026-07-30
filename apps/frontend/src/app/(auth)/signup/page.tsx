@@ -124,7 +124,11 @@ export default function SignupPage() {
         }
       );
 
-      router.push('/dashboard');
+      if (data.role === 'RECRUITER') {
+        router.push('/recruiter/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
       console.error(error);
     } finally {

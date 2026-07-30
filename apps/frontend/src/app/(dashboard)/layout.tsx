@@ -44,12 +44,11 @@ const candidateNavigation = [
 ];
 
 const recruiterNavigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Candidate Feed', href: '/jobs', icon: Layers },
-  { name: 'Candidate Pipeline', href: '/applications', icon: FileText },
-  { name: 'Saved Candidates', href: '/saved', icon: Heart },
-  { name: 'Company Profile', href: '/companies', icon: Building2 },
-  { name: 'Hiring Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
+  { name: 'Manage Jobs', href: '/recruiter/jobs', icon: Building2 },
+  { name: 'Swipe Candidates', href: '/recruiter/candidates', icon: Layers },
+  { name: 'Candidate Pipeline', href: '/recruiter/pipeline', icon: FileText },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 const bottomNavigation = [
@@ -299,19 +298,11 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Role Switcher Badge */}
+            {/* Session Role Indicator */}
             {user && (
-              <button
-                onClick={() => {
-                  const nextRole = user.role === 'RECRUITER' ? 'JOB_SEEKER' : 'RECRUITER';
-                  useAuthStore.getState().setUser({ ...user, role: nextRole });
-                }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all cursor-pointer"
-                title="Click to toggle between Candidate View and Recruiter View"
-              >
-                <span>{user.role === 'RECRUITER' ? '🏢 Recruiter View' : '👤 Candidate View'}</span>
-                <span className="text-[10px] opacity-60 underline">Switch</span>
-              </button>
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-secondary border text-foreground">
+                <span>{user.role === 'RECRUITER' ? '🏢 Recruiter Workspace' : '👤 Candidate Workspace'}</span>
+              </div>
             )}
 
             {/* Search Button */}
