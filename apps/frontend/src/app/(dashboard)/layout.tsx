@@ -37,6 +37,7 @@ import { SearchModal } from '@/components/search/search-modal';
 const candidateNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Job Feed', href: '/jobs', icon: Layers },
+  { name: 'Resume AI', href: '/resume', icon: Sparkles },
   { name: 'Applications', href: '/applications', icon: FileText },
   { name: 'Saved Jobs', href: '/saved', icon: Heart },
   { name: 'Companies', href: '/companies', icon: Building2 },

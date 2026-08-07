@@ -14,16 +14,3 @@ class RecommendationModel(Base):
     algorithm = Column(String)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-class ResumeModel(Base):
-    __tablename__ = "resumes"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    file_url = Column(String)
-    filename = Column(String)
-    parsed_data = Column(JSON, default=dict)
-    skills_extracted = Column(JSON, default=list)
-    experience_extracted = Column(JSON, default=list)
-    education_extracted = Column(JSON, default=list)
-    ats_score = Column(Float)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

@@ -13,7 +13,7 @@ export class ApiClient {
 
   constructor(
     baseUrl = API_BASE_URL,
-    getToken = () => null,
+    getToken: () => string | null = () => null,
     setToken = (_token: string | null) => {},
     handleRefresh = async () => null
   ) {
