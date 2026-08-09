@@ -11,7 +11,7 @@ services:
     dockerContext: apps/backend
     dockerfilePath: apps/backend/Dockerfile
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: ENVIRONMENT
         value: prod
