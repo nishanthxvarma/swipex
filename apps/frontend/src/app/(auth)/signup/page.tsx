@@ -124,7 +124,9 @@ export default function SignupPage() {
         }
       );
 
-      if (data.role === 'RECRUITER') {
+      if (data.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else if (data.role === 'RECRUITER') {
         router.push('/recruiter/dashboard');
       } else {
         router.push('/dashboard');

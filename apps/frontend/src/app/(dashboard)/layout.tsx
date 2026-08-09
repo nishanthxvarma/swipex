@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   Briefcase,
   Calendar,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,21 @@ const recruiterNavigation = [
   { name: 'Candidate Pipeline', href: '/recruiter/pipeline', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
+
+const adminNavigation = [
+  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'User Directory', href: '/admin/users', icon: User },
+  { name: 'Recruiters', href: '/admin/recruiters', icon: Building2 },
+  { name: 'Activity Log', href: '/admin/activity', icon: Layers },
+  { name: 'Platform Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'System Settings', href: '/admin/settings', icon: Settings },
+];
+
+const getNavItems = (role?: string) => {
+  if (role === 'ADMIN') return adminNavigation;
+  if (role === 'RECRUITER') return recruiterNavigation;
+  return candidateNavigation;
+};
 
 const bottomNavigation = [
   { name: 'Profile', href: '/profile', icon: User },
@@ -191,7 +207,7 @@ export default function DashboardLayout({
         {/* Navigation */}
         <div className="flex flex-1 flex-col justify-between overflow-y-auto px-3 py-4">
           <nav className="space-y-1">
-            {(user?.role === 'RECRUITER' ? recruiterNavigation : candidateNavigation).map((item) => {
+            {getNavItems(user?.role).map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -302,7 +318,13 @@ export default function DashboardLayout({
             {/* Session Role Indicator */}
             {user && (
               <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-secondary border text-foreground">
-                <span>{user.role === 'RECRUITER' ? '🏢 Recruiter Workspace' : '👤 Candidate Workspace'}</span>
+                <span>
+                  {user.role === 'ADMIN'
+                    ? '🛡️ Admin Workspace'
+                    : user.role === 'RECRUITER'
+                    ? '🏢 Recruiter Workspace'
+                    : '👤 Candidate Workspace'}
+                </span>
               </div>
             )}
 
@@ -449,7 +471,7 @@ export default function DashboardLayout({
 
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background flex justify-around p-3 z-40 pb-safe shadow-lg">
-        {(user?.role === 'RECRUITER' ? recruiterNavigation : candidateNavigation).slice(0, 4).map((item) => {
+        {getNavItems(user?.role).slice(0, 4).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1">

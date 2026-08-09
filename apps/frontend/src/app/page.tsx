@@ -78,7 +78,7 @@ function NavBar() {
           <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Sign In
           </Link>
-          <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:from-indigo-600 hover:to-purple-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+          <Link href="/signup" className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:from-indigo-600 hover:to-purple-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
             Get Started Free
           </Link>
         </div>
@@ -118,7 +118,7 @@ function NavBar() {
                 )}
               </div>
               <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-2">Sign In</Link>
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow">
+              <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow">
                 Get Started Free
               </Link>
             </div>
@@ -188,13 +188,13 @@ function HeroSection() {
             </motion.p>
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link href="/register" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-base font-semibold text-white shadow-[0_0_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(99,102,241,0.7)] hover:scale-[1.02]">
+              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-base font-semibold text-white shadow-[0_0_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(99,102,241,0.7)] hover:scale-[1.02]">
                 Start Swiping Free
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
-              <button className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border-2 border-border bg-transparent px-8 text-base font-medium text-foreground hover:bg-muted transition-colors">
-                Watch Demo
-              </button>
+              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border-2 border-border bg-transparent px-8 text-base font-medium text-foreground hover:bg-muted transition-colors">
+                Explore Demo
+              </Link>
             </motion.div>
 
             <motion.div variants={fadeInUp} className="mt-12 pt-8 border-t border-border flex flex-wrap gap-x-8 gap-y-4">
@@ -555,16 +555,25 @@ function CTASection() {
             Join thousands of professionals who are already discovering better opportunities with SwipeX.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const input = form.querySelector('input') as HTMLInputElement;
+              const emailVal = input?.value || '';
+              window.location.href = `/signup${emailVal ? `?email=${encodeURIComponent(emailVal)}` : ''}`;
+            }}
+            className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto"
+          >
             <input 
               type="email" 
               placeholder="Enter your email" 
               className="h-14 px-6 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1 backdrop-blur-sm"
             />
-            <button className="h-14 px-8 rounded-full bg-white text-indigo-600 font-bold text-lg hover:bg-white/90 transition-colors shadow-xl">
+            <button type="submit" className="h-14 px-8 rounded-full bg-white text-indigo-600 font-bold text-lg hover:bg-white/90 transition-all hover:scale-105 shadow-xl cursor-pointer">
               Get Started Free
             </button>
-          </div>
+          </form>
           <p className="mt-6 text-sm text-white/60">No credit card required. Free forever for job seekers.</p>
         </motion.div>
       </div>

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Mail, Building2, User, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Building2, User, Shield, Lock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { useAuthStore } from '@/stores/auth-store';
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
-  role: z.enum(['JOB_SEEKER', 'RECRUITER']),
+  role: z.enum(['JOB_SEEKER', 'RECRUITER', 'ADMIN']),
   rememberMe: z.boolean(),
 });
 
@@ -54,12 +54,14 @@ export default function LoginPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 600));
 
-      const isRecruiter = data.role === 'RECRUITER';
+      const rolePrefix = data.role === 'ADMIN' ? 'adm_' : data.role === 'RECRUITER' ? 'rec_' : 'usr_';
+      const roleName = data.role === 'ADMIN' ? 'Admin' : data.role === 'RECRUITER' ? 'Recruiter' : 'Candidate';
+      
       loginStore(
         {
-          id: isRecruiter ? 'rec_' + Date.now() : 'usr_' + Date.now(),
+          id: rolePrefix + Date.now(),
           email: data.email,
-          fullName: data.email.split('@')[0] || (isRecruiter ? 'Recruiter' : 'Candidate'),
+          fullName: data.email.split('@')[0] || roleName,
           role: data.role,
         },
         {
@@ -68,7 +70,9 @@ export default function LoginPage() {
         }
       );
 
-      if (isRecruiter) {
+      if (data.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else if (data.role === 'RECRUITER') {
         router.push('/recruiter/dashboard');
       } else {
         router.push('/dashboard');
@@ -80,27 +84,36 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickDemoLogin = (role: 'JOB_SEEKER' | 'RECRUITER') => {
+  const handleQuickDemoLogin = (role: 'JOB_SEEKER' | 'RECRUITER' | 'ADMIN') => {
     setIsLoading(true);
     setTimeout(() => {
-      const isRecruiter = role === 'RECRUITER';
+      let email = 'candidate@swipex.io';
+      let fullName = 'Nishanth Varma (Job Seeker)';
+      let targetPath = '/dashboard';
+
+      if (role === 'RECRUITER') {
+        email = 'recruiter@techcorp.com';
+        fullName = 'Sarah Jenkins (Recruiter)';
+        targetPath = '/recruiter/dashboard';
+      } else if (role === 'ADMIN') {
+        email = 'admin@swipex.io';
+        fullName = 'Alex Morgan (Super Admin)';
+        targetPath = '/admin/dashboard';
+      }
+
       loginStore(
         {
-          id: isRecruiter ? 'rec_demo_101' : 'usr_demo_101',
-          email: isRecruiter ? 'recruiter@techcorp.com' : 'candidate@swipex.io',
-          fullName: isRecruiter ? 'Sarah Jenkins (Recruiter)' : 'Nishanth Varma',
-          role: role,
+          id: 'demo_' + role.toLowerCase() + '_101',
+          email,
+          fullName,
+          role,
         },
         {
           accessToken: 'mock_jwt_access_token',
           refreshToken: 'mock_jwt_refresh_token',
         }
       );
-      if (isRecruiter) {
-        router.push('/recruiter/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push(targetPath);
     }, 600);
   };
 
@@ -114,55 +127,68 @@ export default function LoginPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-muted-foreground text-sm">
-          Log in to access your individual candidate or employer workspace.
+          Log in to access your Candidate, Recruiter, or Admin workspace.
         </p>
       </div>
 
       {/* Role Selection Tabs */}
-      <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted rounded-2xl border">
+      <div className="grid grid-cols-3 gap-2 p-1.5 bg-muted rounded-2xl border">
         <button
           type="button"
           onClick={() => setValue('role', 'JOB_SEEKER')}
           className={cn(
-            'flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all',
+            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
             selectedRole === 'JOB_SEEKER'
               ? 'bg-card text-foreground shadow-xs border border-border'
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          <User className="w-4 h-4 text-primary" />
-          Job Seeker Login
+          <User className="w-3.5 h-3.5 text-primary" />
+          Job Seeker
         </button>
         <button
           type="button"
           onClick={() => setValue('role', 'RECRUITER')}
           className={cn(
-            'flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all',
+            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
             selectedRole === 'RECRUITER'
               ? 'bg-card text-foreground shadow-xs border border-border'
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          <Building2 className="w-4 h-4 text-primary" />
-          Recruiter Portal
+          <Building2 className="w-3.5 h-3.5 text-primary" />
+          Recruiter
+        </button>
+        <button
+          type="button"
+          onClick={() => setValue('role', 'ADMIN')}
+          className={cn(
+            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
+            selectedRole === 'ADMIN'
+              ? 'bg-card text-foreground shadow-xs border border-border'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Shield className="w-3.5 h-3.5 text-primary" />
+          Admin
         </button>
       </div>
 
       {/* Quick Demo Login Triggers */}
       <div className="p-3 bg-secondary/50 rounded-2xl border space-y-2">
         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">
-          Instant Demo One-Tap Login
+          Instant One-Tap Demo Login
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => handleQuickDemoLogin('JOB_SEEKER')}
             disabled={isLoading}
-            className="rounded-xl text-xs font-semibold"
+            className="rounded-xl text-[11px] font-semibold px-1"
           >
-            Candidate Demo
+            Job Seeker
           </Button>
           <Button
             type="button"
@@ -170,9 +196,19 @@ export default function LoginPage() {
             size="sm"
             onClick={() => handleQuickDemoLogin('RECRUITER')}
             disabled={isLoading}
-            className="rounded-xl text-xs font-semibold border-primary/30 text-primary hover:bg-primary/10"
+            className="rounded-xl text-[11px] font-semibold border-primary/30 text-primary hover:bg-primary/10 px-1"
           >
-            Recruiter Demo
+            Recruiter
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickDemoLogin('ADMIN')}
+            disabled={isLoading}
+            className="rounded-xl text-[11px] font-semibold border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 px-1"
+          >
+            Admin
           </Button>
         </div>
       </div>
