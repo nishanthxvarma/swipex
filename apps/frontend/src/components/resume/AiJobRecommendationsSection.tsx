@@ -48,20 +48,27 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
         </div>
 
         {/* Tier Filter Tabs */}
-        <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-xl text-xs font-bold border">
-          {(['All', 'Top Match', 'Good Match', 'Stretch Match'] as const).map((tier) => (
-            <button
-              key={tier}
-              onClick={() => setSelectedTierFilter(tier)}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                selectedTierFilter === tier
-                  ? 'bg-card text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tier}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Learning Enabled (Adapting to Swipe Preferences)</span>
+          </div>
+
+          <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-xl text-xs font-bold border">
+            {(['All', 'Top Match', 'Good Match', 'Stretch Match'] as const).map((tier) => (
+              <button
+                key={tier}
+                onClick={() => setSelectedTierFilter(tier)}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  selectedTierFilter === tier
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {tier}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

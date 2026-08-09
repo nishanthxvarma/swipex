@@ -148,6 +148,55 @@ export const AtsScoreMeter: React.FC<AtsScoreMeterProps> = ({
           })}
         </div>
       </div>
+
+      {/* Below 80% ATS Optimization Callout (If Score < 80) */}
+      {score < 80 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-4"
+        >
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <span>ATS Match Score is Below 80% Threshold</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="space-y-1.5 p-3 rounded-xl bg-card border">
+              <p className="font-extrabold text-foreground flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500" /> Highlighted Missing Skills:
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {['AWS Cloud', 'Docker', 'Kubernetes', 'GraphQL', 'System Design'].map((sk, idx) => (
+                  <span key={idx} className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-bold">
+                    + {sk}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5 p-3 rounded-xl bg-card border">
+              <p className="font-extrabold text-foreground flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> Missing Industry Keywords:
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {['CI/CD Pipelines', 'Microservices', 'Unit Testing', 'Agile Scrum'].map((kw, idx) => (
+                  <span key={idx} className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+                    + {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-card border space-y-1 text-xs">
+            <p className="font-bold text-foreground">💡 AI Resume Optimization Recommendation:</p>
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              Incorporate quantified bullet points (e.g. &quot;Reduced latency by 35% using Next.js caching&quot;) and add missing cloud &amp; testing keywords to boost your ATS compatibility score above 80%.
+            </p>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
