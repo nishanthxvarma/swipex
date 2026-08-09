@@ -115,6 +115,7 @@ export default function DashboardLayout({
   const { user, logout } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
 
   // Global Cmd+K keyboard shortcut listener
@@ -181,14 +182,14 @@ export default function DashboardLayout({
         {/* Sidebar Header */}
         <div className="flex h-16 shrink-0 items-center justify-between px-4">
           <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
               <Sparkles className="h-5 w-5" />
             </div>
             {isSidebarOpen && (
               <motion.span
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-lg font-bold text-foreground"
+                className="text-xl font-extrabold tracking-tight text-foreground"
               >
                 SwipeX
               </motion.span>
@@ -206,49 +207,78 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <div className="flex flex-1 flex-col justify-between overflow-y-auto px-3 py-4">
-          <nav className="space-y-1">
-            {getNavItems(user?.role).map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all relative group",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  )}
-                  title={!isSidebarOpen ? item.name : undefined}
-                >
-                  <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
-                  {isSidebarOpen && <span>{item.name}</span>}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="space-y-4">
+            <nav className="space-y-1">
+              {getNavItems(user?.role).map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all relative group",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )}
+                    title={!isSidebarOpen ? item.name : undefined}
+                  >
+                    <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                    {isSidebarOpen && <span>{item.name}</span>}
+                  </Link>
+                );
+              })}
+            </nav>
 
-          <div className="mt-8 space-y-1">
-            {bottomNavigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all relative group",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  )}
-                  title={!isSidebarOpen ? item.name : undefined}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {isSidebarOpen && <span>{item.name}</span>}
-                </Link>
-              );
-            })}
+            <div className="pt-2 border-t space-y-1">
+              {bottomNavigation.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all relative group",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )}
+                    title={!isSidebarOpen ? item.name : undefined}
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    {isSidebarOpen && <span>{item.name}</span>}
+                  </Link>
+                );
+              })}
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-all text-rose-500 hover:bg-rose-500/10 group cursor-pointer"
+                title={!isSidebarOpen ? "Log Out" : undefined}
+              >
+                <LogOut className="h-5 w-5 shrink-0 text-rose-500 group-hover:scale-110 transition-transform" />
+                {isSidebarOpen && <span>Log Out</span>}
+              </button>
+            </div>
           </div>
+
+          {/* AI Resume Score Sidebar Widget (Matching Screenshot UI) */}
+          {isSidebarOpen && user?.role !== 'RECRUITER' && user?.role !== 'ADMIN' && (
+            <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border border-indigo-500/20 space-y-2">
+              <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">AI Resume Score</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 shrink-0 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center font-black text-sm text-emerald-600 dark:text-emerald-400">
+                  85
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Good match!</p>
+                  <Link href="/resume" className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5 mt-0.5">
+                    Improve to 90+ <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* User Profile Footer */}
@@ -256,15 +286,15 @@ export default function DashboardLayout({
           <div className={cn("flex items-center gap-3", !isSidebarOpen && "justify-center")}>
             <Link
               href="/profile"
-              className="h-10 w-10 shrink-0 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary hover:scale-105 transition-transform"
+              className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-primary/30 flex items-center justify-center font-bold text-primary hover:scale-105 transition-transform"
               title="View Profile"
             >
               {userInitials}
             </Link>
             {isSidebarOpen && (
               <div className="flex flex-1 flex-col overflow-hidden cursor-pointer" onClick={() => router.push('/profile')}>
-                <span className="truncate text-sm font-semibold hover:text-primary transition-colors">{userName}</span>
-                <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+                <span className="truncate text-sm font-bold hover:text-primary transition-colors">{userName}</span>
+                <span className="truncate text-xs text-muted-foreground">{user?.role === 'ADMIN' ? 'Super Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}</span>
               </div>
             )}
             {isSidebarOpen && (
@@ -272,8 +302,8 @@ export default function DashboardLayout({
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                title="Sign Out"
-                className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                title="Log Out"
+                className="shrink-0 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -448,6 +478,79 @@ export default function DashboardLayout({
             >
               {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-700" />}
             </Button>
+
+            {/* User Profile Dropdown Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2.5 p-1.5 rounded-2xl hover:bg-secondary transition-colors cursor-pointer border border-transparent hover:border-border"
+              >
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-primary/40 flex items-center justify-center font-black text-xs text-white shadow-xs">
+                  {userInitials}
+                </div>
+                <div className="hidden lg:flex flex-col text-left">
+                  <span className="text-xs font-bold text-foreground leading-none">{userName}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                    {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}
+                  </span>
+                </div>
+                <ChevronRight className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform hidden sm:block", isProfileMenuOpen && "rotate-90")} />
+              </button>
+
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileMenuOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 z-50 w-60 rounded-2xl border bg-card p-2 shadow-2xl space-y-1"
+                    >
+                      <div className="p-2.5 border-b bg-muted/30 rounded-xl space-y-1">
+                        <p className="font-bold text-xs truncate text-foreground">{userName}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
+                        <div className="pt-1">
+                          <span className="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                            {user?.role === 'ADMIN' ? '🛡️ Super Admin' : user?.role === 'RECRUITER' ? '🏢 Recruiter' : '👤 Job Seeker'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        My Profile
+                      </Link>
+                      <Link
+                        href="/settings"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-muted-foreground" />
+                        Account Settings
+                      </Link>
+
+                      <div className="h-px bg-border my-1" />
+
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-extrabold text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 text-rose-500" />
+                        Log Out
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
