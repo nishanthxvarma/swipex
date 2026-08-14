@@ -7,10 +7,14 @@ import structlog
 
 logger = structlog.get_logger()
 
+from app.core.database import engine, Base
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: Connect to redis/db
-    await logger.ainfo("Starting up application")
+    # Startup logic: Connect to redis/db and create tables
+    await logger.ainfo("Starting up application and verifying database tables")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown logic
     await logger.ainfo("Shutting down application")
