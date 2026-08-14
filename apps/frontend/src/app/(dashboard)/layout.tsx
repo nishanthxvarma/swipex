@@ -175,10 +175,11 @@ export default function DashboardLayout({
         initial={false}
         animate={{ 
           width: isSidebarOpen ? 256 : 80,
-          x: isMobileMenuOpen ? 0 : -256,
         }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-card md:static md:translate-x-0 transition-all duration-300",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-card transition-all duration-300",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          "md:static md:translate-x-0",
           !isSidebarOpen && "md:w-20"
         )}
       >
