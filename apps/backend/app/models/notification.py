@@ -14,13 +14,26 @@ class InterviewType(str, enum.Enum):
 class NotificationModel(Base):
     __tablename__ = "notifications"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    type = Column(String)
-    title = Column(String)
-    message = Column(String)
-    is_read = Column(Boolean, default=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
+    type = Column(String, index=True, nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False, index=True, nullable=False)
     metadata_json = Column("metadata", JSON, default=dict)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    expires_at = Column(DateTime, nullable=True)
+
+class NotificationPreferenceModel(Base):
+    __tablename__ = "notification_preferences"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, index=True, nullable=False)
+    job_recommendations = Column(Boolean, default=True)
+    applications = Column(Boolean, default=True)
+    interviews = Column(Boolean, default=True)
+    recruiter_activity = Column(Boolean, default=True)
+    analytics = Column(Boolean, default=True)
+    system_notifications = Column(Boolean, default=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class AuditLogModel(Base):
     __tablename__ = "audit_logs"

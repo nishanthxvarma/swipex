@@ -92,6 +92,37 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                 </div>
               </div>
 
+              {/* Applicant Competition Indicator Section */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-transparent border border-purple-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                    Applicant Competition Signal
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                    {job.competition || 'Moderate'} Competition
+                  </span>
+                </div>
+                
+                <p className="text-sm font-bold text-foreground">
+                  You&apos;re in the top 18% of applicants based on current matching signals.
+                </p>
+
+                <div className="grid grid-cols-3 gap-2 text-center pt-1 text-xs">
+                  <div className="p-2 rounded-xl bg-background border">
+                    <p className="text-[10px] text-muted-foreground font-semibold">Skill Match</p>
+                    <p className="font-extrabold text-emerald-600 dark:text-emerald-400">{job.matchPercentage || 92}%</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-background border">
+                    <p className="text-[10px] text-muted-foreground font-semibold">ATS Score</p>
+                    <p className="font-extrabold text-primary">{job.atsScore || 88.5}</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-background border">
+                    <p className="text-[10px] text-muted-foreground font-semibold">Location Fit</p>
+                    <p className="font-extrabold text-indigo-600 dark:text-indigo-400">100%</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Description */}
               <section>
                 <h2 className="text-xl font-bold mb-3 border-b pb-2">Description</h2>

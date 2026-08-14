@@ -11,6 +11,11 @@ from app.services.job_service import JobService
 from app.services.user_service import UserService
 from app.services.resume_service import ResumeService
 
+from app.repositories.notification_repository import NotificationRepository
+from app.services.notification_service import NotificationService
+from app.services.analytics_service import AnalyticsService
+from app.services.competition_service import CompetitionService
+
 def get_user_repository(db: AsyncSession = Depends(get_db)):
     return UserRepository(db)
 
@@ -23,6 +28,9 @@ def get_application_repository(db: AsyncSession = Depends(get_db)):
 def get_resume_repository(db: AsyncSession = Depends(get_db)):
     return ResumeRepository(db)
 
+def get_notification_repository(db: AsyncSession = Depends(get_db)):
+    return NotificationRepository(db)
+
 def get_auth_service(repo: UserRepository = Depends(get_user_repository)):
     return AuthService(repo)
 
@@ -34,3 +42,13 @@ def get_user_service(repo: UserRepository = Depends(get_user_repository)):
 
 def get_resume_service(repo: ResumeRepository = Depends(get_resume_repository)):
     return ResumeService(repo)
+
+def get_notification_service(repo: NotificationRepository = Depends(get_notification_repository)):
+    return NotificationService(repo)
+
+def get_analytics_service(db: AsyncSession = Depends(get_db)):
+    return AnalyticsService(db)
+
+def get_competition_service(db: AsyncSession = Depends(get_db)):
+    return CompetitionService(db)
+

@@ -35,12 +35,15 @@ import { useUIStore } from '@/stores/ui-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { SearchModal } from '@/components/search/search-modal';
 
+import { useNotificationStore } from '@/stores/notification-store';
+
 const candidateNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Job Feed', href: '/jobs', icon: Layers },
   { name: 'Resume AI', href: '/resume', icon: Sparkles },
   { name: 'Applications', href: '/applications', icon: FileText },
   { name: 'Saved Jobs', href: '/saved', icon: Heart },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Companies', href: '/companies', icon: Building2 },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
@@ -391,7 +394,7 @@ export default function DashboardLayout({
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               >
                 <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
+                {useNotificationStore.getState().unreadCount > 0 && (
                   <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
                 )}
               </Button>
@@ -412,56 +415,60 @@ export default function DashboardLayout({
                       <div className="flex items-center justify-between border-b pb-3">
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-sm">Notifications</h4>
-                          {unreadCount > 0 && (
+                          {useNotificationStore.getState().unreadCount > 0 && (
                             <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
-                              {unreadCount} new
+                              {useNotificationStore.getState().unreadCount} new
                             </span>
                           )}
                         </div>
                         <button
-                          onClick={markAllRead}
-                          className="text-xs text-primary hover:underline font-medium"
+                          onClick={() => useNotificationStore.getState().markAllAsRead()}
+                          className="text-xs text-primary hover:underline font-medium cursor-pointer"
                         >
                           Mark all read
                         </button>
                       </div>
 
                       <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                        {notifications.map((n) => {
-                          const Icon = n.icon;
-                          return (
-                            <div
-                              key={n.id}
-                              className={cn(
-                                "flex items-start gap-3 p-2.5 rounded-xl transition-colors cursor-pointer",
-                                n.read ? "hover:bg-secondary/50 opacity-75" : "bg-primary/5 hover:bg-primary/10"
-                              )}
-                            >
-                              <div className={cn("p-2 rounded-lg bg-background shadow-xs", n.color)}>
-                                <Icon className="w-4 h-4" />
-                              </div>
-                              <div className="flex-1 space-y-0.5">
-                                <div className="flex items-center justify-between">
-                                  <p className="text-xs font-bold text-foreground">{n.title}</p>
-                                  <span className="text-[10px] text-muted-foreground">{n.time}</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2">{n.description}</p>
-                              </div>
+                        {useNotificationStore.getState().notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              useNotificationStore.getState().markAsRead(n.id);
+                              setIsNotificationsOpen(false);
+                              router.push('/notifications');
+                            }}
+                            className={cn(
+                              "flex items-start gap-3 p-2.5 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-border",
+                              n.isRead ? "hover:bg-secondary/50 opacity-75" : "bg-primary/5 hover:bg-primary/10"
+                            )}
+                          >
+                            <div className="p-2 rounded-lg bg-background shadow-xs text-primary">
+                              <Bell className="w-4 h-4" />
                             </div>
-                          );
-                        })}
+                            <div className="flex-1 space-y-0.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-bold text-foreground">{n.title}</p>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full text-xs"
+                        className="w-full text-xs font-bold rounded-xl"
                         onClick={() => {
                           setIsNotificationsOpen(false);
-                          router.push('/dashboard');
+                          router.push('/notifications');
                         }}
                       >
-                        View All Activity
+                        Open Notification Center
                       </Button>
                     </motion.div>
                   </>
