@@ -179,7 +179,7 @@ export default function LoginPage() {
         <details className="group rounded-xl border border-white/5 bg-slate-900/30 text-xs transition-all">
           <summary className="flex items-center justify-between p-2.5 cursor-pointer font-medium text-muted-foreground hover:text-foreground select-none">
             <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
               Try a quick demo account
             </span>
             <span className="text-[10px] text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
@@ -197,7 +197,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemoLogin('RECRUITER')}
               disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-[11px] font-semibold text-sky-400 border border-sky-400/20 transition-colors"
+              className="py-1.5 px-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-[11px] font-semibold text-purple-400 border border-purple-500/20 transition-colors"
             >
               Recruiter
             </button>
@@ -205,7 +205,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemoLogin('ADMIN')}
               disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-[11px] font-semibold text-teal-400 border border-teal-400/20 transition-colors"
+              className="py-1.5 px-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-[11px] font-semibold text-indigo-400 border border-indigo-500/20 transition-colors"
             >
               Admin
             </button>

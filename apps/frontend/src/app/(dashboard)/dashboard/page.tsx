@@ -516,15 +516,15 @@ export default function DashboardPage() {
       {/* Dominant Feature: "Your Next Best Match" (Career Command Center) */}
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
         {/* Left: Main Job Feature */}
-        <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-xl border border-sky-400/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between group hover:border-sky-400/40 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-xl border border-purple-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between group hover:border-purple-500/40 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
           <div>
             <div className="flex justify-between items-start mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-sky-500/10 text-sky-400 border border-sky-400/30 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-500/10 text-purple-400 border border-purple-500/30 backdrop-blur-md">
                 <Sparkles className="w-3.5 h-3.5" />
                 YOUR NEXT BEST MATCH
               </span>
-              <span className="text-2xl font-black text-sky-400">{topMatchJob.matchPercentage}% MATCH</span>
+              <span className="text-2xl font-black text-purple-400">{topMatchJob.matchPercentage}% MATCH</span>
             </div>
 
             <div className="flex items-center gap-4 mb-4">
@@ -555,8 +555,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <span className="text-sm font-bold text-sky-400">{topMatchJob.salary}</span>
-            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 hover:opacity-95 shadow-lg">
+            <span className="text-sm font-bold text-purple-400">{topMatchJob.salary}</span>
+            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-95 shadow-lg">
               Apply Now
             </Button>
           </div>
@@ -567,7 +567,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
               <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
-              <span className="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-400/20">
+              <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">
                 AI Verified
               </span>
             </div>
@@ -584,7 +584,7 @@ export default function DashboardPage() {
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path
-                    className="text-sky-400 stroke-current"
+                    className="text-purple-500 stroke-current"
                     strokeWidth="3.5"
                     strokeDasharray="96, 100"
                     strokeLinecap="round"
@@ -593,7 +593,7 @@ export default function DashboardPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-lg font-black text-sky-400 leading-none">96%</span>
+                  <span className="text-lg font-black text-purple-400 leading-none">96%</span>
                   <span className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Match</span>
                 </div>
               </div>
@@ -603,30 +603,30 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-muted-foreground">Skills</span>
-                    <span className="text-sky-400 font-bold">94%</span>
+                    <span className="text-purple-400 font-bold">94%</span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                    <div className="h-full bg-sky-400 rounded-full" style={{ width: '94%' }} />
+                    <div className="h-full bg-purple-500 rounded-full" style={{ width: '94%' }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-muted-foreground">Experience</span>
-                    <span className="text-cyan-400 font-bold">91%</span>
+                    <span className="text-indigo-400 font-bold">91%</span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                    <div className="h-full bg-cyan-400 rounded-full" style={{ width: '91%' }} />
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: '91%' }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-muted-foreground">Location</span>
-                    <span className="text-teal-400 font-bold">100%</span>
+                    <span className="text-emerald-400 font-bold">100%</span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-400 rounded-full" style={{ width: '100%' }} />
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
                   </div>
                 </div>
 
@@ -636,7 +636,7 @@ export default function DashboardPage() {
                     <span className="text-amber-400 font-bold">88%</span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-400 rounded-full" style={{ width: '88%' }} />
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '88%' }} />
                   </div>
                 </div>
               </div>
@@ -646,7 +646,7 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             onClick={() => setSelectedJob(topMatchJob)}
-            className="w-full text-xs font-bold rounded-xl border-sky-400/30 text-sky-400 hover:bg-sky-500/10"
+            className="w-full text-xs font-bold rounded-xl border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
           >
             View Full Analysis
           </Button>

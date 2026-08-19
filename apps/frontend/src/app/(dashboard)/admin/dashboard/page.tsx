@@ -13,10 +13,10 @@ import { cn } from '@/lib/utils';
 
 export default function AdminDashboardPage() {
   const stats = [
-    { name: 'Total Job Seekers', value: '24,580', change: '+12.4%', icon: Users, color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-400/20' },
-    { name: 'Verified Recruiters', value: '1,420', change: '+8.1%', icon: Building2, color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-400/20' },
-    { name: 'Active Job Listings', value: '5,890', change: '+15.3%', icon: Briefcase, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-400/20' },
-    { name: 'Platform Applications', value: '184,200', change: '+24.6%', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-400/20' },
+    { name: 'Total Job Seekers', value: '24,580', change: '+12.4%', icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
+    { name: 'Verified Recruiters', value: '1,420', change: '+8.1%', icon: Building2, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+    { name: 'Active Job Listings', value: '5,890', change: '+15.3%', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+    { name: 'Platform Applications', value: '184,200', change: '+24.6%', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
   ];
 
   const pendingApprovals = [
@@ -27,9 +27,9 @@ export default function AdminDashboardPage() {
 
   const liveStreamLogs = [
     { id: 1, timestamp: '18:14:02', event: 'RECRUITER_VERIFIED', details: 'sarah.jenkins@techcorp.com', status: 'APPROVED', statusBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-    { id: 2, timestamp: '18:09:45', event: 'ATS_MODEL_RETRAINED', details: 'Core ML Engine v2.4 initialized', status: 'SYSTEM', statusBg: 'bg-sky-500/10 text-sky-400 border-sky-400/20' },
+    { id: 2, timestamp: '18:09:45', event: 'ATS_MODEL_RETRAINED', details: 'Core ML Engine v2.4 initialized', status: 'SYSTEM', statusBg: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
     { id: 3, timestamp: '17:45:12', event: 'AUTH_BURST_BLOCKED', details: 'IP 192.168.1.102 (5 failed attempts)', status: 'BLOCKED', statusBg: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-    { id: 4, timestamp: '17:30:00', event: 'CRON_MAINTENANCE', details: 'Database indexing task complete', status: 'SUCCESS', statusBg: 'bg-cyan-500/10 text-cyan-400 border-cyan-400/20' },
+    { id: 4, timestamp: '17:30:00', event: 'CRON_MAINTENANCE', details: 'Database indexing task complete', status: 'SUCCESS', statusBg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-400/20">
+            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
               <Shield className="w-5 h-5" />
             </div>
             <h1 className="text-2xl font-black tracking-tight">System Command Center</h1>
@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
             </Button>
           </Link>
           <Link href="/admin/settings">
-            <Button size="sm" className="rounded-xl gap-1.5 text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-md">
+            <Button size="sm" className="rounded-xl gap-1.5 text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md">
               <Settings className="w-3.5 h-3.5" /> Config
             </Button>
           </Link>
