@@ -131,9 +131,9 @@ export default function JobFeedPage() {
           </div>
           <h2 className="font-bold text-xl hidden sm:block">Discover Jobs</h2>
           <div className="flex items-center gap-4">
-            <div className="text-sm font-medium bg-background px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              92% Avg Match
+            <div className="text-sm font-medium bg-background px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="font-bold text-emerald-400">92% Avg Match</span>
             </div>
             <button className="p-2 bg-background rounded-full shadow-sm hover:rotate-180 transition-transform duration-500">
               <RefreshCw className="w-5 h-5" />
@@ -143,6 +143,98 @@ export default function JobFeedPage() {
         
         <div className="flex-1 flex items-center justify-center p-4">
           <SwipeStack jobs={MOCK_JOBS} onShowDetails={setSelectedJob} />
+        </div>
+      </div>
+
+      {/* Right Panel: AI Match Explanation (Desktop) */}
+      <div className="hidden xl:block w-80 border-l bg-background overflow-y-auto p-6 space-y-6">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-base tracking-tight">AI Match Analysis</h3>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              96% MATCH
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {/* Breakdown bars */}
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Skills Alignment</span>
+                  <span className="text-emerald-400">95%</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '95%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Experience Match</span>
+                  <span className="text-emerald-400">91%</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '91%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Location Preference</span>
+                  <span className="text-emerald-400">100%</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '100%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Salary Alignment</span>
+                  <span className="text-emerald-400">88%</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '88%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Skill Matches vs Gaps */}
+            <div className="pt-4 border-t space-y-3">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Strong Matches</h4>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  React ✓
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Next.js ✓
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  TypeScript ✓
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Potential Skill Gaps</h4>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  AWS
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Docker
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => window.location.href = '/resume'}
+              className="w-full py-2.5 mt-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold hover:bg-purple-500/20 transition-colors"
+            >
+              Improve This Match
+            </button>
+          </div>
         </div>
       </div>
 

@@ -492,6 +492,8 @@ export default function DashboardPage() {
   }
 
   // JOB SEEKER DASHBOARD VIEW (Default)
+  const topMatchJob = sampleJobs[0];
+
   return (
     <div className="space-y-8 pb-20 md:pb-0">
       {/* Header Section */}
@@ -504,33 +506,144 @@ export default function DashboardPage() {
         </div>
         <Button
           onClick={() => router.push('/jobs')}
-          className="w-full md:w-auto h-11 px-6 font-semibold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-all"
+          className="w-full md:w-auto h-11 px-6 font-bold shadow-md bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white hover:scale-105 transition-all"
         >
-          <Sparkles className="mr-2 h-4 w-4 text-amber-300 animate-pulse" />
+          <Sparkles className="mr-2 h-4 w-4 text-emerald-300 animate-pulse" />
           Find Matches
         </Button>
       </div>
 
-      {/* Stats Row */}
+      {/* Dominant Feature: "Your Next Best Match" (Career Command Center) */}
+      <div className="grid gap-6 lg:grid-cols-12 items-stretch">
+        {/* Left: Main Job Feature */}
+        <div className="lg:col-span-7 bg-card border border-emerald-500/20 rounded-3xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/40 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div>
+            <div className="flex justify-between items-start mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <Sparkles className="w-3.5 h-3.5" />
+                YOUR NEXT BEST MATCH
+              </span>
+              <span className="text-2xl font-black text-emerald-400">{topMatchJob.matchPercentage}% MATCH</span>
+            </div>
+
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border flex items-center justify-center text-white font-extrabold text-2xl shadow-sm">
+                {topMatchJob.companyInitials}
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                  {topMatchJob.title}
+                </h2>
+                <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mt-0.5">
+                  <span className="text-foreground">{topMatchJob.company}</span> • <span>{topMatchJob.location}</span>
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+              {topMatchJob.description}
+            </p>
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              {topMatchJob.skills.map((skill, idx) => (
+                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full bg-secondary text-secondary-foreground">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <span className="text-sm font-bold text-emerald-400">{topMatchJob.salary}</span>
+            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-primary hover:bg-primary/90">
+              Apply Now
+            </Button>
+          </div>
+        </div>
+
+        {/* Right: "Why this matches you" Breakdown */}
+        <div className="lg:col-span-5 bg-card border border-border rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex justify-between items-center mb-4 border-b pb-3">
+              <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+                96% Compatibility
+              </span>
+            </div>
+
+            <div className="space-y-3.5">
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Skills Alignment</span>
+                  <span className="text-emerald-400 font-bold">94%</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '94%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Experience Alignment</span>
+                  <span className="text-emerald-400 font-bold">91%</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '91%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Location Preference</span>
+                  <span className="text-emerald-400 font-bold">100%</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '100%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span className="text-muted-foreground">Salary Alignment</span>
+                  <span className="text-emerald-400 font-bold">88%</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '88%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setSelectedJob(topMatchJob)}
+            className="w-full text-xs font-bold rounded-xl border-primary/30 text-primary hover:bg-primary/10 mt-2"
+          >
+            View Full Analysis
+          </Button>
+        </div>
+      </div>
+
+      {/* Compact Stats Row */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {candidateStats.map((stat, i) => (
           <div
             key={i}
             onClick={() => router.push(stat.href)}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
             <div className="relative flex items-center justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.title}</p>
+                <p className="text-2xl font-black tracking-tight">{stat.value}</p>
               </div>
-              <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
-                <stat.icon className="h-6 w-6" />
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
+                <stat.icon className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-1 text-xs">
-              <span className={cn("font-semibold", stat.trendUp ? "text-emerald-500" : "text-amber-500")}>
+            <div className="mt-3 flex items-center gap-1 text-[11px]">
+              <span className={cn("font-semibold", stat.trendUp ? "text-emerald-400" : "text-amber-400")}>
                 {stat.trend}
               </span>
             </div>

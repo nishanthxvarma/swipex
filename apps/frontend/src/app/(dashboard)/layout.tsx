@@ -39,25 +39,25 @@ import { useNotificationStore } from '@/stores/notification-store';
 
 const candidateNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Job Feed', href: '/jobs', icon: Layers },
-  { name: 'Resume AI', href: '/resume', icon: Sparkles },
+  { name: 'Discover', href: '/jobs', icon: Layers },
   { name: 'Applications', href: '/applications', icon: FileText },
+  { name: 'Resume AI', href: '/resume', icon: Sparkles },
   { name: 'Saved Jobs', href: '/saved', icon: Heart },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 const recruiterNavigation = [
   { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
-  { name: 'Manage Jobs', href: '/recruiter/jobs', icon: Building2 },
+  { name: 'Jobs', href: '/recruiter/jobs', icon: Building2 },
   { name: 'Swipe Candidates', href: '/recruiter/candidates', icon: Layers },
   { name: 'Candidate Pipeline', href: '/recruiter/pipeline', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 const adminNavigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Overview', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'User Directory', href: '/admin/users', icon: User },
   { name: 'Recruiters', href: '/admin/recruiters', icon: Building2 },
   { name: 'Activity Log', href: '/admin/activity', icon: Layers },

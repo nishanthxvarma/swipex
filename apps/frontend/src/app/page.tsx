@@ -168,31 +168,31 @@ function HeroSection() {
             variants={staggerContainer}
             className="flex flex-col items-start text-left"
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-6 relative overflow-hidden group">
+            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 mb-6 relative overflow-hidden group">
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <Sparkles className="mr-2 h-3.5 w-3.5" />
-              ✨ AI-Powered Career Discovery
+              AI-POWERED CAREER DISCOVERY
             </motion.div>
             
             <motion.div variants={fadeInUp}>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-                Discover Your Dream Job <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500">
-                  With a Single Swipe
+                Discover your next opportunity with a{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-purple-400 to-emerald-400">
+                  single swipe.
                 </span>
               </h1>
             </motion.div>
             
             <motion.p variants={fadeInUp} className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              SwipeX uses AI to match you with personalized job opportunities, analyze your resume for ATS compatibility, and maximize your chances of getting hired.
+              SwipeX matches you with intelligent job opportunities based on your real skills, experience, and goals. Fast, fluid, and addictive career discovery.
             </motion.p>
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-base font-semibold text-white shadow-[0_0_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(99,102,241,0.7)] hover:scale-[1.02]">
-                Start Swiping Free
+              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 text-base font-bold text-white shadow-[0_0_40px_-10px_rgba(139,92,246,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(139,92,246,0.7)] hover:scale-[1.02]">
+                Start Swiping
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border-2 border-border bg-transparent px-8 text-base font-medium text-foreground hover:bg-muted transition-colors">
+              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-border bg-card/60 backdrop-blur-md px-8 text-base font-semibold text-foreground hover:bg-secondary transition-colors">
                 Explore Demo
               </Link>
             </motion.div>
