@@ -234,36 +234,6 @@ export default function DashboardLayout({
               })}
             </nav>
 
-            <div className="pt-2 border-t space-y-1">
-              {bottomNavigation.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all relative group",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    )}
-                    title={!isSidebarOpen ? item.name : undefined}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    {isSidebarOpen && <span>{item.name}</span>}
-                  </Link>
-                );
-              })}
-
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-all text-rose-500 hover:bg-rose-500/10 group cursor-pointer"
-                title={!isSidebarOpen ? "Log Out" : undefined}
-              >
-                <LogOut className="h-5 w-5 shrink-0 text-rose-500 group-hover:scale-110 transition-transform" />
-                {isSidebarOpen && <span>Log Out</span>}
-              </button>
-            </div>
           </div>
 
           {/* AI Resume Score Sidebar Widget (Matching Screenshot UI) */}
