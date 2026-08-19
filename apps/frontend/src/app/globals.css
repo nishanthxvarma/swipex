@@ -10,59 +10,59 @@
 
 @theme {
   /* ── Light Mode Polyglass Base ──────────────────────────── */
-  --color-background: #FAFAFA;
-  --color-foreground: #090A0F;
-  --color-card: rgba(255, 255, 255, 0.85);
-  --color-card-foreground: #090A0F;
-  --color-popover: rgba(255, 255, 255, 0.9);
-  --color-popover-foreground: #090A0F;
+  --color-background: #F8FAFC;
+  --color-foreground: #0F172A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #0F172A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #0F172A;
 
-  /* Primary — Royal Violet / Purple */
-  --color-primary: #7C3AED;
+  /* Primary — Deep Royal Violet / Imperial Purple */
+  --color-primary: #6D28D9;
   --color-primary-foreground: #FFFFFF;
-  --color-primary-hover: #6D28D9;
+  --color-primary-hover: #5B21B6;
 
   /* Secondary */
-  --color-secondary: #F4F4F5;
-  --color-secondary-foreground: #27272A;
+  --color-secondary: #F1F5F9;
+  --color-secondary-foreground: #1E293B;
 
-  /* Accent — Vibrant Cyan / Indigo */
-  --color-accent: #6366F1;
+  /* Accent — Indigo Glow */
+  --color-accent: #4F46E5;
   --color-accent-foreground: #FFFFFF;
 
   /* Muted */
-  --color-muted: #F4F4F5;
-  --color-muted-foreground: #71717A;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #64748B;
 
   /* Borders & Inputs */
-  --color-border: #E4E4E7;
-  --color-input: #E4E4E7;
-  --color-ring: #7C3AED;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #6D28D9;
 
   /* Semantic Colors */
-  --color-success: #10B981;
+  --color-success: #059669;
   --color-success-foreground: #FFFFFF;
-  --color-warning: #F59E0B;
+  --color-warning: #D97706;
   --color-warning-foreground: #FFFFFF;
-  --color-destructive: #F43F5E;
+  --color-destructive: #E11D48;
   --color-destructive-foreground: #FFFFFF;
-  --color-info: #6366F1;
+  --color-info: #4F46E5;
   --color-info-foreground: #FFFFFF;
 
   /* Chart Colors */
-  --color-chart-1: #8B5CF6;
-  --color-chart-2: #6366F1;
-  --color-chart-3: #10B981;
-  --color-chart-4: #F59E0B;
-  --color-chart-5: #F43F5E;
+  --color-chart-1: #6D28D9;
+  --color-chart-2: #4F46E5;
+  --color-chart-3: #059669;
+  --color-chart-4: #D97706;
+  --color-chart-5: #E11D48;
 
   /* Sidebar */
-  --color-sidebar: #FAFAFA;
-  --color-sidebar-foreground: #090A0F;
-  --color-sidebar-border: #E4E4E7;
-  --color-sidebar-accent: #F4F4F5;
-  --color-sidebar-accent-foreground: #090A0F;
-  --color-sidebar-ring: #7C3AED;
+  --color-sidebar: #FFFFFF;
+  --color-sidebar-foreground: #0F172A;
+  --color-sidebar-border: #E2E8F0;
+  --color-sidebar-accent: #F1F5F9;
+  --color-sidebar-accent-foreground: #0F172A;
+  --color-sidebar-ring: #6D28D9;
 
   /* ── Typography ─────────────────────────────── */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -87,8 +87,8 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06), 0 4px 6px rgba(0, 0, 0, 0.04);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08), 0 8px 10px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 25px rgba(124, 58, 237, 0.25);
-  --shadow-glow-accent: 0 0 25px rgba(99, 102, 241, 0.25);
+  --shadow-glow: 0 0 25px rgba(109, 40, 217, 0.25);
+  --shadow-glow-accent: 0 0 25px rgba(79, 70, 229, 0.25);
 
   /* ── Animations ─────────────────────────────── */
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -129,8 +129,8 @@
     50% { transform: translateY(-20px); }
   }
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.25); }
-    50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.45); }
+    0%, 100% { box-shadow: 0 0 20px rgba(109, 40, 217, 0.25); }
+    50% { box-shadow: 0 0 40px rgba(109, 40, 217, 0.45); }
   }
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }
@@ -138,7 +138,7 @@
   }
 }
 
-/* ── Dark Mode — Polyglass Obsidian & Royal Purple ── */
+/* ── Dark Mode — Polyglass Obsidian & Deep Violet ── */
 @layer base {
   .dark {
     --color-background: #08090E;
