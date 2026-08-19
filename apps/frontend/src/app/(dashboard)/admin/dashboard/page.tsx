@@ -75,13 +75,13 @@ export default function AdminDashboardPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="p-4 rounded-2xl bg-slate-900/40 backdrop-blur-md border border-white/10 flex flex-col justify-between"
+              className="p-4 rounded-2xl bg-card border border-border flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
                 <div className={cn("p-2.5 rounded-xl border", stat.bg, stat.color)}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="inline-flex items-center text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   {stat.change}
                 </span>
@@ -98,26 +98,26 @@ export default function AdminDashboardPage() {
       {/* Main Command Split: Verification Queue & Live Stream Log */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Recruiter Verification Queue */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-slate-900/40 backdrop-blur-xl border border-white/10 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="lg:col-span-6 p-5 rounded-2xl bg-card border border-border space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-teal-400" />
+              <Building2 className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
               <h3 className="font-bold text-sm">Recruiter Verification Queue</h3>
             </div>
-            <span className="text-[11px] font-bold px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
+            <span className="text-[11px] font-bold px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-full">
               {pendingApprovals.length} Action Required
             </span>
           </div>
 
           <div className="space-y-2.5">
             {pendingApprovals.map((req) => (
-              <div key={req.id} className="p-3.5 rounded-xl bg-slate-950/60 border border-white/5 flex items-center justify-between gap-3">
+              <div key={req.id} className="p-3.5 rounded-xl bg-secondary border border-border flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <h4 className="font-bold text-xs">{req.name}</h4>
                     <span className={cn(
                       "text-[9px] font-extrabold px-1.5 py-0.5 rounded border",
-                      req.status === 'FLAGGED' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-sky-500/10 text-sky-400 border-sky-400/20"
+                      req.status === 'FLAGGED' ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" : "bg-primary/10 text-primary border border-primary/20"
                     )}>
                       {req.status}
                     </span>
@@ -127,10 +127,10 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs font-bold text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">
+                  <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg text-rose-400 hover:bg-rose-500/10">
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg text-rose-500 hover:bg-rose-500/10">
                     <XCircle className="w-4 h-4" />
                   </Button>
                 </div>
@@ -140,24 +140,24 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Real-time Activity Live Stream */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-slate-950/80 border border-white/10 space-y-4 font-mono">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3 font-sans">
+        <div className="lg:col-span-6 p-5 rounded-2xl bg-card border border-border space-y-4 font-mono">
+          <div className="flex items-center justify-between border-b border-border pb-3 font-sans">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-sky-400" />
+              <Terminal className="w-4 h-4 text-primary" />
               <h3 className="font-bold text-sm text-foreground">Live Security & System Feed</h3>
             </div>
-            <span className="text-[10px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-400/20">
+            <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
               STREAM ACTIVE
             </span>
           </div>
 
           <div className="space-y-2 text-xs">
             {liveStreamLogs.map((log) => (
-              <div key={log.id} className="p-2.5 rounded-lg bg-slate-900/60 border border-white/5 flex items-center justify-between gap-2">
+              <div key={log.id} className="p-2.5 rounded-lg bg-secondary border border-border flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <span className="text-muted-foreground text-[10px] font-mono shrink-0">{log.timestamp}</span>
                   <div className="truncate">
-                    <p className="font-bold text-slate-200 text-[11px] truncate">{log.event}</p>
+                    <p className="font-bold text-foreground text-[11px] truncate">{log.event}</p>
                     <p className="text-[10px] text-muted-foreground font-sans truncate">{log.details}</p>
                   </div>
                 </div>

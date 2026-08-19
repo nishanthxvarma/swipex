@@ -176,20 +176,20 @@ export default function LoginPage() {
 
       {/* Collapsible Quick Demo Login (Subtly demoted) */}
       <div className="pt-1">
-        <details className="group rounded-xl border border-white/5 bg-slate-900/30 text-xs transition-all">
+        <details className="group rounded-xl border border-border bg-secondary/60 text-xs transition-all">
           <summary className="flex items-center justify-between p-2.5 cursor-pointer font-medium text-muted-foreground hover:text-foreground select-none">
             <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
               Try a quick demo account
             </span>
             <span className="text-[10px] text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <div className="p-2.5 pt-0 grid grid-cols-3 gap-2 border-t border-white/5 mt-1">
+          <div className="p-2.5 pt-0 grid grid-cols-3 gap-2 border-t border-border mt-1">
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('JOB_SEEKER')}
               disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-[11px] font-semibold text-slate-300 border border-white/5 transition-colors"
+              className="py-1.5 px-2 rounded-lg bg-card hover:bg-muted text-[11px] font-semibold text-foreground border border-border transition-colors"
             >
               Candidate
             </button>
@@ -197,7 +197,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemoLogin('RECRUITER')}
               disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-[11px] font-semibold text-purple-400 border border-purple-500/20 transition-colors"
+              className="py-1.5 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-[11px] font-semibold text-primary border border-primary/20 transition-colors"
             >
               Recruiter
             </button>
@@ -205,7 +205,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemoLogin('ADMIN')}
               disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-[11px] font-semibold text-indigo-400 border border-indigo-500/20 transition-colors"
+              className="py-1.5 px-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-colors"
             >
               Admin
             </button>
