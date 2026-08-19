@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X, Linkedin, Github } from "lucide-react";
+import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -320,7 +320,7 @@ export default function ProfilePage() {
               {socialLinks.map((link) => (
                 <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold">
                   <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", link.colorClass)}>
-                    {link.name === "LinkedIn" ? <Linkedin className="w-3.5 h-3.5" /> : link.name === "GitHub" ? <Github className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                    {link.name === "LinkedIn" ? <ExternalLink className="w-3.5 h-3.5" /> : link.name === "GitHub" ? <Code className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
                   </div>
                   <div className="flex-1 truncate">{link.handle}</div>
                 </a>
