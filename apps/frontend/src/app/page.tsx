@@ -168,7 +168,7 @@ function HeroSection() {
             variants={staggerContainer}
             className="flex flex-col items-start text-left"
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 mb-6 relative overflow-hidden group">
+            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-sky-400/30 bg-sky-500/10 px-3.5 py-1 text-xs font-semibold text-sky-400 backdrop-blur-md mb-6 relative overflow-hidden group">
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               AI-POWERED CAREER DISCOVERY
@@ -177,7 +177,7 @@ function HeroSection() {
             <motion.div variants={fadeInUp}>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
                 Discover your next opportunity with a{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-purple-400 to-emerald-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-teal-300">
                   single swipe.
                 </span>
               </h1>
@@ -188,11 +188,11 @@ function HeroSection() {
             </motion.p>
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 text-base font-bold text-white shadow-[0_0_40px_-10px_rgba(139,92,246,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(139,92,246,0.7)] hover:scale-[1.02]">
+              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-teal-400 px-8 text-base font-bold text-slate-950 shadow-[0_0_40px_-10px_rgba(56,189,248,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(56,189,248,0.7)] hover:scale-[1.02]">
                 Start Swiping
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-border bg-card/60 backdrop-blur-md px-8 text-base font-semibold text-foreground hover:bg-secondary transition-colors">
+              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-xl px-8 text-base font-semibold text-foreground hover:bg-white/10 transition-colors">
                 Explore Demo
               </Link>
             </motion.div>

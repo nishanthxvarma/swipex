@@ -147,11 +147,11 @@ export default function JobFeedPage() {
       </div>
 
       {/* Right Panel: AI Match Explanation (Desktop) */}
-      <div className="hidden xl:block w-80 border-l bg-background overflow-y-auto p-6 space-y-6">
+      <div className="hidden xl:block w-80 border-l border-white/10 bg-slate-950/40 backdrop-blur-xl overflow-y-auto p-6 space-y-6">
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-base tracking-tight">AI Match Analysis</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-sky-500/10 text-sky-400 border border-sky-400/30">
               96% MATCH
             </span>
           </div>
@@ -162,55 +162,55 @@ export default function JobFeedPage() {
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Skills Alignment</span>
-                  <span className="text-emerald-400">95%</span>
+                  <span className="text-sky-400 font-bold">95%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '95%' }} />
+                <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '95%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Experience Match</span>
-                  <span className="text-emerald-400">91%</span>
+                  <span className="text-sky-400 font-bold">91%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '91%' }} />
+                <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '91%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Location Preference</span>
-                  <span className="text-emerald-400">100%</span>
+                  <span className="text-sky-400 font-bold">100%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '100%' }} />
+                <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '100%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Salary Alignment</span>
-                  <span className="text-emerald-400">88%</span>
+                  <span className="text-sky-400 font-bold">88%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '88%' }} />
+                <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '88%' }} />
                 </div>
               </div>
             </div>
 
             {/* Skill Matches vs Gaps */}
-            <div className="pt-4 border-t space-y-3">
+            <div className="pt-4 border-t border-white/10 space-y-3">
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Strong Matches</h4>
               <div className="flex flex-wrap gap-1.5">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-400/20">
                   React ✓
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-400/20">
                   Next.js ✓
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-400/20">
                   TypeScript ✓
                 </span>
               </div>
@@ -230,7 +230,7 @@ export default function JobFeedPage() {
 
             <button
               onClick={() => window.location.href = '/resume'}
-              className="w-full py-2.5 mt-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold hover:bg-purple-500/20 transition-colors"
+              className="w-full py-2.5 mt-2 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-400 text-xs font-bold hover:bg-sky-500/20 transition-colors"
             >
               Improve This Match
             </button>

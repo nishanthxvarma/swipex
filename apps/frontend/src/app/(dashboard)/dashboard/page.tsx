@@ -516,19 +516,19 @@ export default function DashboardPage() {
       {/* Dominant Feature: "Your Next Best Match" (Career Command Center) */}
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
         {/* Left: Main Job Feature */}
-        <div className="lg:col-span-7 bg-card border border-emerald-500/20 rounded-3xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/40 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-xl border border-sky-400/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between group hover:border-sky-400/40 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
           <div>
             <div className="flex justify-between items-start mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-sky-500/10 text-sky-400 border border-sky-400/30 backdrop-blur-md">
                 <Sparkles className="w-3.5 h-3.5" />
                 YOUR NEXT BEST MATCH
               </span>
-              <span className="text-2xl font-black text-emerald-400">{topMatchJob.matchPercentage}% MATCH</span>
+              <span className="text-2xl font-black text-sky-400">{topMatchJob.matchPercentage}% MATCH</span>
             </div>
 
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border flex items-center justify-center text-white font-extrabold text-2xl shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center text-white font-extrabold text-2xl shadow-md">
                 {topMatchJob.companyInitials}
               </div>
               <div>
@@ -547,27 +547,27 @@ export default function DashboardPage() {
 
             <div className="flex flex-wrap gap-2 mb-6">
               {topMatchJob.skills.map((skill, idx) => (
-                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full bg-secondary text-secondary-foreground">
+                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800/60 border border-white/5 text-slate-200">
                   {skill}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <span className="text-sm font-bold text-emerald-400">{topMatchJob.salary}</span>
-            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-primary hover:bg-primary/90">
+          <div className="flex items-center justify-between pt-4 border-t border-white/10">
+            <span className="text-sm font-bold text-sky-400">{topMatchJob.salary}</span>
+            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 hover:opacity-95 shadow-lg">
               Apply Now
             </Button>
           </div>
         </div>
 
         {/* Right: "Why this matches you" Breakdown */}
-        <div className="lg:col-span-5 bg-card border border-border rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex justify-between items-center mb-4 border-b pb-3">
+            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
               <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-400/20">
                 96% Compatibility
               </span>
             </div>
@@ -576,40 +576,40 @@ export default function DashboardPage() {
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Skills Alignment</span>
-                  <span className="text-emerald-400 font-bold">94%</span>
+                  <span className="text-sky-400 font-bold">94%</span>
                 </div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '94%' }} />
+                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '94%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Experience Alignment</span>
-                  <span className="text-emerald-400 font-bold">91%</span>
+                  <span className="text-sky-400 font-bold">91%</span>
                 </div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '91%' }} />
+                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '91%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Location Preference</span>
-                  <span className="text-emerald-400 font-bold">100%</span>
+                  <span className="text-sky-400 font-bold">100%</span>
                 </div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '100%' }} />
+                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '100%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Salary Alignment</span>
-                  <span className="text-emerald-400 font-bold">88%</span>
+                  <span className="text-sky-400 font-bold">88%</span>
                 </div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: '88%' }} />
+                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '88%' }} />
                 </div>
               </div>
             </div>
@@ -618,7 +618,7 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             onClick={() => setSelectedJob(topMatchJob)}
-            className="w-full text-xs font-bold rounded-xl border-primary/30 text-primary hover:bg-primary/10 mt-2"
+            className="w-full text-xs font-bold rounded-xl border-sky-400/30 text-sky-400 hover:bg-sky-500/10 mt-2"
           >
             View Full Analysis
           </Button>
