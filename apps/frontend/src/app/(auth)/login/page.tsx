@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Mail, Building2, User, Shield, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Building2, User, Shield, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -174,43 +174,43 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* Quick Demo Login Triggers */}
-      <div className="p-3 bg-secondary/50 rounded-2xl border space-y-2">
-        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">
-          Instant One-Tap Demo Login
-        </p>
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickDemoLogin('JOB_SEEKER')}
-            disabled={isLoading}
-            className="rounded-xl text-[11px] font-semibold px-1"
-          >
-            Job Seeker
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickDemoLogin('RECRUITER')}
-            disabled={isLoading}
-            className="rounded-xl text-[11px] font-semibold border-primary/30 text-primary hover:bg-primary/10 px-1"
-          >
-            Recruiter
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickDemoLogin('ADMIN')}
-            disabled={isLoading}
-            className="rounded-xl text-[11px] font-semibold border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 px-1"
-          >
-            Admin
-          </Button>
-        </div>
+      {/* Collapsible Quick Demo Login (Subtly demoted) */}
+      <div className="pt-1">
+        <details className="group rounded-xl border border-white/5 bg-slate-900/30 text-xs transition-all">
+          <summary className="flex items-center justify-between p-2.5 cursor-pointer font-medium text-muted-foreground hover:text-foreground select-none">
+            <span className="flex items-center gap-1.5 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+              Try a quick demo account
+            </span>
+            <span className="text-[10px] text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div className="p-2.5 pt-0 grid grid-cols-3 gap-2 border-t border-white/5 mt-1">
+            <button
+              type="button"
+              onClick={() => handleQuickDemoLogin('JOB_SEEKER')}
+              disabled={isLoading}
+              className="py-1.5 px-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-[11px] font-semibold text-slate-300 border border-white/5 transition-colors"
+            >
+              Candidate
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemoLogin('RECRUITER')}
+              disabled={isLoading}
+              className="py-1.5 px-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-[11px] font-semibold text-sky-400 border border-sky-400/20 transition-colors"
+            >
+              Recruiter
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemoLogin('ADMIN')}
+              disabled={isLoading}
+              className="py-1.5 px-2 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-[11px] font-semibold text-teal-400 border border-teal-400/20 transition-colors"
+            >
+              Admin
+            </button>
+          </div>
+        </details>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

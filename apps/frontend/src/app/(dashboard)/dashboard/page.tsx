@@ -562,54 +562,82 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right: "Why this matches you" Breakdown */}
+        {/* Right: "Why this matches you" Breakdown with Radial Score */}
         <div className="lg:col-span-5 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
               <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
               <span className="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-400/20">
-                96% Compatibility
+                AI Verified
               </span>
             </div>
 
-            <div className="space-y-3.5">
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Skills Alignment</span>
-                  <span className="text-sky-400 font-bold">94%</span>
-                </div>
-                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '94%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Experience Alignment</span>
-                  <span className="text-sky-400 font-bold">91%</span>
-                </div>
-                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '91%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Location Preference</span>
-                  <span className="text-sky-400 font-bold">100%</span>
-                </div>
-                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '100%' }} />
+            <div className="flex items-center gap-6 mb-4">
+              {/* Radial Donut Gauge */}
+              <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-slate-800"
+                    strokeWidth="3.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-sky-400 stroke-current"
+                    strokeWidth="3.5"
+                    strokeDasharray="96, 100"
+                    strokeLinecap="round"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span className="text-lg font-black text-sky-400 leading-none">96%</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Match</span>
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Salary Alignment</span>
-                  <span className="text-sky-400 font-bold">88%</span>
+              {/* Differentiated Metrics */}
+              <div className="flex-1 space-y-2.5">
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Skills</span>
+                    <span className="text-sky-400 font-bold">94%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                    <div className="h-full bg-sky-400 rounded-full" style={{ width: '94%' }} />
+                  </div>
                 </div>
-                <div className="h-2 w-full bg-slate-800/80 rounded-full overflow-hidden">
-                  <div className="h-full bg-sky-400 rounded-full" style={{ width: '88%' }} />
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Experience</span>
+                    <span className="text-cyan-400 font-bold">91%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-400 rounded-full" style={{ width: '91%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Location</span>
+                    <span className="text-teal-400 font-bold">100%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                    <div className="h-full bg-teal-400 rounded-full" style={{ width: '100%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Salary</span>
+                    <span className="text-amber-400 font-bold">88%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-400 rounded-full" style={{ width: '88%' }} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -618,7 +646,7 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             onClick={() => setSelectedJob(topMatchJob)}
-            className="w-full text-xs font-bold rounded-xl border-sky-400/30 text-sky-400 hover:bg-sky-500/10 mt-2"
+            className="w-full text-xs font-bold rounded-xl border-sky-400/30 text-sky-400 hover:bg-sky-500/10"
           >
             View Full Analysis
           </Button>
