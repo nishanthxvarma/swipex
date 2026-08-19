@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X } from "lucide-react";
+import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X, Linkedin, Github } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
   
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "Nishanth Varma");
@@ -23,6 +24,28 @@ export default function ProfilePage() {
   const [newSkillInput, setNewSkillInput] = useState("");
   const [showAddSkill, setShowAddSkill] = useState(false);
 
+  const [experiences, setExperiences] = useState([
+    {
+      id: 1,
+      title: "Senior Software & AI Engineer",
+      company: "SwipeX Tech Inc.",
+      date: "Jan 2023 - Present • Full-time",
+      description: "Architected Next.js 15 App Router frontend and FastAPI microservices. Integrated spaCy and Sentence Transformers for real-time ATS match scoring and recommendation feeds.",
+    },
+    {
+      id: 2,
+      title: "Full Stack Developer",
+      company: "InnovateX Labs",
+      date: "Mar 2020 - Dec 2022 • 2 yrs 10 mos",
+      description: "Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.",
+    }
+  ]);
+
+  const [socialLinks, setSocialLinks] = useState([
+    { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/nishanthvarma", colorClass: "bg-blue-500/10 text-blue-500" },
+    { id: 2, name: "GitHub", url: "https://github.com/nishanthxvarma", handle: "github.com/nishanthxvarma", colorClass: "bg-foreground/10 text-foreground" },
+  ]);
+
   // Resume Upload Simulation State
   const [isUploading, setIsUploading] = useState(false);
   const [resumeFileName, setResumeFileName] = useState("Nishanth_Varma_Resume.pdf");
@@ -32,6 +55,13 @@ export default function ProfilePage() {
     const parts = name.split(" ");
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    if (user) {
+      setUser({ ...user, fullName });
+    }
   };
 
   const handleAddSkill = (e: React.FormEvent) => {
@@ -52,10 +82,57 @@ export default function ProfilePage() {
     if (file) {
       setIsUploading(true);
       setResumeFileName(file.name);
+      
+      // Simulate AI Parsing Delay
       setTimeout(() => {
         setIsUploading(false);
-        setAtsScore(Math.floor(Math.random() * 10) + 90); // 90-99 score
-      }, 1500);
+        setAtsScore(98); // High score for new resume
+        
+        // Update profile fields based on simulated resume parsing
+        setHeadline("Lead AI Software Engineer");
+        setLocation("New York, NY (Remote)");
+        setBio("Visionary Lead Software Engineer with 8+ years experience scaling high-traffic AI products. Expert in Next.js, Python microservices, and LLM integrations. Proven track record of reducing latency by 40% and leading cross-functional engineering teams.");
+        
+        setSkills([
+          "React 19", "Next.js 15", "Python", "FastAPI", "PyTorch", "LLMs", "LangChain", 
+          "PostgreSQL", "Redis", "AWS", "Docker", "Kubernetes", "System Design"
+        ]);
+        
+        setExperiences([
+          {
+            id: 1,
+            title: "Lead AI Software Engineer",
+            company: "TechNova Solutions",
+            date: "Feb 2024 - Present • Full-time",
+            description: "Led the migration to a microservices architecture. Integrated custom LLM pipelines for automated data extraction, improving processing speed by 3x. Managed a team of 4 engineers.",
+          },
+          {
+            id: 2,
+            title: "Senior Software & AI Engineer",
+            company: "SwipeX Tech Inc.",
+            date: "Jan 2023 - Feb 2024 • 1 yr 2 mos",
+            description: "Architected Next.js 15 App Router frontend and FastAPI microservices. Integrated spaCy and Sentence Transformers for real-time ATS match scoring and recommendation feeds.",
+          },
+          {
+            id: 3,
+            title: "Full Stack Developer",
+            company: "InnovateX Labs",
+            date: "Mar 2020 - Dec 2022 • 2 yrs 10 mos",
+            description: "Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.",
+          }
+        ]);
+        
+        setSocialLinks([
+          { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/new-profile", colorClass: "bg-blue-500/10 text-blue-500" },
+          { id: 2, name: "GitHub", url: "https://github.com/new-profile", handle: "github.com/new-profile", colorClass: "bg-foreground/10 text-foreground" },
+          { id: 3, name: "Portfolio", url: "https://portfolio.com", handle: "portfolio.dev", colorClass: "bg-purple-500/10 text-purple-500" },
+        ]);
+        
+        if (user) {
+          setUser({ ...user, fullName: "Nishanth Varma (Updated)" });
+          setFullName("Nishanth Varma (Updated)");
+        }
+      }, 2500);
     }
   };
 
@@ -103,7 +180,7 @@ export default function ProfilePage() {
                   className="w-full text-xs font-medium bg-background border px-3 py-1.5 rounded-xl"
                   placeholder="Location"
                 />
-                <Button size="sm" onClick={() => setIsEditing(false)} className="rounded-xl">
+                <Button size="sm" onClick={handleSaveProfile} className="rounded-xl">
                   <Save className="w-4 h-4 mr-1" /> Save Changes
                 </Button>
               </div>
@@ -162,20 +239,15 @@ export default function ProfilePage() {
               <h2 className="text-2xl font-bold flex items-center gap-2"><Briefcase className="w-6 h-6 text-primary" /> Experience</h2>
             </div>
             <div className="bg-card border rounded-2xl p-6 space-y-6 shadow-xs">
-              <div className="relative pl-6 border-l-2 border-primary/20 pb-6">
-                <div className="absolute w-3.5 h-3.5 bg-primary rounded-full -left-[8px] top-1.5 border-2 border-background" />
-                <h3 className="font-bold text-lg">Senior Software & AI Engineer</h3>
-                <div className="text-primary font-semibold text-sm mb-1">SwipeX Tech Inc.</div>
-                <div className="text-xs text-muted-foreground mb-3 font-medium">Jan 2023 - Present • Full-time</div>
-                <p className="text-xs text-muted-foreground leading-relaxed">Architected Next.js 15 App Router frontend and FastAPI microservices. Integrated spaCy and Sentence Transformers for real-time ATS match scoring and recommendation feeds.</p>
-              </div>
-              <div className="relative pl-6 border-l-2 border-primary/20">
-                <div className="absolute w-3.5 h-3.5 bg-primary rounded-full -left-[8px] top-1.5 border-2 border-background" />
-                <h3 className="font-bold text-lg">Full Stack Developer</h3>
-                <div className="text-primary font-semibold text-sm mb-1">InnovateX Labs</div>
-                <div className="text-xs text-muted-foreground mb-3 font-medium">Mar 2020 - Dec 2022 • 2 yrs 10 mos</div>
-                <p className="text-xs text-muted-foreground leading-relaxed">Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.</p>
-              </div>
+              {experiences.map((exp, index) => (
+                <div key={exp.id} className={cn("relative pl-6 border-l-2 border-primary/20", index !== experiences.length - 1 && "pb-6")}>
+                  <div className="absolute w-3.5 h-3.5 bg-primary rounded-full -left-[8px] top-1.5 border-2 border-background" />
+                  <h3 className="font-bold text-lg">{exp.title}</h3>
+                  <div className="text-primary font-semibold text-sm mb-1">{exp.company}</div>
+                  <div className="text-xs text-muted-foreground mb-3 font-medium">{exp.date}</div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{exp.description}</p>
+                </div>
+              ))}
             </div>
           </section>
         </div>
@@ -245,14 +317,14 @@ export default function ProfilePage() {
           <section className="space-y-4">
             <h2 className="text-xl font-bold flex items-center gap-2"><LinkIcon className="w-5 h-5 text-primary" /> Social Links</h2>
             <div className="bg-card border rounded-2xl p-4 space-y-2.5 shadow-xs">
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold">
-                <div className="w-7 h-7 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center"><ExternalLink className="w-3.5 h-3.5" /></div>
-                <div className="flex-1">linkedin.com/in/nishanthvarma</div>
-              </a>
-              <a href="https://github.com/nishanthxvarma" target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold">
-                <div className="w-7 h-7 bg-foreground/10 text-foreground rounded-lg flex items-center justify-center"><Code className="w-3.5 h-3.5" /></div>
-                <div className="flex-1">github.com/nishanthxvarma</div>
-              </a>
+              {socialLinks.map((link) => (
+                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold">
+                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", link.colorClass)}>
+                    {link.name === "LinkedIn" ? <Linkedin className="w-3.5 h-3.5" /> : link.name === "GitHub" ? <Github className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="flex-1 truncate">{link.handle}</div>
+                </a>
+              ))}
             </div>
           </section>
         </div>
@@ -260,3 +332,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
