@@ -7,6 +7,12 @@ export interface User {
   fullName: string;
   role: 'JOB_SEEKER' | 'RECRUITER' | 'ADMIN';
   avatarUrl?: string;
+  headline?: string;
+  location?: string;
+  bio?: string;
+  skills?: string[];
+  experiences?: any[];
+  socialLinks?: any[];
 }
 
 interface AuthTokens {

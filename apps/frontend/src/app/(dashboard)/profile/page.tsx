@@ -12,19 +12,19 @@ export default function ProfilePage() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "Nishanth Varma");
-  const [headline, setHeadline] = useState("Senior Full Stack & AI Engineer");
-  const [location, setLocation] = useState("San Francisco, CA");
+  const [headline, setHeadline] = useState(user?.headline || "Senior Full Stack & AI Engineer");
+  const [location, setLocation] = useState(user?.location || "San Francisco, CA");
   const [bio, setBio] = useState(
-    "Passionate Full Stack Engineer with 6+ years of experience building scalable web applications. Specializing in React 19, Next.js 15, FastAPI, and cloud architecture. I love building intuitive, gesture-driven user experiences."
+    user?.bio || "Passionate Full Stack Engineer with 6+ years of experience building scalable web applications. Specializing in React 19, Next.js 15, FastAPI, and cloud architecture. I love building intuitive, gesture-driven user experiences."
   );
   
-  const [skills, setSkills] = useState([
+  const [skills, setSkills] = useState(user?.skills || [
     "React", "TypeScript", "Node.js", "Next.js", "FastAPI", "PostgreSQL", "AWS", "GraphQL", "Tailwind CSS", "Docker", "Python"
   ]);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [showAddSkill, setShowAddSkill] = useState(false);
 
-  const [experiences, setExperiences] = useState([
+  const [experiences, setExperiences] = useState(user?.experiences || [
     {
       id: 1,
       title: "Senior Software & AI Engineer",
@@ -41,7 +41,7 @@ export default function ProfilePage() {
     }
   ]);
 
-  const [socialLinks, setSocialLinks] = useState([
+  const [socialLinks, setSocialLinks] = useState(user?.socialLinks || [
     { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/nishanthvarma", colorClass: "bg-blue-500/10 text-blue-500" },
     { id: 2, name: "GitHub", url: "https://github.com/nishanthxvarma", handle: "github.com/nishanthxvarma", colorClass: "bg-foreground/10 text-foreground" },
   ]);
@@ -60,7 +60,16 @@ export default function ProfilePage() {
   const handleSaveProfile = () => {
     setIsEditing(false);
     if (user) {
-      setUser({ ...user, fullName });
+      setUser({ 
+        ...user, 
+        fullName, 
+        headline, 
+        location, 
+        bio, 
+        skills, 
+        experiences, 
+        socialLinks 
+      });
     }
   };
 
@@ -93,12 +102,13 @@ export default function ProfilePage() {
         setLocation("New York, NY (Remote)");
         setBio("Visionary Lead Software Engineer with 8+ years experience scaling high-traffic AI products. Expert in Next.js, Python microservices, and LLM integrations. Proven track record of reducing latency by 40% and leading cross-functional engineering teams.");
         
-        setSkills([
+        const newSkills = [
           "React 19", "Next.js 15", "Python", "FastAPI", "PyTorch", "LLMs", "LangChain", 
           "PostgreSQL", "Redis", "AWS", "Docker", "Kubernetes", "System Design"
-        ]);
+        ];
+        setSkills(newSkills);
         
-        setExperiences([
+        const newExperiences = [
           {
             id: 1,
             title: "Lead AI Software Engineer",
@@ -120,17 +130,33 @@ export default function ProfilePage() {
             date: "Mar 2020 - Dec 2022 • 2 yrs 10 mos",
             description: "Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.",
           }
-        ]);
+        ];
+        setExperiences(newExperiences);
         
-        setSocialLinks([
+        const newSocialLinks = [
           { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/new-profile", colorClass: "bg-blue-500/10 text-blue-500" },
           { id: 2, name: "GitHub", url: "https://github.com/new-profile", handle: "github.com/new-profile", colorClass: "bg-foreground/10 text-foreground" },
           { id: 3, name: "Portfolio", url: "https://portfolio.com", handle: "portfolio.dev", colorClass: "bg-purple-500/10 text-purple-500" },
-        ]);
+        ];
+        setSocialLinks(newSocialLinks);
         
         if (user) {
-          setUser({ ...user, fullName: "Nishanth Varma (Updated)" });
-          setFullName("Nishanth Varma (Updated)");
+          const updatedName = "Nishanth Varma (Updated)";
+          const updatedHeadline = "Lead AI Software Engineer";
+          const updatedLocation = "New York, NY (Remote)";
+          const updatedBio = "Visionary Lead Software Engineer with 8+ years experience scaling high-traffic AI products. Expert in Next.js, Python microservices, and LLM integrations. Proven track record of reducing latency by 40% and leading cross-functional engineering teams.";
+          
+          setUser({ 
+            ...user, 
+            fullName: updatedName,
+            headline: updatedHeadline,
+            location: updatedLocation,
+            bio: updatedBio,
+            skills: newSkills,
+            experiences: newExperiences,
+            socialLinks: newSocialLinks
+          });
+          setFullName(updatedName);
         }
       }, 2500);
     }
