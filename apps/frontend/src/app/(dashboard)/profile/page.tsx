@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useResumeStore } from "@/stores/resume-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,48 +11,79 @@ export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   
+  const { activeResume, uploadResume, isUploading, fetchActiveResume } = useResumeStore();
+
+  useEffect(() => {
+    fetchActiveResume();
+  }, [fetchActiveResume]);
+
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState(user?.fullName || "Nishanth Varma");
-  const [headline, setHeadline] = useState(user?.headline || "Senior Full Stack & AI Engineer");
-  const [location, setLocation] = useState(user?.location || "San Francisco, CA");
-  const [bio, setBio] = useState(
-    user?.bio || "Passionate Full Stack Engineer with 6+ years of experience building scalable web applications. Specializing in React 19, Next.js 15, FastAPI, and cloud architecture. I love building intuitive, gesture-driven user experiences."
-  );
-  
-  const [skills, setSkills] = useState(user?.skills || [
-    "React", "TypeScript", "Node.js", "Next.js", "FastAPI", "PostgreSQL", "AWS", "GraphQL", "Tailwind CSS", "Docker", "Python"
-  ]);
+  const [fullName, setFullName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [location, setLocation] = useState("");
+  const [bio, setBio] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [experiences, setExperiences] = useState<any[]>([]);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [showAddSkill, setShowAddSkill] = useState(false);
-
-  const [experiences, setExperiences] = useState(user?.experiences || [
-    {
-      id: 1,
-      title: "Senior Software & AI Engineer",
-      company: "SwipeX Tech Inc.",
-      date: "Jan 2023 - Present • Full-time",
-      description: "Architected Next.js 15 App Router frontend and FastAPI microservices. Integrated spaCy and Sentence Transformers for real-time ATS match scoring and recommendation feeds.",
-    },
-    {
-      id: 2,
-      title: "Full Stack Developer",
-      company: "InnovateX Labs",
-      date: "Mar 2020 - Dec 2022 • 2 yrs 10 mos",
-      description: "Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.",
-    }
-  ]);
-
+  
   const [socialLinks, setSocialLinks] = useState(user?.socialLinks || [
-    { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/nishanthvarma", colorClass: "bg-blue-500/10 text-blue-500" },
-    { id: 2, name: "GitHub", url: "https://github.com/nishanthxvarma", handle: "github.com/nishanthxvarma", colorClass: "bg-foreground/10 text-foreground" },
+    { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com", colorClass: "bg-blue-500/10 text-blue-500" },
+    { id: 2, name: "GitHub", url: "https://github.com", handle: "github.com", colorClass: "bg-foreground/10 text-foreground" },
   ]);
 
-  // Resume Upload Simulation State
-  const [isUploading, setIsUploading] = useState(false);
-  const [resumeFileName, setResumeFileName] = useState("Nishanth_Varma_Resume.pdf");
-  const [atsScore, setAtsScore] = useState(87);
+  const [resumeFileName, setResumeFileName] = useState("");
+  const [atsScore, setAtsScore] = useState(0);
+
+  useEffect(() => {
+    if (activeResume?.parsedData) {
+      const p = activeResume.parsedData;
+      setFullName(p.personalInfo?.name || user?.fullName || "");
+      setHeadline(p.personalInfo?.headline || user?.headline || "");
+      setLocation(p.personalInfo?.location || user?.location || "");
+      setBio((p.personalInfo as any)?.summary || p.personalInfo?.headline || user?.bio || "");
+      
+      const extractedSkills = p.skills ? Object.values(p.skills).flat() as string[] : [];
+      setSkills(extractedSkills.length > 0 ? extractedSkills : user?.skills || []);
+      
+      const extractedExp = p.experience?.map((exp: any, idx: number) => ({
+        id: exp.id || idx,
+        title: exp.role || "",
+        company: exp.company || "",
+        date: exp.duration || "",
+        description: exp.description || "",
+      }));
+      setExperiences(extractedExp && extractedExp.length > 0 ? extractedExp : user?.experiences || []);
+      setAtsScore(activeResume.atsScore || 0);
+      setResumeFileName(activeResume.filename || "Resume.pdf");
+      
+      if (p.personalInfo) {
+        const newLinks = [...(user?.socialLinks || [
+          { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com", colorClass: "bg-blue-500/10 text-blue-500" },
+          { id: 2, name: "GitHub", url: "https://github.com", handle: "github.com", colorClass: "bg-foreground/10 text-foreground" }
+        ])];
+        if (p.personalInfo.linkedin) {
+          newLinks[0].url = p.personalInfo.linkedin;
+          newLinks[0].handle = p.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '');
+        }
+        if (p.personalInfo.github) {
+          newLinks[1].url = p.personalInfo.github;
+          newLinks[1].handle = p.personalInfo.github.replace(/^https?:\/\/(www\.)?/, '');
+        }
+        setSocialLinks(newLinks);
+      }
+    } else if (!activeResume && user) {
+      setFullName(user.fullName || "");
+      setHeadline(user.headline || "");
+      setLocation(user.location || "");
+      setBio(user.bio || "");
+      setSkills(user.skills || []);
+      setExperiences(user.experiences || []);
+    }
+  }, [activeResume, user]);
 
   const getUserInitials = (name: string) => {
+    if (!name) return "U";
     const parts = name.split(" ");
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
@@ -60,16 +92,7 @@ export default function ProfilePage() {
   const handleSaveProfile = () => {
     setIsEditing(false);
     if (user) {
-      setUser({ 
-        ...user, 
-        fullName, 
-        headline, 
-        location, 
-        bio, 
-        skills, 
-        experiences, 
-        socialLinks 
-      });
+      setUser({ ...user, fullName, headline, location, bio, skills, experiences, socialLinks });
     }
   };
 
@@ -86,79 +109,11 @@ export default function ProfilePage() {
     setSkills(skills.filter((s) => s !== skillToRemove));
   };
 
-  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsUploading(true);
       setResumeFileName(file.name);
-      
-      // Simulate AI Parsing Delay
-      setTimeout(() => {
-        setIsUploading(false);
-        setAtsScore(98); // High score for new resume
-        
-        // Update profile fields based on simulated resume parsing
-        setHeadline("Lead AI Software Engineer");
-        setLocation("New York, NY (Remote)");
-        setBio("Visionary Lead Software Engineer with 8+ years experience scaling high-traffic AI products. Expert in Next.js, Python microservices, and LLM integrations. Proven track record of reducing latency by 40% and leading cross-functional engineering teams.");
-        
-        const newSkills = [
-          "React 19", "Next.js 15", "Python", "FastAPI", "PyTorch", "LLMs", "LangChain", 
-          "PostgreSQL", "Redis", "AWS", "Docker", "Kubernetes", "System Design"
-        ];
-        setSkills(newSkills);
-        
-        const newExperiences = [
-          {
-            id: 1,
-            title: "Lead AI Software Engineer",
-            company: "TechNova Solutions",
-            date: "Feb 2024 - Present • Full-time",
-            description: "Led the migration to a microservices architecture. Integrated custom LLM pipelines for automated data extraction, improving processing speed by 3x. Managed a team of 4 engineers.",
-          },
-          {
-            id: 2,
-            title: "Senior Software & AI Engineer",
-            company: "SwipeX Tech Inc.",
-            date: "Jan 2023 - Feb 2024 • 1 yr 2 mos",
-            description: "Architected Next.js 15 App Router frontend and FastAPI microservices. Integrated spaCy and Sentence Transformers for real-time ATS match scoring and recommendation feeds.",
-          },
-          {
-            id: 3,
-            title: "Full Stack Developer",
-            company: "InnovateX Labs",
-            date: "Mar 2020 - Dec 2022 • 2 yrs 10 mos",
-            description: "Developed core features for SaaS platforms using React, TypeScript, and PostgreSQL. Built automated payment pipelines and CI/CD workflows.",
-          }
-        ];
-        setExperiences(newExperiences);
-        
-        const newSocialLinks = [
-          { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com/in/new-profile", colorClass: "bg-blue-500/10 text-blue-500" },
-          { id: 2, name: "GitHub", url: "https://github.com/new-profile", handle: "github.com/new-profile", colorClass: "bg-foreground/10 text-foreground" },
-          { id: 3, name: "Portfolio", url: "https://portfolio.com", handle: "portfolio.dev", colorClass: "bg-purple-500/10 text-purple-500" },
-        ];
-        setSocialLinks(newSocialLinks);
-        
-        if (user) {
-          const updatedName = "Nishanth Varma (Updated)";
-          const updatedHeadline = "Lead AI Software Engineer";
-          const updatedLocation = "New York, NY (Remote)";
-          const updatedBio = "Visionary Lead Software Engineer with 8+ years experience scaling high-traffic AI products. Expert in Next.js, Python microservices, and LLM integrations. Proven track record of reducing latency by 40% and leading cross-functional engineering teams.";
-          
-          setUser({ 
-            ...user, 
-            fullName: updatedName,
-            headline: updatedHeadline,
-            location: updatedLocation,
-            bio: updatedBio,
-            skills: newSkills,
-            experiences: newExperiences,
-            socialLinks: newSocialLinks
-          });
-          setFullName(updatedName);
-        }
-      }, 2500);
+      await uploadResume(file);
     }
   };
 
