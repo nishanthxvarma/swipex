@@ -21,6 +21,15 @@ class ResumeModel(Base):
     health_report = Column(JSON, default=dict)
     suggestions = Column(JSON, default=list)
     is_active = Column(Boolean, default=True)
+
+    # Versioning & extraction metadata (Backward-compatible additions)
+    parser_version = Column(String, default="2.0.0", nullable=True)
+    scoring_version = Column(String, default="2.0.0", nullable=True)
+    model_version = Column(String, default="deterministic-v2", nullable=True)
+    extraction_confidence = Column(Float, default=1.0, nullable=True)
+    raw_text = Column(String, nullable=True)
+    evidence_spans = Column(JSON, default=dict, nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -29,6 +38,23 @@ class ResumeModel(Base):
     projects = relationship("ResumeProjectModel", back_populates="resume", cascade="all, delete-orphan")
     education = relationship("ResumeEducationModel", back_populates="resume", cascade="all, delete-orphan")
     experience = relationship("ResumeExperienceModel", back_populates="resume", cascade="all, delete-orphan")
+    analysis_history = relationship("ResumeAnalysisHistoryModel", back_populates="resume", cascade="all, delete-orphan")
+
+
+class ResumeAnalysisHistoryModel(Base):
+    __tablename__ = "resume_analysis_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    resume_id = Column(UUID(as_uuid=True), ForeignKey("resumes.id", ondelete="CASCADE"), index=True, nullable=False)
+    parser_version = Column(String, nullable=False, default="2.0.0")
+    scoring_version = Column(String, nullable=False, default="2.0.0")
+    ats_score = Column(Float, default=0.0)
+    ats_breakdown = Column(JSON, default=dict)
+    health_report = Column(JSON, default=dict)
+    suggestions = Column(JSON, default=list)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    resume = relationship("ResumeModel", back_populates="analysis_history")
 
 
 class ResumeSkillModel(Base):

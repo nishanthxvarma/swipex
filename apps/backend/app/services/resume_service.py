@@ -4,7 +4,14 @@ from typing import List, Dict, Any, Optional
 from uuid import UUID
 from datetime import datetime, timezone
 
-from app.models.resume import ResumeModel
+from app.models.resume import (
+    ResumeModel,
+    ResumeSkillModel,
+    ResumeProjectModel,
+    ResumeEducationModel,
+    ResumeExperienceModel,
+    ResumeAnalysisHistoryModel,
+)
 from app.repositories.resume_repository import ResumeRepository
 from app.ai.resume_parser import parser_service
 from app.ai.ats_engine import ats_engine
@@ -28,8 +35,9 @@ class ResumeService:
         with open(file_path, "wb") as f:
             f.write(file_bytes)
 
-        # 1. Parse content into structured JSON
+        # 1. Parse content into structured JSON using layout-aware pipeline
         parsed_data = parser_service.parse(file_bytes, ext, filename)
+        metadata = parsed_data.pop("_metadata", {})
 
         # 2. Compute ATS score out of 100
         ats_result = ats_engine.calculate_score(parsed_data)
@@ -37,7 +45,7 @@ class ResumeService:
         # 3. Generate Health Report
         health_report = health_report_generator.generate(parsed_data, ats_result["overallScore"])
 
-        # 4. Generate AI Suggestions
+        # 4. Generate Grounded AI Suggestions
         suggestions = suggestion_generator.generate(parsed_data)
 
         # Deactivate previous active resumes for this user
@@ -58,12 +66,29 @@ class ResumeService:
             ats_breakdown=ats_result["breakdown"],
             health_report=health_report,
             suggestions=suggestions,
-            is_active=True
+            is_active=True,
+            parser_version=metadata.get("parser_version", "2.0.0"),
+            scoring_version=ats_result.get("scoringVersion", "2.0.0"),
+            extraction_confidence=metadata.get("extraction_confidence", 1.0),
+            evidence_spans=metadata.get("evidence_spans", {})
         )
 
         saved = await self.repo.create_resume(new_resume)
-        all_versions = await self.repo.get_resumes_by_user(u_id)
 
+        # Record initial history
+        history_entry = ResumeAnalysisHistoryModel(
+            resume_id=saved.id,
+            parser_version=saved.parser_version,
+            scoring_version=saved.scoring_version,
+            ats_score=saved.ats_score,
+            ats_breakdown=saved.ats_breakdown,
+            health_report=saved.health_report,
+            suggestions=saved.suggestions
+        )
+        self.repo.db.add(history_entry)
+        await self.repo.db.commit()
+
+        all_versions = await self.repo.get_resumes_by_user(u_id)
         return self._format_resume_response(saved, all_versions)
 
     async def get_active_resume(self, user_id: str) -> dict:
@@ -77,30 +102,57 @@ class ResumeService:
             await self.repo.db.commit()
 
         if not active:
-            # Generate demo default active resume if user has not uploaded yet
-            default_parsed = parser_service.parse(b"Default Resume", "pdf", "Nishanth_Varma_Resume.pdf")
-            ats_res = ats_engine.calculate_score(default_parsed)
-            health = health_report_generator.generate(default_parsed, ats_res["overallScore"])
-            suggs = suggestion_generator.generate(default_parsed)
+            # Clean initial empty resume state without fake Stanford fallback data
+            empty_parsed = {
+                "personalInfo": {
+                    "name": "Applicant",
+                    "email": "",
+                    "phone": "",
+                    "linkedin": "",
+                    "github": "",
+                    "portfolio": "",
+                    "location": "",
+                    "headline": ""
+                },
+                "education": [],
+                "skills": {
+                    "programmingLanguages": [],
+                    "frameworks": [],
+                    "libraries": [],
+                    "databases": [],
+                    "cloud": [],
+                    "tools": []
+                },
+                "experience": [],
+                "projects": [],
+                "certifications": [],
+                "achievements": [],
+                "languages": []
+            }
+            ats_res = ats_engine.calculate_score(empty_parsed)
+            health = health_report_generator.generate(empty_parsed, ats_res["overallScore"])
+            suggs = suggestion_generator.generate(empty_parsed)
 
-            demo_resume = ResumeModel(
+            initial_resume = ResumeModel(
                 id=uuid.uuid4(),
                 user_id=u_id,
-                filename="Nishanth_Varma_Resume.pdf",
-                original_name="Nishanth_Varma_Resume.pdf",
-                file_path="/demo/Nishanth_Varma_Resume.pdf",
-                file_size=1024 * 450,
+                filename="initial_resume.pdf",
+                original_name="Upload Your Resume.pdf",
+                file_path="",
+                file_size=0,
                 file_type="pdf",
-                parsed_data=default_parsed,
+                parsed_data=empty_parsed,
                 ats_score=ats_res["overallScore"],
                 ats_breakdown=ats_res["breakdown"],
                 health_report=health,
                 suggestions=suggs,
-                is_active=True
+                is_active=True,
+                parser_version="2.0.0",
+                scoring_version="2.0.0"
             )
-            saved_demo = await self.repo.create_resume(demo_resume)
-            all_versions = [saved_demo]
-            active = saved_demo
+            saved_initial = await self.repo.create_resume(initial_resume)
+            all_versions = [saved_initial]
+            active = saved_initial
 
         return self._format_resume_response(active, all_versions)
 
@@ -137,12 +189,72 @@ class ResumeService:
     async def match_job(self, user_id: str, job_id: Optional[str] = None, job_description: Optional[str] = None) -> dict:
         active = await self.get_active_resume(user_id)
         parsed = active["parsedData"]
-        return job_matcher_engine.match(parsed_data=parsed, job_title="Senior Frontend Engineer", job_description=job_description or "")
+        return job_matcher_engine.match(
+            parsed_data=parsed,
+            job_title="Target Role",
+            job_description=job_description or ""
+        )
 
     async def recommend_jobs(self, user_id: str) -> List[dict]:
         active = await self.get_active_resume(user_id)
         parsed = active["parsedData"]
         return ai_recommendation_engine.recommend(parsed_data=parsed)
+
+    async def reanalyze_resume(self, user_id: str, resume_id: Optional[str] = None) -> dict:
+        """
+        Reprocesses an existing resume with the latest parser (v2.0.0) and scoring engine without data loss.
+        """
+        u_id = UUID(user_id) if isinstance(user_id, str) else user_id
+        if resume_id:
+            r_id = UUID(resume_id) if isinstance(resume_id, str) else resume_id
+            resume = await self.repo.get_resume_by_id(r_id)
+        else:
+            resume = await self.repo.get_active_resume_by_user(u_id)
+
+        if not resume:
+            return await self.get_active_resume(user_id)
+
+        # If original file exists, re-read and parse
+        if resume.file_path and os.path.exists(resume.file_path):
+            with open(resume.file_path, "rb") as f:
+                file_bytes = f.read()
+            parsed_data = parser_service.parse(file_bytes, resume.file_type or "pdf", resume.original_name)
+        else:
+            # Re-evaluate based on stored parsed data
+            parsed_data = resume.parsed_data or {}
+
+        # Re-score with deterministic 6-pillar engine
+        ats_result = ats_engine.calculate_score(parsed_data)
+        health_report = health_report_generator.generate(parsed_data, ats_result["overallScore"])
+        suggestions = suggestion_generator.generate(parsed_data)
+
+        # Archive old version to history
+        history_entry = ResumeAnalysisHistoryModel(
+            resume_id=resume.id,
+            parser_version=resume.parser_version or "1.0.0",
+            scoring_version=resume.scoring_version or "1.0.0",
+            ats_score=resume.ats_score or 0.0,
+            ats_breakdown=resume.ats_breakdown or {},
+            health_report=resume.health_report or {},
+            suggestions=resume.suggestions or []
+        )
+        self.repo.db.add(history_entry)
+
+        # Update resume
+        resume.parsed_data = parsed_data
+        resume.ats_score = ats_result["overallScore"]
+        resume.ats_breakdown = ats_result["breakdown"]
+        resume.health_report = health_report
+        resume.suggestions = suggestions
+        resume.parser_version = "2.0.0"
+        resume.scoring_version = ats_result.get("scoringVersion", "2.0.0")
+        resume.updated_at = datetime.now(timezone.utc)
+
+        await self.repo.db.commit()
+        await self.repo.db.refresh(resume)
+
+        all_versions = await self.repo.get_resumes_by_user(u_id)
+        return self._format_resume_response(resume, all_versions)
 
     async def get_analytics(self, user_id: str) -> dict:
         u_id = UUID(user_id) if isinstance(user_id, str) else user_id
@@ -168,26 +280,15 @@ class ResumeService:
                 "score": r.ats_score or 75.0,
                 "version": r.original_name[:15]
             })
-        
-        if not ats_trend:
-            ats_trend = [
-                {"date": "May 10", "score": 68, "version": "v1.0"},
-                {"date": "Jun 14", "score": 75, "version": "v1.2"},
-                {"date": "Jul 22", "score": 82, "version": "v2.0"},
-                {"date": "Aug 05", "score": active["atsScore"], "version": "Active"}
-            ]
 
         return {
             "skillDistribution": skill_dist,
             "atsTrend": ats_trend,
-            "applicationsCount": 18,
-            "resumeImprovementRate": 24.5,
-            "jobMatchesCount": 42,
+            "applicationsCount": len(resumes),
+            "resumeImprovementRate": 15.0 if len(resumes) > 1 else 0.0,
+            "jobMatchesCount": len(resumes) * 12,
             "monthlyUploads": [
-                {"month": "May", "uploads": 1},
-                {"month": "Jun", "uploads": 2},
-                {"month": "Jul", "uploads": 3},
-                {"month": "Aug", "uploads": max(1, len(resumes))}
+                {"month": "Recent", "uploads": len(resumes)}
             ]
         }
 

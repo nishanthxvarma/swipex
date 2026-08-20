@@ -1,5 +1,17 @@
+"""
+SwipeX Evidence-Grounded Resume Health Report Generator.
+Computes readability metrics, action-verb density, and fact-grounded recommendations.
+"""
+
+import re
+from typing import Dict, List, Any
+
 class HealthReportGenerator:
-    def generate(self, parsed_data: dict, ats_score: float) -> dict:
+    """
+    Evaluates resume health, formatting strength, and readability based on document facts.
+    """
+
+    def generate(self, parsed_data: Dict[str, Any], ats_score: float) -> Dict[str, Any]:
         personal_info = parsed_data.get("personalInfo", {})
         skills = parsed_data.get("skills", {})
         projects = parsed_data.get("projects", [])
@@ -12,62 +24,89 @@ class HealthReportGenerator:
         duplicate_info = []
         grammar_alerts = []
 
-        # Strengths
-        if personal_info.get("email") and personal_info.get("phone"):
-            strengths.append("Complete contact details including verified email and phone number.")
-        
-        all_skills = []
+        # 1. Contact Information Analysis
+        has_email = bool(personal_info.get("email"))
+        has_phone = bool(personal_info.get("phone"))
+        has_links = bool(personal_info.get("linkedin") or personal_info.get("github") or personal_info.get("portfolio"))
+
+        if has_email and has_phone:
+            strengths.append("Complete verified contact details with email and phone number.")
+        else:
+            weaknesses.append("Incomplete contact details (ensure email and phone are present in header).")
+
+        if not has_links:
+            missing_sections.append("Online developer profile links (LinkedIn, GitHub, or Portfolio)")
+
+        # 2. Skills Inventory Analysis
+        all_skills: List[str] = []
         for cat, skl in skills.items():
             all_skills.extend(skl)
+        unique_skills_count = len(set(all_skills))
+
+        if unique_skills_count >= 12:
+            strengths.append(f"Rich technical skill inventory with {unique_skills_count} verified technologies.")
+        elif unique_skills_count >= 6:
+            strengths.append(f"Core technical skills identified ({unique_skills_count} skills).")
+        else:
+            weaknesses.append("Technical skill section is sparse (recommend listing 8+ relevant tools & technologies).")
+
+        # 3. Work & Project Impact Metrics Analysis
+        all_descriptions = [p.get("description", "") for p in projects] + [e.get("description", "") for e in experience]
+        total_desc_text = " ".join(all_descriptions)
         
-        if len(all_skills) >= 10:
-            strengths.append(f"Rich technical skill inventory with {len(all_skills)} categorized skills.")
-        if projects:
-            strengths.append(f"Contains {len(projects)} featured technical projects with stack details.")
+        has_metrics = bool(re.search(r'\b\d+(?:%|\+?k?|\s*x|\s*ms|\s*s)\b', total_desc_text))
+        if has_metrics:
+            strengths.append("Includes quantifiable impact metrics (percentages, performance numbers, or user scale).")
+        else:
+            weaknesses.append("Work and project descriptions lack quantifiable impact metrics (e.g., 'improved latency by 30%').")
 
-        # Weaknesses
-        has_metrics = any(any(char.isdigit() for char in p.get("description", "")) for p in projects) or \
-                      any(any(char.isdigit() for char in e.get("description", "")) for e in experience)
-        if not has_metrics:
-            weaknesses.append("Descriptions lack quantified achievements (e.g. 'improved performance by 25%').")
-
+        # 4. Certifications Check
         if not certifications:
-            missing_sections.append("Industry Certifications (e.g., AWS, GCP, Meta, Scrum Master)")
+            missing_sections.append("Industry-recognized certifications (e.g. AWS, GCP, Azure, CKA, Scrum)")
+        else:
+            strengths.append(f"Contains {len(certifications)} professional certification credentials.")
 
-        if not personal_info.get("portfolio") and not personal_info.get("github"):
-            missing_sections.append("Developer Portfolio or GitHub Profile Link")
+        # 5. Active Action Verb Analysis
+        action_verb_count = len(re.findall(r'(?i)\b(architected|engineered|developed|implemented|optimized|designed|spearheaded|built|led|delivered)\b', total_desc_text))
+        if action_verb_count >= 3:
+            strengths.append(f"Strong usage of impactful action verbs ({action_verb_count} instances detected).")
+        else:
+            grammar_alerts.append("Consider replacing passive phrasing ('worked on', 'helped with') with strong action verbs ('Architected', 'Engineered', 'Optimized').")
 
-        # Grammar & duplicate checks
-        grammar_alerts.append("Consider replacing passive phrasing like 'worked on' with action verbs like 'Engineered' or 'Architected'.")
+        # 6. Readability & Density Metrics
+        keyword_density_rating = "Optimal" if unique_skills_count >= 10 else ("Moderate" if unique_skills_count >= 5 else "Low")
+        formatting_quality = "Excellent" if ats_score >= 80 else ("Good" if ats_score >= 65 else "Basic")
         
-        # Readability & density
-        keyword_density_rating = "Optimal" if len(all_skills) >= 10 else "Low"
-        formatting_quality = "Excellent" if ats_score >= 80 else ("Good" if ats_score >= 60 else "Basic")
-        readability_score = min(96.0, max(65.0, ats_score + 8.0))
+        # Approximate Flesch Reading Ease calculation
+        words = total_desc_text.split()
+        sentences = max(1, len(re.split(r'[.!?]+', total_desc_text)))
+        words_per_sentence = len(words) / sentences if words else 15
+        
+        readability_score = round(min(98.0, max(50.0, 100.0 - (words_per_sentence * 1.5))), 1)
 
         items = [
             {
                 "category": "Strengths",
-                "title": "Comprehensive Technical Stack",
-                "description": f"Extracted {len(all_skills)} verified technical skills across programming, frameworks, and databases.",
+                "title": "Technical Skill Coverage",
+                "description": f"Extracted {unique_skills_count} canonical technical skills across programming languages, frameworks, and databases.",
                 "type": "strength"
             },
             {
                 "category": "Weaknesses",
-                "title": "Impact Metrics Recommendation",
-                "description": "Include measurable metrics (percentages, user counts, performance gains) in work bullet points.",
-                "type": "weakness"
+                "title": "Quantified Impact Metrics",
+                "description": "Quantifiable outcomes (e.g. percentages, performance gains, uptime) strengthen recruiter confidence." if not has_metrics else "Quantified metrics successfully present in descriptions.",
+                "type": "info" if has_metrics else "weakness"
             },
             {
                 "category": "Keyword Density",
                 "title": f"Keyword Density: {keyword_density_rating}",
-                "description": "High alignment with high-demand job market keywords.",
+                "description": f"Extracted {unique_skills_count} categorized skill entities without keyword stuffing.",
                 "type": "info"
             },
             {
                 "category": "Readability",
-                "title": f"Flesch Readability: {int(readability_score)}/100",
-                "description": "Clean structure with clear section headers and concise bullet points.",
+                "title": f"Readability Index: {int(readability_score)}/100",
+                "description": "Clear section boundaries and structured bullet points.",
                 "type": "info"
             }
         ]
@@ -80,7 +119,7 @@ class HealthReportGenerator:
             "grammarAlerts": grammar_alerts,
             "keywordDensityRating": keyword_density_rating,
             "formattingQuality": formatting_quality,
-            "overallReadabilityScore": round(readability_score, 1),
+            "overallReadabilityScore": readability_score,
             "items": items
         }
 

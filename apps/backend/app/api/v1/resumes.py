@@ -111,6 +111,18 @@ async def match_job(
         job_description=payload.jobDescription
     )
 
+@router.post("/reanalyze")
+@router.post("/reanalyze/{resume_id}")
+async def reanalyze_resume(
+    resume_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """
+    Reprocesses active or specific resume using v2.0.0 parser and 6-pillar scoring engine.
+    """
+    return await resume_service.reanalyze_resume(current_user["id"], resume_id)
+
 @router.post("/setActive/{resume_id}")
 async def set_active_resume(
     resume_id: str,

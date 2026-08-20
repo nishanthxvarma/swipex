@@ -32,7 +32,7 @@ def decode_token(token: str) -> dict:
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     payload = decode_token(token)
-    return {"id": payload.get("sub"), "role": payload.get("role")}
+    return {"id": payload.get("sub"), "sub": payload.get("sub"), "role": payload.get("role")}
 
 def require_role(role: str):
     async def role_checker(current_user: dict = Depends(get_current_user)):
