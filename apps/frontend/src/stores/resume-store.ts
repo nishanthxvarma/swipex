@@ -16,7 +16,7 @@ import { useAuthStore } from './auth-store';
 const getApiClient = () => {
   const token = useAuthStore.getState().tokens?.accessToken || null;
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend.onrender.com/api/v1',
     () => token,
     (t) => {}
   );
