@@ -5,6 +5,21 @@ interface RequestConfig extends RequestInit {
   params?: Record<string, any>;
 }
 
+function defaultGetToken(): string | null {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('swipex-auth-storage');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed?.state?.tokens?.accessToken || parsed?.state?.tokens?.access_token || null;
+      }
+    } catch (e) {
+      console.error('Error reading auth token from localStorage', e);
+    }
+  }
+  return null;
+}
+
 export class ApiClient {
   private baseUrl: string;
   private getToken: () => string | null;
@@ -13,7 +28,7 @@ export class ApiClient {
 
   constructor(
     baseUrl = API_BASE_URL,
-    getToken: () => string | null = () => null,
+    getToken: () => string | null = defaultGetToken,
     setToken = (_token: string | null) => {},
     handleRefresh = async () => null
   ) {
