@@ -20,11 +20,11 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
 
   if (isLoading) {
     return (
-      <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-4 animate-pulse">
-        <div className="h-6 w-48 bg-muted rounded-lg" />
+      <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-4 animate-pulse">
+        <div className="h-6 w-48 glass-1 rounded-lg" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="h-36 bg-muted rounded-2xl" />
-          <div className="h-36 bg-muted rounded-2xl" />
+          <div className="h-36 glass-1 rounded-2xl" />
+          <div className="h-36 glass-1 rounded-2xl" />
         </div>
       </div>
     );
@@ -35,34 +35,34 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
   );
 
   return (
-    <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
             AI Recommended Jobs (Skill-Matched)
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#66788A] mt-0.5">
             Personalized role recommendations based on your parsed technical skills and experience.
           </p>
         </div>
 
         {/* Tier Filter Tabs */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold rounded-xl border border-purple-500/20">
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-[#7DD3FC] dark:text-[#BFE8FF] text-xs font-bold rounded-xl border border-[rgba(190,225,255,0.12)]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>AI Learning Enabled (Adapting to Swipe Preferences)</span>
           </div>
 
-          <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-xl text-xs font-bold border">
+          <div className="flex flex-wrap gap-1 p-1 glass-1 rounded-xl text-xs font-bold border">
             {(['All', 'Top Match', 'Good Match', 'Stretch Match'] as const).map((tier) => (
               <button
                 key={tier}
                 onClick={() => setSelectedTierFilter(tier)}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   selectedTierFilter === tier
-                    ? 'bg-card text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'glass-1 text-[#F5FAFF] shadow-xs'
+                    : 'text-[#66788A] hover:text-[#F5FAFF]'
                 }`}
               >
                 {tier}
@@ -84,31 +84,31 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
           return (
             <div
               key={job.id}
-              className="p-5 rounded-2xl border bg-secondary/30 hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="p-5 rounded-2xl border glass-1/30 hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
             >
               <div className="space-y-2">
                 <div className="flex justify-between items-start">
                   <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeClass}`}>
                     {job.tier} ({job.matchPercentage}% Match)
                   </span>
-                  <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                  <span className="text-[11px] font-bold text-[#66788A] flex items-center gap-1">
                     <Award className="w-3.5 h-3.5 text-emerald-500" /> Exp ATS: {job.expectedAtsScore}
                   </span>
                 </div>
 
-                <h4 className="font-bold text-base text-foreground leading-snug">{job.jobTitle}</h4>
+                <h4 className="font-bold text-base text-[#F5FAFF] leading-snug">{job.jobTitle}</h4>
                 <p className="text-xs font-semibold text-primary">{job.companyName}</p>
 
-                <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium pt-0.5">
+                <div className="flex items-center gap-3 text-xs text-[#66788A] font-medium pt-0.5">
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" /> {job.location}
                   </span>
-                  <span className="flex items-center gap-1 font-semibold text-foreground">
+                  <span className="flex items-center gap-1 font-semibold text-[#F5FAFF]">
                     <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> {job.salary}
                   </span>
                 </div>
 
-                <p className="text-xs text-muted-foreground bg-card p-2.5 rounded-xl border leading-relaxed">
+                <p className="text-xs text-[#66788A] glass-1 p-2.5 rounded-xl border leading-relaxed">
                   {job.reason}
                 </p>
 
@@ -121,7 +121,7 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
                       </span>
                     ))}
                     {job.missingSkills?.slice(0, 2).map((m, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-secondary text-muted-foreground rounded-md font-semibold border">
+                      <span key={idx} className="px-2 py-0.5 glass-1 text-[#66788A] rounded-md font-semibold border">
                         + {m}
                       </span>
                     ))}

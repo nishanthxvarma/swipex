@@ -15,7 +15,7 @@ export default function Loading() {
         
         {/* Loading text */}
         <div className="mt-8 flex items-center space-x-2">
-          <span className="text-lg font-medium text-foreground tracking-tight">Loading SwipeX</span>
+          <span className="text-lg font-medium text-[#F5FAFF] tracking-tight">Loading SwipeX</span>
           <span className="flex space-x-1">
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: '0ms' }} />
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: '150ms' }} />

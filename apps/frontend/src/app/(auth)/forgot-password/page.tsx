@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
-          <p className="text-muted-foreground">
+          <p className="text-[#66788A]">
             We've sent a password reset link to your email address.
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
     >
       <div className="space-y-2 text-center md:text-left">
         <h1 className="text-3xl font-bold tracking-tight">Forgot Password</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[#66788A]">
           Enter your email address and we'll send you a link to reset your password.
         </p>
       </div>
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-[#66788A]" />
             <Input
               id="email"
               type="email"
@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-[#66788A]">
         <Link href="/login" className="flex items-center justify-center font-medium text-primary hover:underline">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to sign in

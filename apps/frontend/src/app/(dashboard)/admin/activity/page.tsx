@@ -48,7 +48,7 @@ export default function AdminActivityPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Real-Time Activity & Audit Logs</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-[#66788A] text-sm mt-1">
             Monitor real-time system events, authentication attempts, recruiter verifications, and user actions.
           </p>
         </div>
@@ -58,13 +58,13 @@ export default function AdminActivityPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 bg-card p-3 rounded-2xl border">
+      <div className="flex flex-wrap items-center gap-2 glass-1 p-3 rounded-2xl border">
         {['ALL', 'RECRUITER', 'USER', 'AUTH', 'APPLICATION', 'SYSTEM'].map((type) => (
           <button
             key={type}
             onClick={() => setFilter(type)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              filter === type ? 'bg-primary text-primary-foreground shadow-xs' : 'bg-muted text-muted-foreground hover:text-foreground'
+              filter === type ? 'bg-primary text-primary-foreground shadow-xs' : 'glass-1 text-[#66788A] hover:text-[#F5FAFF]'
             }`}
           >
             {type}
@@ -72,8 +72,8 @@ export default function AdminActivityPage() {
         ))}
       </div>
 
-      <div className="bg-card border rounded-3xl p-6 font-mono text-xs space-y-3 shadow-xs">
-        <div className="flex items-center justify-between border-b pb-3 text-muted-foreground font-sans font-bold">
+      <div className="glass-1 border rounded-3xl p-6 font-mono text-xs space-y-3 shadow-xs">
+        <div className="flex items-center justify-between border-b pb-3 text-[#66788A] font-sans font-bold">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-primary" />
             System Event Output Log Stream
@@ -89,12 +89,12 @@ export default function AdminActivityPage() {
 
         <div className="space-y-2">
           {logs.length === 0 && !isLoading ? (
-            <div className="p-8 text-center text-muted-foreground font-sans text-xs">
+            <div className="p-8 text-center text-[#66788A] font-sans text-xs">
               No audit logs recorded for this category yet.
             </div>
           ) : (
             logs.map((log) => (
-              <div key={log.id} className="p-3 rounded-xl bg-muted/40 border flex items-start justify-between gap-4">
+              <div key={log.id} className="p-3 rounded-xl glass-1/40 border flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 font-sans font-bold">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] ${
@@ -103,12 +103,12 @@ export default function AdminActivityPage() {
                     }`}>
                       {log.type}
                     </span>
-                    <span className="text-muted-foreground text-[10px]">{log.timestamp}</span>
+                    <span className="text-[#66788A] text-[10px]">{log.timestamp}</span>
                   </div>
-                  <p className="text-foreground text-xs">{log.message}</p>
+                  <p className="text-[#F5FAFF] text-xs">{log.message}</p>
                 </div>
 
-                <div className="text-[10px] text-muted-foreground whitespace-nowrap font-sans font-semibold">
+                <div className="text-[10px] text-[#66788A] whitespace-nowrap font-sans font-semibold">
                   STATUS: 200 OK
                 </div>
               </div>

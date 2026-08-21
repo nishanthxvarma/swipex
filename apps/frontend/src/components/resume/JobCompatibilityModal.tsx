@@ -30,7 +30,7 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="bg-card border rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+        className="glass-1 border rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between border-b pb-4">
           <div className="flex items-center gap-2.5">
@@ -39,10 +39,10 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
             </div>
             <div>
               <h3 className="font-bold text-lg">Job Compatibility Engine</h3>
-              <p className="text-xs text-muted-foreground">Compare your active resume against target job postings</p>
+              <p className="text-xs text-[#66788A]">Compare your active resume against target job postings</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground">
+          <button onClick={onClose} className="p-2 rounded-full hover:glass-1 text-[#66788A] hover:text-[#F5FAFF]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -50,7 +50,7 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
         {/* Input area */}
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-bold text-muted-foreground block mb-1">Target Role Title</label>
+            <label className="text-xs font-bold text-[#66788A] block mb-1">Target Role Title</label>
             <input
               type="text"
               value={targetRoleTitle}
@@ -61,7 +61,7 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
           </div>
 
           <div>
-            <label className="text-xs font-bold text-muted-foreground block mb-1">Paste Job Description (Optional)</label>
+            <label className="text-xs font-bold text-[#66788A] block mb-1">Paste Job Description (Optional)</label>
             <textarea
               rows={4}
               value={jobDescription}
@@ -92,20 +92,20 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
         {jobMatchResult && (
           <div className="space-y-6 pt-4 border-t">
             {/* Match Score Banner */}
-            <div className="p-5 rounded-2xl bg-secondary/40 border flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-5 rounded-2xl glass-1/40 border flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#66788A]">
                   Job Match Compatibility
                 </span>
                 <h4 className="text-lg font-bold">{jobMatchResult.jobTitle}</h4>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                <p className="text-xs text-[#66788A] mt-1 leading-relaxed">
                   {jobMatchResult.recommendationReason}
                 </p>
               </div>
 
-              <div className="text-center bg-card border px-5 py-3 rounded-2xl shadow-xs shrink-0">
+              <div className="text-center glass-1 border px-5 py-3 rounded-2xl shadow-xs shrink-0">
                 <span className="text-3xl font-black text-primary">{jobMatchResult.matchPercentage}%</span>
-                <span className="text-[10px] font-bold text-muted-foreground block uppercase">Overall Match</span>
+                <span className="text-[10px] font-bold text-[#66788A] block uppercase">Overall Match</span>
               </div>
             </div>
 
@@ -117,7 +117,7 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
                 </h5>
                 <div className="flex flex-wrap gap-1">
                   {jobMatchResult.satisfiedSkills?.map((s, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-card border border-emerald-500/30 rounded-md font-semibold text-emerald-600 dark:text-emerald-400">
+                    <span key={i} className="px-2 py-0.5 glass-1 border border-emerald-500/30 rounded-md font-semibold text-emerald-600 dark:text-emerald-400">
                       ✓ {s}
                     </span>
                   ))}
@@ -130,7 +130,7 @@ export const JobCompatibilityModal: React.FC<JobCompatibilityModalProps> = ({ is
                 </h5>
                 <div className="flex flex-wrap gap-1">
                   {jobMatchResult.missingSkills?.map((m, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-card border border-destructive/30 rounded-md font-semibold text-destructive">
+                    <span key={i} className="px-2 py-0.5 glass-1 border border-destructive/30 rounded-md font-semibold text-destructive">
                       ✕ {m}
                     </span>
                   ))}

@@ -116,7 +116,7 @@ export default function RecruiterJobsPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading active postings...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading active postings...</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function RecruiterJobsPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => loadJobs()} className="rounded-xl font-bold">Retry</Button>
       </div>
     );
@@ -152,7 +152,7 @@ export default function RecruiterJobsPage() {
             <Building2 className="w-8 h-8 text-primary" />
             Manage Job Postings
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Create, monitor, and manage open positions across your organization.</p>
+          <p className="text-[#66788A] text-sm mt-1">Create, monitor, and manage open positions across your organization.</p>
         </div>
 
         <Button onClick={() => setIsAddModalOpen(true)} className="rounded-xl shadow-md font-bold">
@@ -162,10 +162,10 @@ export default function RecruiterJobsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {jobs.map((job) => (
-          <div key={job.id} className="bg-card border rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-primary/50 transition-all">
+          <div key={job.id} className="glass-1 border rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-primary/50 transition-all">
             <div>
               <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{job.department}</span>
+                <span className="text-xs font-semibold text-[#66788A] uppercase tracking-wider">{job.department}</span>
                 <span
                   className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                     job.status === 'Active'
@@ -177,11 +177,11 @@ export default function RecruiterJobsPage() {
                 </span>
               </div>
               <h3 className="font-bold text-xl">{job.title}</h3>
-              <div className="space-y-1.5 mt-3 text-xs text-muted-foreground font-medium">
+              <div className="space-y-1.5 mt-3 text-xs text-[#66788A] font-medium">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-primary" /> {job.location}
                 </div>
-                <div className="flex items-center gap-2 font-semibold text-foreground">
+                <div className="flex items-center gap-2 font-semibold text-[#F5FAFF]">
                   <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> {job.salary}
                 </div>
                 <div className="flex items-center gap-2">
@@ -198,14 +198,14 @@ export default function RecruiterJobsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleStatus(job.id)}
-                  className="p-2 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-2 hover:glass-1 rounded-lg text-[#66788A] hover:text-[#F5FAFF] transition-colors"
                   title={job.status === 'Active' ? 'Pause Listing' : 'Activate Listing'}
                 >
                   <PauseCircle className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => deleteJob(job.id)}
-                  className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
+                  className="p-2 hover:bg-destructive/10 rounded-lg text-[#66788A] hover:text-destructive transition-colors"
                   title="Delete Posting"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -219,7 +219,7 @@ export default function RecruiterJobsPage() {
       {/* Add Job Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}>
-          <form onSubmit={handleAddJob} className="bg-card border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+          <form onSubmit={handleAddJob} className="glass-1 border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold text-lg border-b pb-3">Create Job Posting</h3>
 
             <div className="space-y-3 text-sm">

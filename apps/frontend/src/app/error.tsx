@@ -25,7 +25,7 @@ export default function Error({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="z-10 max-w-lg space-y-6 rounded-2xl border bg-card p-8 shadow-sm"
+        className="z-10 max-w-lg space-y-6 rounded-2xl border glass-1 p-8 shadow-sm"
       >
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle className="h-8 w-8 text-destructive" />
@@ -33,7 +33,7 @@ export default function Error({
 
         <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">Something went wrong</h2>
-          <p className="text-muted-foreground">
+          <p className="text-[#66788A]">
             We encountered an unexpected error while trying to process your request.
           </p>
         </div>
@@ -46,12 +46,12 @@ export default function Error({
               onClick={() => setShowDetails(!showDetails)}
               className="mb-2 w-full justify-between"
             >
-              <span className="font-medium text-muted-foreground">Error Details (Dev Only)</span>
+              <span className="font-medium text-[#66788A]">Error Details (Dev Only)</span>
               {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
             
             {showDetails && (
-              <div className="overflow-auto rounded-md bg-secondary p-4 text-xs font-mono text-secondary-foreground max-h-48">
+              <div className="overflow-auto rounded-md glass-1 p-4 text-xs font-mono text-secondary-foreground max-h-48">
                 <p className="font-bold mb-2">{error.name}: {error.message}</p>
                 <p className="whitespace-pre-wrap">{error.stack}</p>
               </div>

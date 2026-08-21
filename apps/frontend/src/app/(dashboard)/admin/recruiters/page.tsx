@@ -72,27 +72,27 @@ export default function AdminRecruitersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Recruiter & Employer Accreditation</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-[#66788A] text-sm mt-1">
             Review company verification requests, adjust job posting quotas, and monitor recruiter status.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Verified Employers</p>
+        <div className="p-5 rounded-3xl glass-1 border">
+          <p className="text-xs font-bold text-[#66788A] uppercase">Verified Employers</p>
           <h3 className="text-3xl font-black mt-2 text-emerald-600">{verifiedCount}</h3>
         </div>
-        <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Pending Applications</p>
-          <h3 className="text-3xl font-black mt-2 text-purple-600">{pendingCount}</h3>
+        <div className="p-5 rounded-3xl glass-1 border">
+          <p className="text-xs font-bold text-[#66788A] uppercase">Pending Applications</p>
+          <h3 className="text-3xl font-black mt-2 text-[#7DD3FC]">{pendingCount}</h3>
         </div>
-        <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Total Registered Recruiters</p>
+        <div className="p-5 rounded-3xl glass-1 border">
+          <p className="text-xs font-bold text-[#66788A] uppercase">Total Registered Recruiters</p>
           <h3 className="text-3xl font-black mt-2">{recruiters.length}</h3>
         </div>
-        <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Suspended Accounts</p>
+        <div className="p-5 rounded-3xl glass-1 border">
+          <p className="text-xs font-bold text-[#66788A] uppercase">Suspended Accounts</p>
           <h3 className="text-3xl font-black mt-2 text-rose-600">{suspendedCount}</h3>
         </div>
       </div>
@@ -105,19 +105,19 @@ export default function AdminRecruitersPage() {
       )}
 
       {/* Recruiter List */}
-      <div className="bg-card border rounded-3xl overflow-hidden shadow-xs">
+      <div className="glass-1 border rounded-3xl overflow-hidden shadow-xs">
         <div className="p-4 border-b flex items-center justify-between">
           <h3 className="font-bold text-base">Registered Employer Companies</h3>
           {isLoading && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
         </div>
         <div className="divide-y">
           {recruiters.length === 0 && !isLoading ? (
-            <div className="p-8 text-center text-xs text-muted-foreground">No recruiters registered yet.</div>
+            <div className="p-8 text-center text-xs text-[#66788A]">No recruiters registered yet.</div>
           ) : (
             recruiters.map((rec) => (
-              <div key={rec.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
+              <div key={rec.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:glass-1/20 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 font-bold">
+                  <div className="p-3 rounded-2xl bg-[#BFE8FF]/10 text-[#7DD3FC] font-bold">
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
@@ -127,7 +127,7 @@ export default function AdminRecruitersPage() {
                         <ShieldCheck className="w-4 h-4 text-emerald-500" />
                       )}
                     </h4>
-                    <p className="text-xs text-muted-foreground">{rec.email} • Quota: {rec.postsQuota} postings</p>
+                    <p className="text-xs text-[#66788A]">{rec.email} • Quota: {rec.postsQuota} postings</p>
                   </div>
                 </div>
 

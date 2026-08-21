@@ -12,14 +12,14 @@ export const ResumeHealthReportCard: React.FC<ResumeHealthReportCardProps> = ({ 
   if (!healthReport) return null;
 
   return (
-    <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <FileSearch className="w-5 h-5 text-primary" />
             Resume Health Diagnostics Report
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#66788A] mt-0.5">
             Automated quality evaluation across readability, keyword density, and structural integrity.
           </p>
         </div>
@@ -40,7 +40,7 @@ export const ResumeHealthReportCard: React.FC<ResumeHealthReportCardProps> = ({ 
           <h4 className="font-bold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
             <CheckCircle className="w-4 h-4" /> Core Strengths ({healthReport.strengths?.length || 0})
           </h4>
-          <ul className="space-y-1.5 text-xs text-muted-foreground">
+          <ul className="space-y-1.5 text-xs text-[#66788A]">
             {healthReport.strengths?.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <span className="text-emerald-500 font-bold">•</span>
@@ -55,7 +55,7 @@ export const ResumeHealthReportCard: React.FC<ResumeHealthReportCardProps> = ({ 
           <h4 className="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" /> Improvement Areas ({healthReport.weaknesses?.length || 0})
           </h4>
-          <ul className="space-y-1.5 text-xs text-muted-foreground">
+          <ul className="space-y-1.5 text-xs text-[#66788A]">
             {healthReport.weaknesses?.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <span className="text-amber-500 font-bold">•</span>
@@ -66,14 +66,14 @@ export const ResumeHealthReportCard: React.FC<ResumeHealthReportCardProps> = ({ 
         </div>
 
         {/* Missing Sections */}
-        <div className="p-4 rounded-2xl bg-secondary/50 border space-y-2.5">
-          <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+        <div className="p-4 rounded-2xl glass-1/50 border space-y-2.5">
+          <h4 className="font-bold text-sm text-[#F5FAFF] flex items-center gap-2">
             <Layers className="w-4 h-4 text-primary" /> Missing Recommended Sections
           </h4>
           {healthReport.missingSections?.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {healthReport.missingSections.map((sec, idx) => (
-                <span key={idx} className="text-xs font-semibold px-2.5 py-1 bg-card border rounded-lg text-muted-foreground">
+                <span key={idx} className="text-xs font-semibold px-2.5 py-1 glass-1 border rounded-lg text-[#66788A]">
                   + Add {sec}
                 </span>
               ))}
@@ -86,11 +86,11 @@ export const ResumeHealthReportCard: React.FC<ResumeHealthReportCardProps> = ({ 
         </div>
 
         {/* Grammar & Phrasing Alerts */}
-        <div className="p-4 rounded-2xl bg-secondary/50 border space-y-2.5">
-          <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+        <div className="p-4 rounded-2xl glass-1/50 border space-y-2.5">
+          <h4 className="font-bold text-sm text-[#F5FAFF] flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-primary" /> Phrasing & Style Suggestions
           </h4>
-          <ul className="space-y-1.5 text-xs text-muted-foreground">
+          <ul className="space-y-1.5 text-xs text-[#66788A]">
             {healthReport.grammarAlerts?.map((alert, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>

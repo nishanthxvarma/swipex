@@ -1,56 +1,74 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Building2, Sparkles, Star } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row bg-background">
-      {/* Left Sidebar (Marketing Panel) */}
-      <div className="relative hidden w-full flex-col justify-between bg-card border-r border-border md:flex md:w-5/12 lg:w-5/12 p-10 overflow-hidden">
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+    <div
+      className="flex min-h-screen items-center justify-center px-4 py-12"
+      style={{
+        background: '#060B12',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Ambient top glow */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(37,99,235,0.06) 0%, transparent 70%)',
+        }}
+      />
 
-        <div className="relative z-10 flex items-center gap-2.5 font-extrabold text-2xl tracking-tight text-foreground">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-700 to-indigo-700 text-white shadow-md">
-            <Sparkles className="h-5 w-5" />
+      {/* Subtle mid glow */}
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          top: '30%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '600px',
+          height: '600px',
+          background: 'radial-gradient(ellipse, rgba(191,232,255,0.018) 0%, transparent 70%)',
+          borderRadius: '50%',
+        }}
+      />
+
+      {/* Auth card — glass L3 */}
+      <div
+        className="relative w-full max-w-sm rounded-2xl p-8"
+        style={{
+          background: 'rgba(220,240,255,0.055)',
+          backdropFilter: 'blur(36px)',
+          WebkitBackdropFilter: 'blur(36px)',
+          border: '1px solid rgba(190,225,255,0.16)',
+          boxShadow: '0 0 0 1px rgba(190,225,255,0.08) inset, 0 20px 60px rgba(0,0,0,0.5)',
+        }}
+      >
+        {/* Inner ambient glow */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{ background: 'radial-gradient(ellipse at top, rgba(191,232,255,0.03) 0%, transparent 60%)' }}
+        />
+
+        {/* Logo */}
+        <div className="relative flex items-center gap-2.5 mb-7">
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.058)',
+              backdropFilter: 'blur(28px)',
+              WebkitBackdropFilter: 'blur(28px)',
+              border: '1px solid rgba(190,225,255,0.13)',
+            }}
+          >
+            <Sparkles className="h-4 w-4" style={{ color: '#BFE8FF' }} />
           </div>
-          SwipeX
-        </div>
-
-        <div className="relative z-10 my-auto space-y-6 max-w-md py-12">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-primary/10 text-primary border border-primary/20">
-            INTELLIGENT MATCHING ENGINE
+          <span className="text-[20px] font-bold tracking-tight" style={{ color: '#F5FAFF' }}>
+            SwipeX
           </span>
-          <h1 className="text-4xl font-extrabold tracking-tight leading-tight text-foreground">
-            Discover your next opportunity with a single swipe.
-          </h1>
-          <p className="text-muted-foreground text-base leading-relaxed">
-            Real-time skill alignment, automated ATS analysis, and instant matching across candidate, recruiter, and enterprise workspaces.
-          </p>
-
-          <div className="pt-4 flex items-center gap-4 text-xs text-muted-foreground font-semibold">
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 10,000+ Active Roles</span>
-            <span>•</span>
-            <span>96% Avg Match Score</span>
-          </div>
         </div>
 
-        <div className="relative z-10 text-xs text-muted-foreground font-medium">
-          © 2026 SwipeX. All rights reserved.
-        </div>
-      </div>
-
-      {/* Right Content Area */}
-      <div className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-24">
-        {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-center gap-2 font-bold text-2xl mb-8 text-foreground">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          SwipeX
-        </div>
-        <div className="mx-auto w-full max-w-md sm:max-w-lg space-y-6">
+        <div className="relative">
           {children}
         </div>
       </div>

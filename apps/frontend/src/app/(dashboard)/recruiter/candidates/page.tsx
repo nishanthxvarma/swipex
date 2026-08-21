@@ -116,7 +116,7 @@ export default function RecruiterCandidatesPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading candidates feed...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading candidates feed...</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function RecruiterCandidatesPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry</Button>
       </div>
     );
@@ -150,20 +150,20 @@ export default function RecruiterCandidatesPage() {
             <Sparkles className="w-8 h-8 text-primary" />
             Candidate Discovery
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Swipe right to shortlist top matched talent for your open roles.</p>
+          <p className="text-[#66788A] text-sm mt-1">Swipe right to shortlist top matched talent for your open roles.</p>
         </div>
         
-        <div className="text-xs font-bold bg-secondary px-3 py-1.5 rounded-full border">
+        <div className="text-xs font-bold glass-1 px-3 py-1.5 rounded-full border">
           Shortlisted: <span className="text-primary ml-1">{shortlisted.length}</span>
         </div>
       </div>
 
       <div className="relative w-full max-w-md mx-auto h-[540px] flex flex-col items-center justify-center">
         {!activeCandidate ? (
-          <div className="text-center p-8 bg-card rounded-3xl border shadow-md w-full space-y-4">
+          <div className="text-center p-8 glass-1 rounded-3xl border shadow-md w-full space-y-4">
             <div className="text-4xl">🎉</div>
             <h3 className="text-xl font-bold">All Candidates Reviewed!</h3>
-            <p className="text-muted-foreground text-xs">You have reviewed all available candidate profiles for your active listings.</p>
+            <p className="text-[#66788A] text-xs">You have reviewed all available candidate profiles for your active listings.</p>
             <Button
               onClick={() => {
                 setCandidates(CANDIDATES);
@@ -176,7 +176,7 @@ export default function RecruiterCandidatesPage() {
             </Button>
           </div>
         ) : (
-          <div className="relative w-full h-[480px] bg-card border rounded-3xl shadow-xl p-6 flex flex-col justify-between overflow-hidden">
+          <div className="relative w-full h-[480px] glass-1 border rounded-3xl shadow-xl p-6 flex flex-col justify-between overflow-hidden">
             <div>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
@@ -196,20 +196,20 @@ export default function RecruiterCandidatesPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 text-xs font-medium text-muted-foreground mb-4">
-                <span className="flex items-center gap-1 bg-secondary px-2.5 py-1 rounded-lg">
+              <div className="flex flex-wrap gap-2 text-xs font-medium text-[#66788A] mb-4">
+                <span className="flex items-center gap-1 glass-1 px-2.5 py-1 rounded-lg">
                   <MapPin className="w-3.5 h-3.5 text-primary" /> {activeCandidate.location}
                 </span>
-                <span className="flex items-center gap-1 bg-secondary px-2.5 py-1 rounded-lg">
+                <span className="flex items-center gap-1 glass-1 px-2.5 py-1 rounded-lg">
                   <Briefcase className="w-3.5 h-3.5 text-primary" /> {activeCandidate.experience}
                 </span>
               </div>
 
               <div className="space-y-2 mb-4">
-                <span className="text-xs font-bold text-muted-foreground block">Key Technical Skills</span>
+                <span className="text-xs font-bold text-[#66788A] block">Key Technical Skills</span>
                 <div className="flex flex-wrap gap-1.5">
                   {activeCandidate.skills.map((s, i) => (
-                    <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-secondary border rounded-lg">
+                    <span key={i} className="text-xs font-semibold px-2.5 py-1 glass-1 border rounded-lg">
                       {s}
                     </span>
                   ))}
@@ -217,8 +217,8 @@ export default function RecruiterCandidatesPage() {
               </div>
 
               <div className="space-y-1">
-                <span className="text-xs font-bold text-muted-foreground block">About</span>
-                <p className="text-xs text-muted-foreground leading-relaxed p-3 bg-secondary/40 rounded-xl">
+                <span className="text-xs font-bold text-[#66788A] block">About</span>
+                <p className="text-xs text-[#66788A] leading-relaxed p-3 glass-1/40 rounded-xl">
                   {activeCandidate.bio}
                 </p>
               </div>
@@ -235,7 +235,7 @@ export default function RecruiterCandidatesPage() {
               <button
                 onClick={handleUndo}
                 disabled={history.length === 0}
-                className="w-10 h-10 rounded-full bg-secondary text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center justify-center transition-all"
+                className="w-10 h-10 rounded-full glass-1 text-[#66788A] hover:text-[#F5FAFF] disabled:opacity-40 flex items-center justify-center transition-all"
                 title="Undo"
               >
                 <RotateCcw className="w-4 h-4" />

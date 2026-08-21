@@ -10,7 +10,7 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 const COLUMNS = [
   { id: "applied", title: "Applied", color: "bg-blue-500", badgeColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
   { id: "reviewing", title: "Reviewing", color: "bg-amber-500", badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  { id: "interview", title: "Interview", color: "bg-purple-500", badgeColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
+  { id: "interview", title: "Interview", color: "bg-purple-500", badgeColor: "bg-[#BFE8FF]/10 text-[#7DD3FC] dark:text-[#BFE8FF]" },
   { id: "offer", title: "Offer", color: "bg-emerald-500", badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
   { id: "rejected", title: "Rejected", color: "bg-rose-500", badgeColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400" }
 ];
@@ -172,7 +172,7 @@ export default function ApplicationsPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading tracker pipeline...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading tracker pipeline...</p>
       </div>
     );
   }
@@ -182,7 +182,7 @@ export default function ApplicationsPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => loadApplications()} className="rounded-xl font-bold">Retry</Button>
       </div>
     );
@@ -197,20 +197,20 @@ export default function ApplicationsPage() {
             <Briefcase className="w-8 h-8 text-primary" />
             Application Tracker
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage, update, and track your job search progress in real-time.</p>
+          <p className="text-[#66788A] text-sm mt-1">Manage, update, and track your job search progress in real-time.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center border rounded-xl p-1 bg-card shadow-xs">
+          <div className="flex items-center border rounded-xl p-1 glass-1 shadow-xs">
             <button
               onClick={() => setViewMode("kanban")}
-              className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all", viewMode === "kanban" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground")}
+              className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all", viewMode === "kanban" ? "bg-primary text-primary-foreground shadow-xs" : "text-[#66788A] hover:text-[#F5FAFF]")}
             >
               <LayoutGrid className="w-3.5 h-3.5" /> Kanban
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all", viewMode === "table" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground")}
+              className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all", viewMode === "table" ? "bg-primary text-primary-foreground shadow-xs" : "text-[#66788A] hover:text-[#F5FAFF]")}
             >
               <List className="w-3.5 h-3.5" /> List
             </button>
@@ -224,20 +224,20 @@ export default function ApplicationsPage() {
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-card border rounded-2xl p-4 shadow-xs">
-          <p className="text-xs text-muted-foreground font-medium">Total Tracked</p>
+        <div className="glass-1 border rounded-2xl p-4 shadow-xs">
+          <p className="text-xs text-[#66788A] font-medium">Total Tracked</p>
           <p className="text-2xl font-bold mt-1">{applications.length}</p>
         </div>
-        <div className="bg-card border rounded-2xl p-4 shadow-xs">
-          <p className="text-xs text-muted-foreground font-medium">Active Interviews</p>
-          <p className="text-2xl font-bold mt-1 text-purple-500">{applications.filter(a => a.status === "interview").length}</p>
+        <div className="glass-1 border rounded-2xl p-4 shadow-xs">
+          <p className="text-xs text-[#66788A] font-medium">Active Interviews</p>
+          <p className="text-2xl font-bold mt-1 text-[#BFE8FF]">{applications.filter(a => a.status === "interview").length}</p>
         </div>
-        <div className="bg-card border rounded-2xl p-4 shadow-xs">
-          <p className="text-xs text-muted-foreground font-medium">Offers Received</p>
+        <div className="glass-1 border rounded-2xl p-4 shadow-xs">
+          <p className="text-xs text-[#66788A] font-medium">Offers Received</p>
           <p className="text-2xl font-bold mt-1 text-emerald-500">{applications.filter(a => a.status === "offer").length}</p>
         </div>
-        <div className="bg-card border rounded-2xl p-4 shadow-xs">
-          <p className="text-xs text-muted-foreground font-medium">Response Rate</p>
+        <div className="glass-1 border rounded-2xl p-4 shadow-xs">
+          <p className="text-xs text-[#66788A] font-medium">Response Rate</p>
           <p className="text-2xl font-bold mt-1 text-primary">{responseRate}%</p>
         </div>
       </div>
@@ -249,11 +249,11 @@ export default function ApplicationsPage() {
             {COLUMNS.map(col => {
               const colApps = applications.filter(a => a.status === col.id);
               return (
-                <div key={col.id} className="w-80 flex flex-col bg-muted/40 border rounded-2xl p-4 min-h-[500px]">
+                <div key={col.id} className="w-80 flex flex-col glass-1/40 border rounded-2xl p-4 min-h-[500px]">
                   <div className="flex justify-between items-center mb-4 pb-2 border-b">
                     <div className="flex items-center gap-2">
                       <div className={cn("w-3 h-3 rounded-full", col.color)} />
-                      <h3 className="font-bold text-sm text-foreground">{col.title}</h3>
+                      <h3 className="font-bold text-sm text-[#F5FAFF]">{col.title}</h3>
                     </div>
                     <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full", col.badgeColor)}>
                       {colApps.length}
@@ -263,14 +263,14 @@ export default function ApplicationsPage() {
                   <div className="flex-1 space-y-3 overflow-y-auto pr-1">
                     {colApps.length === 0 ? (
                       <div className="text-center py-12 border border-dashed rounded-xl p-4">
-                        <p className="text-xs text-muted-foreground">No applications in this stage</p>
+                        <p className="text-xs text-[#66788A]">No applications in this stage</p>
                       </div>
                     ) : (
                       colApps.map(app => (
                         <div
                           key={app.id}
                           onClick={() => setSelectedApp(app)}
-                          className="bg-card border rounded-xl p-4 shadow-xs hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
+                          className="glass-1 border rounded-xl p-4 shadow-xs hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
                         >
                           <div className="flex items-start gap-3 mb-3">
                             <div
@@ -281,13 +281,13 @@ export default function ApplicationsPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-bold text-sm truncate group-hover:text-primary transition-colors">{app.title}</h4>
-                              <p className="text-xs font-semibold text-muted-foreground">{app.company}</p>
+                              <p className="text-xs font-semibold text-[#66788A]">{app.company}</p>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t">
+                          <div className="flex items-center justify-between text-[11px] text-[#66788A] pt-3 border-t">
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-primary" /> {app.date}</span>
-                            <span className="font-semibold text-foreground">{app.salary}</span>
+                            <span className="font-semibold text-[#F5FAFF]">{app.salary}</span>
                           </div>
                         </div>
                       ))
@@ -300,9 +300,9 @@ export default function ApplicationsPage() {
         </div>
       ) : (
         /* Table View */
-        <div className="border rounded-2xl overflow-hidden bg-card shadow-xs">
+        <div className="border rounded-2xl overflow-hidden glass-1 shadow-xs">
           <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 border-b text-xs font-bold text-muted-foreground uppercase">
+            <thead className="glass-1 border-b text-xs font-bold text-[#66788A] uppercase">
               <tr>
                 <th className="p-4">Company & Position</th>
                 <th className="p-4">Location</th>
@@ -316,7 +316,7 @@ export default function ApplicationsPage() {
               {applications.map(app => {
                 const col = COLUMNS.find(c => c.id === app.status);
                 return (
-                  <tr key={app.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => setSelectedApp(app)}>
+                  <tr key={app.id} className="hover:glass-1/30 transition-colors cursor-pointer" onClick={() => setSelectedApp(app)}>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -326,14 +326,14 @@ export default function ApplicationsPage() {
                           {app.initials}
                         </div>
                         <div>
-                          <div className="font-bold text-foreground">{app.title}</div>
-                          <div className="text-xs text-muted-foreground font-medium">{app.company}</div>
+                          <div className="font-bold text-[#F5FAFF]">{app.title}</div>
+                          <div className="text-xs text-[#66788A] font-medium">{app.company}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-muted-foreground">{app.location}</td>
+                    <td className="p-4 text-[#66788A]">{app.location}</td>
                     <td className="p-4 font-semibold">{app.salary}</td>
-                    <td className="p-4 text-muted-foreground">{app.date}</td>
+                    <td className="p-4 text-[#66788A]">{app.date}</td>
                     <td className="p-4">
                       <span className={cn("inline-block text-xs font-bold px-2.5 py-1 rounded-full capitalize", col?.badgeColor)}>
                         {app.status}
@@ -355,7 +355,7 @@ export default function ApplicationsPage() {
       {/* Application Detail Modal */}
       {selectedApp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedApp(null)}>
-          <div className="bg-card border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6" onClick={e => e.stopPropagation()}>
+          <div className="glass-1 border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start border-b pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm" style={{ backgroundColor: selectedApp.color }}>
@@ -366,23 +366,23 @@ export default function ApplicationsPage() {
                   <p className="text-sm font-semibold text-primary">{selectedApp.company}</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedApp(null)} className="p-1.5 rounded-full hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button onClick={() => setSelectedApp(null)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-4 bg-muted/40 p-4 rounded-xl">
+              <div className="grid grid-cols-2 gap-4 glass-1/40 p-4 rounded-xl">
                 <div>
-                  <span className="text-xs text-muted-foreground block">Location</span>
+                  <span className="text-xs text-[#66788A] block">Location</span>
                   <span className="font-semibold">{selectedApp.location}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-muted-foreground block">Compensation</span>
+                  <span className="text-xs text-[#66788A] block">Compensation</span>
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">{selectedApp.salary}</span>
                 </div>
               </div>
 
               <div>
-                <span className="text-xs font-bold text-muted-foreground block mb-2">Move Application Stage</span>
+                <span className="text-xs font-bold text-[#66788A] block mb-2">Move Application Stage</span>
                 <div className="flex flex-wrap gap-2">
                   {COLUMNS.map(col => (
                     <button
@@ -390,7 +390,7 @@ export default function ApplicationsPage() {
                       onClick={() => moveStatus(selectedApp.id, col.id as any)}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border",
-                        selectedApp.status === col.id ? "bg-primary text-primary-foreground border-primary shadow-xs" : "bg-card hover:bg-muted text-muted-foreground"
+                        selectedApp.status === col.id ? "bg-primary text-primary-foreground border-primary shadow-xs" : "glass-1 hover:glass-1 text-[#66788A]"
                       )}
                     >
                       {col.title}
@@ -401,8 +401,8 @@ export default function ApplicationsPage() {
 
               {selectedApp.notes && (
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground">Notes & Activity</span>
-                  <p className="p-3 bg-secondary rounded-xl text-xs text-foreground font-medium">{selectedApp.notes}</p>
+                  <span className="text-xs font-bold text-[#66788A]">Notes & Activity</span>
+                  <p className="p-3 glass-1 rounded-xl text-xs text-[#F5FAFF] font-medium">{selectedApp.notes}</p>
                 </div>
               )}
             </div>
@@ -417,10 +417,10 @@ export default function ApplicationsPage() {
       {/* Add New Application Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}>
-          <form onSubmit={handleAddApplication} className="bg-card border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
+          <form onSubmit={handleAddApplication} className="glass-1 border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b pb-3">
               <h3 className="font-bold text-lg">Add New Application</h3>
-              <button type="button" onClick={() => setIsAddModalOpen(false)} className="p-1.5 rounded-full hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setIsAddModalOpen(false)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="space-y-3 text-sm">

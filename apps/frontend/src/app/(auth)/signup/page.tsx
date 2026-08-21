@@ -100,7 +100,7 @@ export default function SignupPage() {
   const strength = getPasswordStrength(passwordValue);
 
   const getStrengthColor = (score: number) => {
-    if (score === 0) return 'bg-muted';
+    if (score === 0) return 'glass-1';
     if (score <= 1) return 'bg-red-500';
     if (score === 2) return 'bg-orange-500';
     if (score === 3) return 'bg-yellow-500';
@@ -175,7 +175,7 @@ export default function SignupPage() {
     >
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-muted-foreground">
+        <p className="text-[#66788A]">
           Join SwipeX to find your next opportunity
         </p>
       </div>
@@ -203,7 +203,7 @@ export default function SignupPage() {
                     "flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all",
                     isSelected
                       ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-muted-foreground/50 text-muted-foreground"
+                      : "border-border hover:border-muted-foreground/50 text-[#66788A]"
                   )}
                 >
                   <Icon className="w-5 h-5 mb-1" />
@@ -217,7 +217,7 @@ export default function SignupPage() {
         <div className="space-y-2">
           <Label htmlFor="fullName">Full Name</Label>
           <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <User className="absolute left-3 top-3 h-4 w-4 text-[#66788A]" />
             <Input
               id="fullName"
               placeholder="Nishanth Varma"
@@ -233,7 +233,7 @@ export default function SignupPage() {
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-[#66788A]" />
             <Input
               id="email"
               type="email"
@@ -260,7 +260,7 @@ export default function SignupPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-3 text-[#66788A] hover:text-[#F5FAFF]"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -277,7 +277,7 @@ export default function SignupPage() {
                 key={level}
                 className={cn(
                   "h-1 w-full rounded-full transition-colors",
-                  strength >= level ? getStrengthColor(strength) : "bg-muted"
+                  strength >= level ? getStrengthColor(strength) : "glass-1"
                 )}
               />
             ))}
@@ -333,7 +333,7 @@ export default function SignupPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-[#66788A]">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-primary hover:underline">
           Sign in

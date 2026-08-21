@@ -30,7 +30,7 @@ export default function NotificationCenterPage() {
         return <Sparkles className="w-5 h-5 text-amber-500" />;
       case 'interview_scheduled':
       case 'interview_reminder':
-        return <Calendar className="w-5 h-5 text-purple-500" />;
+        return <Calendar className="w-5 h-5 text-[#BFE8FF]" />;
       case 'application_submitted':
       case 'application_status_changed':
       case 'application_viewed':
@@ -66,7 +66,7 @@ export default function NotificationCenterPage() {
               </span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-[#66788A] text-sm mt-1">
             Stay updated on application responses, interview schedules, ATS analyses, and job matches.
           </p>
         </div>
@@ -96,13 +96,13 @@ export default function NotificationCenterPage() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="p-6 rounded-3xl bg-card border shadow-sm space-y-4"
+          className="p-6 rounded-3xl glass-1 border shadow-sm space-y-4"
         >
           <div className="flex items-center justify-between border-b pb-3">
             <h3 className="font-bold text-base flex items-center gap-2">
               <Settings className="w-4 h-4 text-primary" /> Notification Delivery Preferences
             </h3>
-            <span className="text-xs text-muted-foreground font-medium">Persisted to account</span>
+            <span className="text-xs text-[#66788A] font-medium">Persisted to account</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-semibold">
@@ -114,7 +114,7 @@ export default function NotificationCenterPage() {
               { key: 'analytics', label: 'ATS Analysis & Analytics Reports' },
               { key: 'systemNotifications', label: 'System & Security Alerts' },
             ].map((pref) => (
-              <div key={pref.key} className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border">
+              <div key={pref.key} className="flex items-center justify-between p-3 rounded-2xl glass-1/40 border">
                 <span>{pref.label}</span>
                 <input
                   type="checkbox"
@@ -130,7 +130,7 @@ export default function NotificationCenterPage() {
 
       {/* Category Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-1.5 p-1.5 bg-muted rounded-2xl border text-xs font-bold">
+        <div className="flex flex-wrap gap-1.5 p-1.5 glass-1 rounded-2xl border text-xs font-bold">
           {[
             { id: 'all', label: 'All Notifications' },
             { id: 'unread', label: `Unread (${unreadCount})` },
@@ -143,8 +143,8 @@ export default function NotificationCenterPage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-3.5 py-2 rounded-xl transition-all ${
                 activeTab === tab.id
-                  ? 'bg-card text-foreground shadow-xs border border-border'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'glass-1 text-[#F5FAFF] shadow-xs border border-border'
+                  : 'text-[#66788A] hover:text-[#F5FAFF]'
               }`}
             >
               {tab.label}
@@ -156,10 +156,10 @@ export default function NotificationCenterPage() {
       {/* Notifications List */}
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <div className="p-12 text-center bg-card border rounded-3xl space-y-3">
-            <Bell className="w-10 h-10 text-muted-foreground mx-auto opacity-50" />
+          <div className="p-12 text-center glass-1 border rounded-3xl space-y-3">
+            <Bell className="w-10 h-10 text-[#66788A] mx-auto opacity-50" />
             <h3 className="font-bold text-base">No notifications found</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            <p className="text-xs text-[#66788A] max-w-sm mx-auto">
               You are all caught up! New job matches, application views, and interview alerts will appear here.
             </p>
           </div>
@@ -170,7 +170,7 @@ export default function NotificationCenterPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`p-5 rounded-3xl border transition-all flex items-start justify-between gap-4 ${
-                notif.isRead ? 'bg-card' : 'bg-primary/5 border-primary/20 shadow-xs'
+                notif.isRead ? 'glass-1' : 'bg-primary/5 border-primary/20 shadow-xs'
               }`}
             >
               <div className="flex items-start gap-4">
@@ -179,13 +179,13 @@ export default function NotificationCenterPage() {
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-foreground">{notif.title}</h4>
+                    <h4 className="font-bold text-sm text-[#F5FAFF]">{notif.title}</h4>
                     {!notif.isRead && (
                       <span className="w-2 h-2 rounded-full bg-primary" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{notif.message}</p>
-                  <p className="text-[10px] text-muted-foreground font-mono pt-1">
+                  <p className="text-xs text-[#66788A] leading-relaxed">{notif.message}</p>
+                  <p className="text-[10px] text-[#66788A] font-mono pt-1">
                     {new Date(notif.createdAt).toLocaleString()}
                   </p>
                 </div>
@@ -208,7 +208,7 @@ export default function NotificationCenterPage() {
                   variant="ghost"
                   onClick={() => dismissNotification(notif.id)}
                   title="Dismiss"
-                  className="rounded-xl text-xs text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
+                  className="rounded-xl text-xs text-[#66788A] hover:text-rose-500 hover:bg-rose-500/10"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

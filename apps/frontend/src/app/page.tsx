@@ -60,22 +60,22 @@ function NavBar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</Link>
-          <Link href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">How It Works</Link>
-          <Link href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Testimonials</Link>
+          <Link href="#features" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">Features</Link>
+          <Link href="#how-it-works" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">How It Works</Link>
+          <Link href="#testimonials" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">Testimonials</Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
           {mounted && (
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+              className="p-2 rounded-full text-[#66788A] hover:glass-1 transition-colors"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           )}
-          <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/login" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">
             Sign In
           </Link>
           <Link href="/signup" className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:from-indigo-600 hover:to-purple-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
@@ -85,7 +85,7 @@ function NavBar() {
 
         {/* Mobile Toggle */}
         <button 
-          className="md:hidden p-2 text-foreground"
+          className="md:hidden p-2 text-[#F5FAFF]"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -111,7 +111,7 @@ function NavBar() {
                 {mounted && (
                   <button
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="p-2 rounded-full bg-muted text-foreground"
+                    className="p-2 rounded-full glass-1 text-[#F5FAFF]"
                   >
                     {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   </button>
@@ -146,7 +146,7 @@ function HeroSection() {
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-500/20 rounded-full blur-[120px]"
+          className="absolute top-[10%] left-[10%] w-[40rem] h-[40rem] bg-[#7DD3FC]/20 rounded-full blur-[120px]"
         />
         <motion.div 
           animate={{ 
@@ -154,7 +154,7 @@ function HeroSection() {
             opacity: [0.2, 0.4, 0.2],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[10%] right-[10%] w-[35rem] h-[35rem] bg-purple-500/20 rounded-full blur-[100px]"
+          className="absolute bottom-[10%] right-[10%] w-[35rem] h-[35rem] bg-[#BFE8FF]/20 rounded-full blur-[100px]"
         />
       </div>
 
@@ -168,7 +168,7 @@ function HeroSection() {
             variants={staggerContainer}
             className="flex flex-col items-start text-left"
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-semibold text-purple-400 backdrop-blur-md mb-6 relative overflow-hidden group">
+            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-purple-500/30 bg-[#BFE8FF]/10 px-3.5 py-1 text-xs font-semibold text-[#BFE8FF] backdrop-blur-md mb-6 relative overflow-hidden group">
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               AI-POWERED CAREER DISCOVERY
@@ -183,7 +183,7 @@ function HeroSection() {
               </h1>
             </motion.div>
             
-            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
+            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-[#66788A] mb-8 max-w-xl leading-relaxed">
               SwipeX matches you with intelligent job opportunities based on your real skills, experience, and goals. Fast, fluid, and addictive career discovery.
             </motion.p>
             
@@ -192,29 +192,29 @@ function HeroSection() {
                 Start Swiping
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-xl px-8 text-base font-semibold text-foreground hover:bg-white/10 transition-colors">
+              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-xl px-8 text-base font-semibold text-[#F5FAFF] hover:bg-white/10 transition-colors">
                 Explore Demo
               </Link>
             </motion.div>
 
             <motion.div variants={fadeInUp} className="mt-12 pt-8 border-t border-border flex flex-wrap gap-x-8 gap-y-4">
               <div>
-                <p className="text-2xl font-bold text-foreground">10K+</p>
-                <p className="text-sm text-muted-foreground font-medium">Jobs</p>
+                <p className="text-2xl font-bold text-[#F5FAFF]">10K+</p>
+                <p className="text-sm text-[#66788A] font-medium">Jobs</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">95%</p>
-                <p className="text-sm text-muted-foreground font-medium">Match Rate</p>
+                <p className="text-2xl font-bold text-[#F5FAFF]">95%</p>
+                <p className="text-sm text-[#66788A] font-medium">Match Rate</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">500+</p>
-                <p className="text-sm text-muted-foreground font-medium">Companies</p>
+                <p className="text-2xl font-bold text-[#F5FAFF]">500+</p>
+                <p className="text-sm text-[#66788A] font-medium">Companies</p>
               </div>
               <div>
                 <p className="text-2xl font-bold flex items-center gap-1">
                   4.9 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 </p>
-                <p className="text-sm text-muted-foreground font-medium">Rating</p>
+                <p className="text-sm text-[#66788A] font-medium">Rating</p>
               </div>
             </motion.div>
           </motion.div>
@@ -226,12 +226,12 @@ function HeroSection() {
           >
             {/* Card 3 (Bottom) */}
             <motion.div 
-              className="absolute w-[340px] h-[480px] bg-card border border-border rounded-3xl shadow-xl z-10 glass"
+              className="absolute w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-xl z-10 glass"
               style={{ top: 80, scale: 0.9, rotate: -4 }}
             />
             {/* Card 2 (Middle) */}
             <motion.div 
-              className="absolute w-[340px] h-[480px] bg-card border border-border rounded-3xl shadow-xl z-20 glass"
+              className="absolute w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-xl z-20 glass"
               style={{ top: 40, scale: 0.95, rotate: 2 }}
             />
             {/* Card 1 (Top) */}
@@ -241,42 +241,42 @@ function HeroSection() {
                 y: [0, -10, 0]
               }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-0 w-[340px] h-[480px] bg-card border border-border rounded-3xl shadow-2xl z-30 overflow-hidden flex flex-col"
+              className="absolute top-0 w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-2xl z-30 overflow-hidden flex flex-col"
             >
               <div className="p-6 pb-4 border-b border-border">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-xl">
+                  <div className="w-12 h-12 bg-[#7DD3FC]/10 rounded-xl flex items-center justify-center text-[#2563EB] font-bold text-xl">
                     S
                   </div>
                   <div className="flex gap-2">
                     <span className="px-2 py-1 bg-green-500/10 text-green-600 text-xs font-semibold rounded-md">98% Match</span>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-1">Senior Frontend Engineer</h3>
-                <p className="text-muted-foreground font-medium flex items-center gap-1 text-sm">
+                <h3 className="text-xl font-bold text-[#F5FAFF] mb-1">Senior Frontend Engineer</h3>
+                <p className="text-[#66788A] font-medium flex items-center gap-1 text-sm">
                   Stripe <MapPin className="w-3 h-3 ml-1" /> San Francisco, CA
                 </p>
               </div>
               <div className="p-6 flex-1 flex flex-col gap-4">
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <Briefcase className="w-4 h-4 text-muted-foreground" /> Full-time • Remote Flexible
+                <div className="flex items-center gap-2 text-sm text-[#F5FAFF]">
+                  <Briefcase className="w-4 h-4 text-[#66788A]" /> Full-time • Remote Flexible
                 </div>
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <DollarSign className="w-4 h-4 text-muted-foreground" /> $150k - $220k
+                <div className="flex items-center gap-2 text-sm text-[#F5FAFF]">
+                  <DollarSign className="w-4 h-4 text-[#66788A]" /> $150k - $220k
                 </div>
                 <div className="mt-auto">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Required Skills</p>
+                  <p className="text-xs font-semibold text-[#66788A] uppercase mb-2">Required Skills</p>
                   <div className="flex flex-wrap gap-2">
                     {['React', 'TypeScript', 'Next.js', 'Framer Motion'].map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-secondary text-secondary-foreground text-xs rounded-full font-medium">
+                      <span key={skill} className="px-3 py-1 glass-1 text-secondary-foreground text-xs rounded-full font-medium">
                         {skill}
                       </span>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="p-4 grid grid-cols-2 gap-3 bg-muted/50 border-t border-border">
-                <div className="h-12 rounded-xl bg-card border border-border shadow-sm flex items-center justify-center font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors cursor-pointer">
+              <div className="p-4 grid grid-cols-2 gap-3 glass-1 border-t border-border">
+                <div className="h-12 rounded-xl glass-1 border border-border shadow-sm flex items-center justify-center font-semibold text-[#66788A] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors cursor-pointer">
                   Pass
                 </div>
                 <div className="h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md flex items-center justify-center font-semibold hover:opacity-90 transition-opacity cursor-pointer">
@@ -291,7 +291,7 @@ function HeroSection() {
                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                className="absolute left-[-2rem] top-1/2 -translate-y-1/2 hidden xl:block"
             >
-              <div className="w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground">
+              <div className="w-12 h-12 rounded-full glass-1 border border-border shadow-lg flex items-center justify-center text-[#66788A]">
                 <X className="w-5 h-5" />
               </div>
             </motion.div>
@@ -316,14 +316,14 @@ const companies = ['Google', 'Meta', 'Apple', 'Amazon', 'Microsoft', 'Stripe', '
 
 function TrustSection() {
   return (
-    <section className="py-10 border-y border-border bg-muted/30 overflow-hidden">
+    <section className="py-10 border-y border-border glass-1/30 overflow-hidden">
       <div className="container mx-auto px-4 text-center mb-6">
-        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Trusted by teams at</p>
+        <p className="text-sm font-semibold text-[#66788A] uppercase tracking-wider">Trusted by teams at</p>
       </div>
       <div className="relative flex overflow-x-hidden">
         <div className="animate-marquee whitespace-nowrap flex gap-16 px-8 items-center justify-center">
           {[...companies, ...companies].map((company, i) => (
-            <span key={i} className="text-2xl font-bold text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-default">
+            <span key={i} className="text-2xl font-bold text-[#66788A]/40 hover:text-[#66788A] transition-colors cursor-default">
               {company}
             </span>
           ))}
@@ -351,7 +351,7 @@ function FeaturesSection() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Everything you need to land your dream job</h2>
-          <p className="text-lg text-muted-foreground">Stop searching, start swiping. SwipeX provides a complete toolkit to supercharge your job hunt.</p>
+          <p className="text-lg text-[#66788A]">Stop searching, start swiping. SwipeX provides a complete toolkit to supercharge your job hunt.</p>
         </div>
 
         <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -361,14 +361,14 @@ function FeaturesSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="p-6 md:p-8 rounded-3xl border border-border bg-card shadow-sm hover-lift relative overflow-hidden group"
+              className="p-6 md:p-8 rounded-3xl border border-border glass-1 shadow-sm hover-lift relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                 <feature.icon className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+              <p className="text-[#66788A] leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -388,11 +388,11 @@ function HowItWorksSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="how-it-works" className="py-24 bg-muted/30 relative">
+    <section id="how-it-works" className="py-24 glass-1/30 relative">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">How SwipeX Works</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">A seamless experience designed to get you hired faster.</p>
+          <p className="text-lg text-[#66788A] max-w-2xl mx-auto">A seamless experience designed to get you hired faster.</p>
         </div>
 
         <div ref={ref} className="max-w-5xl mx-auto relative">
@@ -412,7 +412,7 @@ function HowItWorksSection() {
                   {step.num}
                 </div>
                 <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                <p className="text-muted-foreground">{step.desc}</p>
+                <p className="text-[#66788A]">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -498,7 +498,7 @@ function TestimonialsSection() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Loved by job seekers worldwide</h2>
-          <p className="text-lg text-muted-foreground">Don't just take our word for it.</p>
+          <p className="text-lg text-[#66788A]">Don't just take our word for it.</p>
         </div>
 
         <div ref={ref} className="grid md:grid-cols-3 gap-6 md:gap-8">
@@ -508,21 +508,21 @@ function TestimonialsSection() {
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, delay: idx * 0.2 }}
-              className="bg-card p-8 rounded-3xl border border-border shadow-sm flex flex-col h-full hover:shadow-md transition-shadow"
+              className="glass-1 p-8 rounded-3xl border border-border shadow-sm flex flex-col h-full hover:shadow-md transition-shadow"
             >
               <div className="flex gap-1 mb-6">
                 {[1, 2, 3, 4, 5].map(star => (
                   <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <p className="text-lg font-medium mb-8 flex-1 italic text-foreground">"{t.quote}"</p>
+              <p className="text-lg font-medium mb-8 flex-1 italic text-[#F5FAFF]">"{t.quote}"</p>
               <div className="flex items-center gap-4 mt-auto">
                 <div className={`w-12 h-12 rounded-full ${t.color} text-white flex items-center justify-center font-bold text-lg`}>
                   {t.initials}
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">{t.name}</p>
-                  <p className="text-sm text-muted-foreground">{t.role} at {t.company}</p>
+                  <p className="font-bold text-[#F5FAFF]">{t.name}</p>
+                  <p className="text-sm text-[#66788A]">{t.role} at {t.company}</p>
                 </div>
               </div>
             </motion.div>
@@ -570,7 +570,7 @@ function CTASection() {
               placeholder="Enter your email" 
               className="h-14 px-6 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1 backdrop-blur-sm"
             />
-            <button type="submit" className="h-14 px-8 rounded-full bg-white text-indigo-600 font-bold text-lg hover:bg-white/90 transition-all hover:scale-105 shadow-xl cursor-pointer">
+            <button type="submit" className="h-14 px-8 rounded-full bg-white text-[#2563EB] font-bold text-lg hover:bg-white/90 transition-all hover:scale-105 shadow-xl cursor-pointer">
               Get Started Free
             </button>
           </form>
@@ -593,51 +593,51 @@ function Footer() {
               </div>
               <span className="font-bold text-xl tracking-tight">SwipeX</span>
             </Link>
-            <p className="text-muted-foreground mb-6 max-w-sm">
+            <p className="text-[#66788A] mb-6 max-w-sm">
               The AI-powered career discovery platform that helps you land your dream job with a single swipe.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors"><ExternalLink className="w-5 h-5" /></a>
+              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><Send className="w-5 h-5" /></a>
+              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><Globe className="w-5 h-5" /></a>
+              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><ExternalLink className="w-5 h-5" /></a>
             </div>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Product</h4>
+            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Product</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Features</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">API</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Integrations</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Features</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Pricing</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">API</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Integrations</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Company</h4>
+            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Company</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">About</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Blog</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Press</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">About</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Careers</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Blog</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Press</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Legal</h4>
+            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Legal</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Cookies</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Privacy</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Terms</a></li>
+              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Cookies</a></li>
             </ul>
           </div>
         </div>
         
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[#66788A]">
           <p>© 2024 SwipeX. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-[#F5FAFF] transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-[#F5FAFF] transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

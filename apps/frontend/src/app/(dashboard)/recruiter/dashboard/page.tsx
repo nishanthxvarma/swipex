@@ -97,7 +97,7 @@ export default function RecruiterDashboardPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live dashboard...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading live dashboard...</p>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function RecruiterDashboardPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
@@ -150,8 +150,8 @@ export default function RecruiterDashboardPage() {
       trend: 'Next today at 4 PM',
       trendUp: true,
       icon: Calendar,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
+      color: 'text-[#BFE8FF]',
+      bgColor: 'bg-[#BFE8FF]/10',
       href: '/recruiter/pipeline',
     },
   ];
@@ -178,7 +178,7 @@ export default function RecruiterDashboardPage() {
               Employer Workspace
             </span>
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base mt-1">
+          <p className="text-[#66788A] text-sm sm:text-base mt-1">
             Manage open job requisitions, candidate matches, and hiring pipelines.
           </p>
         </div>
@@ -207,11 +207,11 @@ export default function RecruiterDashboardPage() {
           <div
             key={i}
             onClick={() => router.push(stat.href)}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl border glass-1 p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
           >
             <div className="relative flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
+                <p className="text-sm font-semibold text-[#66788A]">{stat.title}</p>
                 <p className="text-3xl font-black tracking-tight">{stat.value}</p>
               </div>
               <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
@@ -249,7 +249,7 @@ export default function RecruiterDashboardPage() {
             {candidates.map((c) => (
               <div
                 key={c.id}
-                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border glass-1 p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -260,17 +260,17 @@ export default function RecruiterDashboardPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                      <h3 className="font-bold text-[#F5FAFF] group-hover:text-primary transition-colors">
                         {c.name}
                       </h3>
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                         {c.matchScore}% Match
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 font-medium">{c.title}</p>
+                    <p className="text-xs text-[#66788A] mt-0.5 font-medium">{c.title}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {c.skills.map((s, idx) => (
-                        <span key={idx} className="text-[10px] font-semibold bg-secondary px-2 py-0.5 rounded-md">
+                        <span key={idx} className="text-[10px] font-semibold glass-1 px-2 py-0.5 rounded-md">
                           {s}
                         </span>
                       ))}
@@ -306,16 +306,16 @@ export default function RecruiterDashboardPage() {
             </Button>
           </div>
 
-          <div className="rounded-2xl border bg-card p-5 shadow-xs space-y-4">
+          <div className="rounded-2xl border glass-1 p-5 shadow-xs space-y-4">
             {[
               { title: 'Senior Frontend Engineer', count: '42 Applicants', location: 'Remote' },
               { title: 'Full Stack Developer', count: '28 Applicants', location: 'San Francisco' },
               { title: 'Product Designer', count: '19 Applicants', location: 'Remote' },
             ].map((job, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 border hover:border-primary/40 transition-all cursor-pointer">
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl glass-1/50 border hover:border-primary/40 transition-all cursor-pointer">
                 <div>
                   <h4 className="font-bold text-sm">{job.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">{job.location}</p>
+                  <p className="text-xs text-[#66788A] mt-0.5">{job.location}</p>
                 </div>
                 <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                   {job.count}
@@ -337,10 +337,10 @@ export default function RecruiterDashboardPage() {
       {/* Post Job Modal */}
       {isPostJobModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsPostJobModalOpen(false)}>
-          <form onSubmit={handlePostJobSubmit} className="bg-card border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+          <form onSubmit={handlePostJobSubmit} className="glass-1 border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b pb-3">
               <h3 className="font-bold text-lg">Post New Job Listing</h3>
-              <button type="button" onClick={() => setIsPostJobModalOpen(false)} className="p-1.5 rounded-full hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setIsPostJobModalOpen(false)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="space-y-3 text-sm">

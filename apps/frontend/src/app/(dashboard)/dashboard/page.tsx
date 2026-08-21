@@ -203,8 +203,8 @@ export default function DashboardPage() {
       trend: 'Next: Tomorrow 2PM',
       trendUp: true,
       icon: Calendar,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
+      color: 'text-[#BFE8FF]',
+      bgColor: 'bg-[#BFE8FF]/10',
       href: '/applications',
     },
     {
@@ -266,8 +266,8 @@ export default function DashboardPage() {
       trend: 'Next today at 4 PM',
       trendUp: true,
       icon: Calendar,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
+      color: 'text-[#BFE8FF]',
+      bgColor: 'bg-[#BFE8FF]/10',
       href: '/applications',
     },
   ];
@@ -287,7 +287,7 @@ export default function DashboardPage() {
       description: 'Technical interview with Netflix on Thursday at 2:00 PM',
       time: '5 hours ago',
       icon: Calendar,
-      iconBg: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+      iconBg: 'bg-[#BFE8FF]/10 text-[#7DD3FC] dark:bg-purple-900/30 dark:text-[#BFE8FF]',
     },
     {
       id: 3,
@@ -322,7 +322,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live workspace...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading live workspace...</p>
       </div>
     );
   }
@@ -332,7 +332,7 @@ export default function DashboardPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{dashboardError}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{dashboardError}</p>
         <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                 Recruiter Portal
               </span>
             </div>
-            <p className="text-muted-foreground text-sm sm:text-base mt-1">
+            <p className="text-[#66788A] text-sm sm:text-base mt-1">
               Manage open job requisitions, candidate matches, and hiring pipelines.
             </p>
           </div>
@@ -370,11 +370,11 @@ export default function DashboardPage() {
             <div
               key={i}
               onClick={() => router.push(stat.href)}
-              className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+              className="group relative overflow-hidden rounded-2xl border glass-1 p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
             >
               <div className="relative flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
+                  <p className="text-sm font-semibold text-[#66788A]">{stat.title}</p>
                   <p className="text-3xl font-black tracking-tight">{stat.value}</p>
                 </div>
                 <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
@@ -412,7 +412,7 @@ export default function DashboardPage() {
               {candidates.map((c) => (
                 <div
                   key={c.id}
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border glass-1 p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -423,17 +423,17 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                        <h3 className="font-bold text-[#F5FAFF] group-hover:text-primary transition-colors">
                           {c.name}
                         </h3>
                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                           {c.matchScore}% Match
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 font-medium">{c.title}</p>
+                      <p className="text-xs text-[#66788A] mt-0.5 font-medium">{c.title}</p>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {c.skills.map((s: any, idx: number) => (
-                          <span key={idx} className="text-[10px] font-semibold bg-secondary px-2 py-0.5 rounded-md">
+                          <span key={idx} className="text-[10px] font-semibold glass-1 px-2 py-0.5 rounded-md">
                             {s}
                           </span>
                         ))}
@@ -457,16 +457,16 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold tracking-tight">Active Requisitions</h2>
             </div>
 
-            <div className="rounded-2xl border bg-card p-5 shadow-xs space-y-4">
+            <div className="rounded-2xl border glass-1 p-5 shadow-xs space-y-4">
               {[
                 { title: 'Senior Frontend Engineer', count: '42 Candidates', location: 'Remote' },
                 { title: 'Full Stack Developer', count: '28 Candidates', location: 'San Francisco' },
                 { title: 'Product Designer', count: '19 Candidates', location: 'Remote' },
               ].map((job, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 border hover:border-primary/40 transition-all cursor-pointer">
+                <div key={idx} className="flex items-center justify-between p-3 rounded-xl glass-1/50 border hover:border-primary/40 transition-all cursor-pointer">
                   <div>
                     <h4 className="font-bold text-sm">{job.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">{job.location}</p>
+                    <p className="text-xs text-[#66788A] mt-0.5">{job.location}</p>
                   </div>
                   <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                     {job.count}
@@ -488,10 +488,10 @@ export default function DashboardPage() {
         {/* Post Job Modal */}
         {isPostJobModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsPostJobModalOpen(false)}>
-            <form onSubmit={handlePostJobSubmit} className="bg-card border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handlePostJobSubmit} className="glass-1 border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center border-b pb-3">
                 <h3 className="font-bold text-lg">Post New Job Listing</h3>
-                <button type="button" onClick={() => setIsPostJobModalOpen(false)} className="p-1.5 rounded-full hover:bg-muted"><X className="w-5 h-5" /></button>
+                <button type="button" onClick={() => setIsPostJobModalOpen(false)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
               </div>
 
               <div className="space-y-3 text-sm">
@@ -535,7 +535,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Good morning, {name} 👋</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
+          <p className="text-[#66788A] text-sm sm:text-base">
             Here's what's happening with your job search today.
           </p>
         </div>
@@ -551,7 +551,7 @@ export default function DashboardPage() {
       {/* Dominant Feature: "Your Next Best Match" (Career Command Center) */}
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
         {/* Left: Main Job Feature */}
-        <div className="lg:col-span-7 bg-card border border-primary/20 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all">
+        <div className="lg:col-span-7 glass-1 border border-primary/20 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
           <div>
             <div className="flex justify-between items-start mb-4">
@@ -563,26 +563,26 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-secondary border border-border flex items-center justify-center text-foreground font-extrabold text-2xl shadow-sm">
+              <div className="w-14 h-14 rounded-2xl glass-1 border border-border flex items-center justify-center text-[#F5FAFF] font-extrabold text-2xl shadow-sm">
                 {topMatchJob.companyInitials}
               </div>
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#F5FAFF] group-hover:text-primary transition-colors">
                   {topMatchJob.title}
                 </h2>
-                <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mt-0.5">
-                  <span className="text-foreground">{topMatchJob.company}</span> • <span>{topMatchJob.location}</span>
+                <p className="text-sm font-semibold text-[#66788A] flex items-center gap-2 mt-0.5">
+                  <span className="text-[#F5FAFF]">{topMatchJob.company}</span> • <span>{topMatchJob.location}</span>
                 </p>
               </div>
             </div>
 
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+            <p className="text-sm text-[#66788A] line-clamp-2 mb-4 leading-relaxed">
               {topMatchJob.description}
             </p>
 
             <div className="flex flex-wrap gap-2 mb-6">
               {topMatchJob.skills.map((skill, idx) => (
-                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full bg-secondary border border-border text-foreground">
+                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full glass-1 border border-border text-[#F5FAFF]">
                   {skill}
                 </span>
               ))}
@@ -598,7 +598,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right: "Why this matches you" Breakdown with Radial Score */}
-        <div className="lg:col-span-5 bg-card border border-border rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 glass-1 border border-border rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
               <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
@@ -629,7 +629,7 @@ export default function DashboardPage() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span className="text-lg font-black text-primary leading-none">96%</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Match</span>
+                  <span className="text-[9px] font-bold text-[#66788A] uppercase mt-0.5">Match</span>
                 </div>
               </div>
 
@@ -637,40 +637,40 @@ export default function DashboardPage() {
               <div className="flex-1 space-y-2.5">
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Skills</span>
+                    <span className="text-[#66788A]">Skills</span>
                     <span className="text-primary font-bold">94%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                     <div className="h-full bg-primary rounded-full" style={{ width: '94%' }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Experience</span>
-                    <span className="text-indigo-500 dark:text-indigo-400 font-bold">91%</span>
+                    <span className="text-[#66788A]">Experience</span>
+                    <span className="text-[#7DD3FC] dark:text-[#7DD3FC] font-bold">91%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: '91%' }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Location</span>
+                    <span className="text-[#66788A]">Location</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">100%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Salary</span>
+                    <span className="text-[#66788A]">Salary</span>
                     <span className="text-amber-600 dark:text-amber-400 font-bold">88%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                     <div className="h-full bg-amber-500 rounded-full" style={{ width: '88%' }} />
                   </div>
                 </div>
@@ -694,11 +694,11 @@ export default function DashboardPage() {
           <div
             key={i}
             onClick={() => router.push(stat.href)}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl border glass-1 p-5 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
           >
             <div className="relative flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.title}</p>
+                <p className="text-xs font-semibold text-[#66788A] uppercase tracking-wider">{stat.title}</p>
                 <p className="text-2xl font-black tracking-tight">{stat.value}</p>
               </div>
               <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
@@ -732,14 +732,14 @@ export default function DashboardPage() {
 
           <div className="space-y-3">
             {jobs.length === 0 ? (
-              <div className="text-center py-12 border border-dashed rounded-2xl p-6 bg-card text-xs text-muted-foreground">
+              <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-[#66788A]">
                 No recommended jobs matching your profile yet.
               </div>
             ) : jobs.map((job) => (
               <div
                 key={job.id}
                 onClick={() => setSelectedJob(job)}
-                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md cursor-pointer"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border glass-1 p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -749,11 +749,11 @@ export default function DashboardPage() {
                     {job.companyInitials}
                   </div>
                   <div>
-                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="font-bold text-[#F5FAFF] group-hover:text-primary transition-colors">
                       {job.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <span className="font-medium text-foreground">{job.company}</span>
+                    <div className="flex items-center gap-2 text-xs text-[#66788A] mt-0.5">
+                      <span className="font-medium text-[#F5FAFF]">{job.company}</span>
                       <span>•</span>
                       <span>{job.location}</span>
                     </div>
@@ -765,7 +765,7 @@ export default function DashboardPage() {
                     <span className="inline-block rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                       {job.atsScore}% Match
                     </span>
-                    <p className="text-xs font-medium text-muted-foreground mt-1">
+                    <p className="text-xs font-medium text-[#66788A] mt-1">
                       {job.salary || '$140k - $180k'}
                     </p>
                   </div>
@@ -784,7 +784,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold tracking-tight">Recent Activity</h2>
           </div>
 
-          <div className="rounded-2xl border bg-card p-6 shadow-xs space-y-6">
+          <div className="rounded-2xl border glass-1 p-6 shadow-xs space-y-6">
             <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
               {recentActivity.map((act) => {
                 return (
@@ -793,9 +793,9 @@ export default function DashboardPage() {
                       <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     </div>
                     <div className="flex-1 space-y-1">
-                      <p className="text-xs font-bold text-foreground">{act.title}</p>
-                      <p className="text-xs text-muted-foreground">{act.description}</p>
-                      <span className="text-[10px] text-muted-foreground font-medium block pt-0.5">
+                      <p className="text-xs font-bold text-[#F5FAFF]">{act.title}</p>
+                      <p className="text-xs text-[#66788A]">{act.description}</p>
+                      <span className="text-[10px] text-[#66788A] font-medium block pt-0.5">
                         {act.time}
                       </span>
                     </div>

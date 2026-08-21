@@ -42,18 +42,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         >
           {/* Search Input Header */}
           <div className="flex items-center p-4 border-b gap-3">
-            <Search className="w-6 h-6 text-muted-foreground" />
+            <Search className="w-6 h-6 text-[#66788A]" />
             <input
               type="text"
               placeholder="Search jobs, companies, skills..."
-              className="flex-1 bg-transparent border-none outline-none text-xl placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent border-none outline-none text-xl placeholder:text-[#66788A]"
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <button
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-muted text-muted-foreground text-xs font-medium px-2"
+              className="p-1 rounded-md hover:glass-1 text-[#66788A] text-xs font-medium px-2"
             >
               ESC
             </button>
@@ -63,33 +63,33 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             {!query ? (
               <>
                 <div className="p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-[#66788A] uppercase tracking-wider mb-3">
                     Recent Searches
                   </h3>
                   <div className="space-y-1">
-                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:glass-1 text-left">
+                      <Clock className="w-4 h-4 text-[#66788A]" />
                       <span>Frontend Engineer Remote</span>
                     </button>
-                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:glass-1 text-left">
+                      <Clock className="w-4 h-4 text-[#66788A]" />
                       <span>Stripe</span>
                     </button>
                   </div>
                 </div>
 
                 <div className="p-4 pt-0">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-[#66788A] uppercase tracking-wider mb-3">
                     Trending
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-1 text-sm cursor-pointer hover:glass-1/80">
                       <TrendingUp className="w-3.5 h-3.5 text-primary" /> React
                     </span>
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-1 text-sm cursor-pointer hover:glass-1/80">
                       <TrendingUp className="w-3.5 h-3.5 text-primary" /> AI Engineer
                     </span>
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-1 text-sm cursor-pointer hover:glass-1/80">
                       <TrendingUp className="w-3.5 h-3.5 text-primary" /> San Francisco
                     </span>
                   </div>
@@ -98,37 +98,37 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             ) : (
               <div className="p-2 space-y-4">
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                  <h3 className="text-xs font-semibold text-[#66788A] uppercase tracking-wider mb-2 px-2">
                     Jobs
                   </h3>
                   <div className="space-y-1">
-                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:glass-1 text-left">
                       <TerminalSquare className="w-5 h-5 text-blue-500" />
                       <div>
                         <div className="font-medium">Senior Software Engineer</div>
-                        <div className="text-xs text-muted-foreground">Google • Remote</div>
+                        <div className="text-xs text-[#66788A]">Google • Remote</div>
                       </div>
                     </button>
-                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:glass-1 text-left">
                       <TerminalSquare className="w-5 h-5 text-blue-500" />
                       <div>
                         <div className="font-medium">Software Developer (React)</div>
-                        <div className="text-xs text-muted-foreground">Meta • New York</div>
+                        <div className="text-xs text-[#66788A]">Meta • New York</div>
                       </div>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                  <h3 className="text-xs font-semibold text-[#66788A] uppercase tracking-wider mb-2 px-2">
                     Companies
                   </h3>
                   <div className="space-y-1">
-                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
-                      <Building2 className="w-5 h-5 text-purple-500" />
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:glass-1 text-left">
+                      <Building2 className="w-5 h-5 text-[#BFE8FF]" />
                       <div>
                         <div className="font-medium">Vercel</div>
-                        <div className="text-xs text-muted-foreground">Technology • 100+ open jobs</div>
+                        <div className="text-xs text-[#66788A]">Technology • 100+ open jobs</div>
                       </div>
                     </button>
                   </div>

@@ -31,7 +31,7 @@ export default function ProfilePage() {
   
   const [socialLinks, setSocialLinks] = useState(user?.socialLinks || [
     { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com", colorClass: "bg-blue-500/10 text-blue-500" },
-    { id: 2, name: "GitHub", url: "https://github.com", handle: "github.com", colorClass: "bg-foreground/10 text-foreground" },
+    { id: 2, name: "GitHub", url: "https://github.com", handle: "github.com", colorClass: "bg-foreground/10 text-[#F5FAFF]" },
   ]);
 
   const [resumeFileName, setResumeFileName] = useState("");
@@ -182,7 +182,7 @@ export default function ProfilePage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading candidate profile from database...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading candidate profile from database...</p>
       </div>
     );
   }
@@ -204,7 +204,7 @@ export default function ProfilePage() {
       )}
 
       {/* Profile Header Card */}
-      <div className="bg-card border rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xs">
+      <div className="glass-1 border rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xs">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
         
         <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start relative z-10">
@@ -267,8 +267,8 @@ export default function ProfilePage() {
                 <h1 className="text-3xl font-bold tracking-tight">{fullName || "Candidate Name"}</h1>
                 <p className="text-lg font-semibold text-primary">{headline || "Software Engineer"}</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-xs font-semibold mt-2">
-                  <span className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full"><MapPin className="w-3.5 h-3.5 text-primary" /> {location || "Remote"}</span>
-                  <span className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full"><Mail className="w-3.5 h-3.5 text-primary" /> {user?.email || "candidate@swipex.ai"}</span>
+                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full"><MapPin className="w-3.5 h-3.5 text-primary" /> {location || "Remote"}</span>
+                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full"><Mail className="w-3.5 h-3.5 text-primary" /> {user?.email || "candidate@swipex.ai"}</span>
                 </div>
               </>
             )}
@@ -284,7 +284,7 @@ export default function ProfilePage() {
                 {atsScore || 85}%
               </div>
             </div>
-            <span className="text-xs text-muted-foreground mt-2 font-semibold">ATS Match Score</span>
+            <span className="text-xs text-[#66788A] mt-2 font-semibold">ATS Match Score</span>
           </div>
         </div>
       </div>
@@ -296,14 +296,14 @@ export default function ProfilePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-2"><User className="w-6 h-6 text-primary" /> About Me</h2>
-              <button onClick={() => setIsEditing(!isEditing)} className="text-muted-foreground hover:text-primary"><Edit2 className="w-4 h-4" /></button>
+              <button onClick={() => setIsEditing(!isEditing)} className="text-[#66788A] hover:text-primary"><Edit2 className="w-4 h-4" /></button>
             </div>
-            <div className="bg-card border rounded-2xl p-6 text-muted-foreground leading-relaxed text-sm sm:text-base">
+            <div className="glass-1 border rounded-2xl p-6 text-[#66788A] leading-relaxed text-sm sm:text-base">
               {isEditing ? (
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full h-32 bg-background border p-3 rounded-xl text-foreground text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full h-32 bg-background border p-3 rounded-xl text-[#F5FAFF] text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Tell recruiters about yourself..."
                 />
               ) : (
@@ -317,17 +317,17 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-2"><Briefcase className="w-6 h-6 text-primary" /> Experience</h2>
             </div>
-            <div className="bg-card border rounded-2xl p-6 space-y-6 shadow-xs">
+            <div className="glass-1 border rounded-2xl p-6 space-y-6 shadow-xs">
               {experiences.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">No work experience listed yet.</p>
+                <p className="text-xs text-[#66788A] italic">No work experience listed yet.</p>
               ) : (
                 experiences.map((exp, index) => (
                   <div key={exp.id || index} className={cn("relative pl-6 border-l-2 border-primary/20", index !== experiences.length - 1 && "pb-6")}>
                     <div className="absolute w-3.5 h-3.5 bg-primary rounded-full -left-[8px] top-1.5 border-2 border-background" />
                     <h3 className="font-bold text-lg">{exp.title}</h3>
                     <div className="text-primary font-semibold text-sm mb-1">{exp.company}</div>
-                    <div className="text-xs text-muted-foreground mb-3 font-medium">{exp.date}</div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{exp.description}</p>
+                    <div className="text-xs text-[#66788A] mb-3 font-medium">{exp.date}</div>
+                    <p className="text-xs text-[#66788A] leading-relaxed">{exp.description}</p>
                   </div>
                 ))
               )}
@@ -346,7 +346,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="bg-card border rounded-2xl p-6 space-y-4 shadow-xs">
+            <div className="glass-1 border rounded-2xl p-6 space-y-4 shadow-xs">
               {showAddSkill && (
                 <form onSubmit={handleAddSkill} className="flex gap-2">
                   <input
@@ -364,11 +364,11 @@ export default function ProfilePage() {
                 {skills.map((skill) => (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 glass-1 text-secondary-foreground rounded-xl text-xs font-semibold hover:glass-1/80 transition-colors"
                   >
                     {skill}
                     {isEditing && (
-                      <button onClick={() => handleRemoveSkill(skill)} className="hover:text-destructive text-muted-foreground">
+                      <button onClick={() => handleRemoveSkill(skill)} className="hover:text-destructive text-[#66788A]">
                         <X className="w-3 h-3" />
                       </button>
                     )}
@@ -381,13 +381,13 @@ export default function ProfilePage() {
           {/* Resume Upload */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> Active Resume</h2>
-            <div className="bg-card border rounded-2xl p-6 space-y-4 shadow-xs">
-              <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl border border-border">
+            <div className="glass-1 border rounded-2xl p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between p-3 glass-1/50 rounded-xl border border-border">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <FileText className="w-8 h-8 text-primary shrink-0" />
                   <div className="truncate">
                     <div className="font-bold text-xs truncate">{resumeFileName || "Candidate_Resume.pdf"}</div>
-                    <div className="text-[10px] text-muted-foreground">Parsed & Indexed</div>
+                    <div className="text-[10px] text-[#66788A]">Parsed & Indexed</div>
                   </div>
                 </div>
                 <label className="p-2 hover:bg-background rounded-lg cursor-pointer transition-colors text-primary" title="Upload new resume">

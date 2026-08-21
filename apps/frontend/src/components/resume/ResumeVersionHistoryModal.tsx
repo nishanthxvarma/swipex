@@ -25,7 +25,7 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="bg-card border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6"
+        className="glass-1 border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6"
       >
         <div className="flex items-center justify-between border-b pb-4">
           <div className="flex items-center gap-2.5">
@@ -34,10 +34,10 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
             </div>
             <div>
               <h3 className="font-bold text-lg">Resume Version History</h3>
-              <p className="text-xs text-muted-foreground">Manage and restore uploaded resume versions</p>
+              <p className="text-xs text-[#66788A]">Manage and restore uploaded resume versions</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground">
+          <button onClick={onClose} className="p-2 rounded-full hover:glass-1 text-[#66788A] hover:text-[#F5FAFF]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -49,11 +49,11 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
               className={`p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
                 ver.isActive
                   ? 'bg-primary/5 border-primary shadow-xs'
-                  : 'bg-card hover:bg-secondary/40'
+                  : 'glass-1 hover:glass-1/40'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-secondary shrink-0">
+                <div className="p-2.5 rounded-xl glass-1 shrink-0">
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div className="min-w-0">
@@ -65,8 +65,8 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    ATS Score: <span className="font-bold text-foreground">{ver.atsScore}/100</span> • Uploaded{' '}
+                  <p className="text-xs text-[#66788A] mt-0.5">
+                    ATS Score: <span className="font-bold text-[#F5FAFF]">{ver.atsScore}/100</span> • Uploaded{' '}
                     {new Date(ver.uploadedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -87,7 +87,7 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
                 <button
                   onClick={() => deleteResumeVersion(ver.id)}
                   disabled={ver.isActive && versions.length === 1}
-                  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-30"
+                  className="p-2 text-[#66788A] hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-30"
                   title="Delete version"
                 >
                   <Trash2 className="w-4 h-4" />

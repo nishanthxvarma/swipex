@@ -33,8 +33,8 @@ export default function AdminDashboardPage() {
       const res = await api.getAdminAnalytics();
       
       setStats([
-        { name: 'Total Job Seekers', value: res.totalJobSeekers.toLocaleString(), change: '+12.4%', icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-        { name: 'Verified Recruiters', value: res.verifiedRecruiters.toLocaleString(), change: '+8.1%', icon: Building2, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+        { name: 'Total Job Seekers', value: res.totalJobSeekers.toLocaleString(), change: '+12.4%', icon: Users, color: 'text-[#BFE8FF]', bg: 'bg-[#BFE8FF]/10 border-[rgba(190,225,255,0.12)]' },
+        { name: 'Verified Recruiters', value: res.verifiedRecruiters.toLocaleString(), change: '+8.1%', icon: Building2, color: 'text-[#7DD3FC]', bg: 'bg-[#7DD3FC]/10 border-[rgba(190,225,255,0.12)]' },
         { name: 'Active Job Listings', value: res.activeJobListings.toLocaleString(), change: '+15.3%', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
         { name: 'Platform Applications', value: res.platformApplications.toLocaleString(), change: '+24.6%', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
       ]);
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading system telemetry...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading system telemetry...</p>
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Telemetry offline</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => loadAdminStats()} className="rounded-xl font-bold">Reconnect</Button>
       </div>
     );
@@ -78,9 +78,9 @@ export default function AdminDashboardPage() {
 
   const liveStreamLogs = [
     { id: 1, timestamp: '18:14:02', event: 'RECRUITER_VERIFIED', details: 'sarah.jenkins@techcorp.com', status: 'APPROVED', statusBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-    { id: 2, timestamp: '18:09:45', event: 'ATS_MODEL_RETRAINED', details: 'Core ML Engine v2.4 initialized', status: 'SYSTEM', statusBg: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+    { id: 2, timestamp: '18:09:45', event: 'ATS_MODEL_RETRAINED', details: 'Core ML Engine v2.4 initialized', status: 'SYSTEM', statusBg: 'bg-[#BFE8FF]/10 text-[#BFE8FF] border-[rgba(190,225,255,0.12)]' },
     { id: 3, timestamp: '17:45:12', event: 'AUTH_BURST_BLOCKED', details: 'IP 192.168.1.102 (5 failed attempts)', status: 'BLOCKED', statusBg: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-    { id: 4, timestamp: '17:30:00', event: 'CRON_MAINTENANCE', details: 'Database indexing task complete', status: 'SUCCESS', statusBg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+    { id: 4, timestamp: '17:30:00', event: 'CRON_MAINTENANCE', details: 'Database indexing task complete', status: 'SUCCESS', statusBg: 'bg-[#7DD3FC]/10 text-[#7DD3FC] border-[rgba(190,225,255,0.12)]' },
   ];
 
   return (
@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <div className="p-2 rounded-xl bg-[#BFE8FF]/10 text-[#BFE8FF] border border-[rgba(190,225,255,0.12)]">
               <Shield className="w-5 h-5" />
             </div>
             <h1 className="text-2xl font-black tracking-tight">System Command Center</h1>
@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Ops
             </span>
           </div>
-          <p className="text-muted-foreground text-xs mt-1">
+          <p className="text-[#66788A] text-xs mt-1">
             Real-time platform governance, automated candidate matching, and security stream.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function AdminDashboardPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="p-4 rounded-2xl bg-card border border-border flex flex-col justify-between"
+              className="p-4 rounded-2xl glass-1 border border-border flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
                 <div className={cn("p-2.5 rounded-xl border", stat.bg, stat.color)}>
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="mt-3">
                 <h3 className="text-2xl font-black tracking-tight">{stat.value}</h3>
-                <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">{stat.name}</p>
+                <p className="text-[11px] font-semibold text-[#66788A] mt-0.5">{stat.name}</p>
               </div>
             </motion.div>
           );
@@ -149,10 +149,10 @@ export default function AdminDashboardPage() {
       {/* Main Command Split: Verification Queue & Live Stream Log */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Recruiter Verification Queue */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-card border border-border space-y-4">
+        <div className="lg:col-span-6 p-5 rounded-2xl glass-1 border border-border space-y-4">
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+              <Building2 className="w-4 h-4 text-[#7DD3FC] dark:text-[#7DD3FC]" />
               <h3 className="font-bold text-sm">Recruiter Verification Queue</h3>
             </div>
             <span className="text-[11px] font-bold px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-full">
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
 
           <div className="space-y-2.5">
             {pendingApprovals.map((req) => (
-              <div key={req.id} className="p-3.5 rounded-xl bg-secondary border border-border flex items-center justify-between gap-3">
+              <div key={req.id} className="p-3.5 rounded-xl glass-1 border border-border flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <h4 className="font-bold text-xs">{req.name}</h4>
@@ -173,8 +173,8 @@ export default function AdminDashboardPage() {
                       {req.status}
                     </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">{req.contact} • {req.type}</p>
-                  <span className="text-[10px] text-muted-foreground/70">Submitted {req.submitted}</span>
+                  <p className="text-[11px] text-[#66788A]">{req.contact} • {req.type}</p>
+                  <span className="text-[10px] text-[#66788A]/70">Submitted {req.submitted}</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
@@ -191,11 +191,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Real-time Activity Live Stream */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-card border border-border space-y-4 font-mono">
+        <div className="lg:col-span-6 p-5 rounded-2xl glass-1 border border-border space-y-4 font-mono">
           <div className="flex items-center justify-between border-b border-border pb-3 font-sans">
             <div className="flex items-center gap-2">
               <Terminal className="w-4 h-4 text-primary" />
-              <h3 className="font-bold text-sm text-foreground">Live Security & System Feed</h3>
+              <h3 className="font-bold text-sm text-[#F5FAFF]">Live Security & System Feed</h3>
             </div>
             <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
               STREAM ACTIVE
@@ -204,12 +204,12 @@ export default function AdminDashboardPage() {
 
           <div className="space-y-2 text-xs">
             {liveStreamLogs.map((log) => (
-              <div key={log.id} className="p-2.5 rounded-lg bg-secondary border border-border flex items-center justify-between gap-2">
+              <div key={log.id} className="p-2.5 rounded-lg glass-1 border border-border flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <span className="text-muted-foreground text-[10px] font-mono shrink-0">{log.timestamp}</span>
+                  <span className="text-[#66788A] text-[10px] font-mono shrink-0">{log.timestamp}</span>
                   <div className="truncate">
-                    <p className="font-bold text-foreground text-[11px] truncate">{log.event}</p>
-                    <p className="text-[10px] text-muted-foreground font-sans truncate">{log.details}</p>
+                    <p className="font-bold text-[#F5FAFF] text-[11px] truncate">{log.event}</p>
+                    <p className="text-[10px] text-[#66788A] font-sans truncate">{log.details}</p>
                   </div>
                 </div>
                 <span className={cn("text-[9px] font-bold px-2 py-0.5 rounded border shrink-0", log.statusBg)}>

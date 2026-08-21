@@ -115,67 +115,76 @@ export default function LoginPage() {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-        <p className="text-muted-foreground text-sm">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: '#F5FAFF' }}>Welcome back</h1>
+        <p className="text-[13px]" style={{ color: '#66788A' }}>
           Log in to access your Candidate, Recruiter, or Admin workspace.
         </p>
       </div>
 
       {/* Role Selection Tabs */}
-      <div className="grid grid-cols-3 gap-2 p-1.5 bg-muted rounded-2xl border">
+      <div
+        className="grid grid-cols-3 gap-1.5 p-1.5 rounded-xl"
+        style={{ background: 'rgba(255,255,255,0.038)', border: '1px solid rgba(190,225,255,0.10)' }}
+      >
         <button
           type="button"
           onClick={() => setValue('role', 'JOB_SEEKER')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+          style={
             selectedRole === 'JOB_SEEKER'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+              ? { background: 'rgba(191,232,255,0.10)', border: '1px solid rgba(191,232,255,0.22)', color: '#BFE8FF' }
+              : { background: 'transparent', border: '1px solid transparent', color: '#66788A' }
+          }
         >
-          <User className="w-3.5 h-3.5 text-primary" />
+          <User className="w-3.5 h-3.5" />
           Job Seeker
         </button>
         <button
           type="button"
           onClick={() => setValue('role', 'RECRUITER')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+          style={
             selectedRole === 'RECRUITER'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+              ? { background: 'rgba(191,232,255,0.10)', border: '1px solid rgba(191,232,255,0.22)', color: '#BFE8FF' }
+              : { background: 'transparent', border: '1px solid transparent', color: '#66788A' }
+          }
         >
-          <Building2 className="w-3.5 h-3.5 text-primary" />
+          <Building2 className="w-3.5 h-3.5" />
           Recruiter
         </button>
         <button
           type="button"
           onClick={() => setValue('role', 'ADMIN')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
+          className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+          style={
             selectedRole === 'ADMIN'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+              ? { background: 'rgba(191,232,255,0.10)', border: '1px solid rgba(191,232,255,0.22)', color: '#BFE8FF' }
+              : { background: 'transparent', border: '1px solid transparent', color: '#66788A' }
+          }
         >
-          <Shield className="w-3.5 h-3.5 text-primary" />
+          <Shield className="w-3.5 h-3.5" />
           Admin
         </button>
       </div>
 
-{loginError && (
-        <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold animate-pulse">
+      {/* Error */}
+      {loginError && (
+        <div
+          className="p-3 rounded-xl text-[12px] font-medium"
+          style={{ background: 'rgba(255,122,144,0.08)', border: '1px solid rgba(255,122,144,0.18)', color: '#FF7A90' }}
+        >
           {loginError}
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">
+        {/* Email */}
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="text-[13px] font-medium" style={{ color: '#9BAFC2' }}>
             {selectedRole === 'RECRUITER' ? 'Work Email' : 'Email Address'}
-          </Label>
+          </label>
           <div className="relative">
             <Input
               id="email"
@@ -184,19 +193,21 @@ export default function LoginPage() {
               {...register('email')}
               className={cn('h-11 pl-10 rounded-xl', errors.email && 'border-destructive')}
             />
-            <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-3.5 top-3.5 h-4 w-4" style={{ color: '#66788A' }} />
           </div>
           {errors.email && (
-            <p className="text-xs font-semibold text-destructive">{errors.email.message}</p>
+            <p className="text-[12px]" style={{ color: '#FF7A90' }}>{errors.email.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
+        {/* Password */}
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <label htmlFor="password" className="text-[13px] font-medium" style={{ color: '#9BAFC2' }}>Password</label>
             <Link
               href="/forgot-password"
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-[12px] font-medium transition-colors"
+              style={{ color: '#BFE8FF' }}
             >
               Forgot password?
             </Link>
@@ -209,53 +220,68 @@ export default function LoginPage() {
               {...register('password')}
               className={cn('h-11 pl-10 pr-10 rounded-xl', errors.password && 'border-destructive')}
             />
-            <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
+            <Lock className="absolute left-3.5 top-3.5 h-4 w-4" style={{ color: '#66788A' }} />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground"
+              className="absolute right-3.5 top-3.5 transition-colors"
+              style={{ color: '#66788A' }}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {errors.password && (
-            <p className="text-xs font-semibold text-destructive">{errors.password.message}</p>
+            <p className="text-[12px]" style={{ color: '#FF7A90' }}>{errors.password.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
-            />
-            <label htmlFor="remember" className="text-xs font-semibold text-muted-foreground cursor-pointer">
-              Remember me
-            </label>
-          </div>
+        {/* Remember me */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remember"
+            checked={rememberMe}
+            onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
+          />
+          <label htmlFor="remember" className="text-[12px] cursor-pointer" style={{ color: '#66788A' }}>
+            Remember me
+          </label>
         </div>
 
-        <Button type="submit" className="w-full h-11 rounded-xl font-bold shadow-md" disabled={isLoading}>
+        {/* Submit */}
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full h-11 rounded-xl font-semibold text-[13px]"
+          style={{ color: '#060B12' }}
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loggin in...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...
             </>
           ) : (
             <>
-              Sign In as {selectedRole === 'RECRUITER' ? 'Recruiter' : 'Candidate'}
+              Sign In as {selectedRole === 'RECRUITER' ? 'Recruiter' : selectedRole === 'ADMIN' ? 'Admin' : 'Candidate'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
         </Button>
       </form>
 
-      <div className="text-center text-xs text-muted-foreground pt-2">
+      {/* Divider */}
+      <div className="h-px w-full" style={{ background: 'rgba(190,225,255,0.08)' }} />
+
+      {/* Sign up link */}
+      <p className="text-center text-[13px]" style={{ color: '#66788A' }}>
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-bold text-primary hover:underline">
+        <Link
+          href="/signup"
+          className="font-semibold transition-colors"
+          style={{ color: '#BFE8FF' }}
+        >
           Create an account
         </Link>
-      </div>
+      </p>
     </motion.div>
   );
 }

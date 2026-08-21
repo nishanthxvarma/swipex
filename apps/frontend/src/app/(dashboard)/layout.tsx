@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from 'next-themes';
 import {
   BarChart3,
   Bell,
@@ -17,25 +16,24 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Moon,
   Search,
   Settings,
   Sparkles,
-  Sun,
   User,
   X,
-  CheckCircle2,
   Briefcase,
   Calendar,
   Shield,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/ui-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { SearchModal } from '@/components/search/search-modal';
-
 import { useNotificationStore } from '@/stores/notification-store';
+import { useTheme } from 'next-themes';
 
 const candidateNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -51,18 +49,18 @@ const candidateNavigation = [
 const recruiterNavigation = [
   { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
   { name: 'Jobs', href: '/recruiter/jobs', icon: Building2 },
-  { name: 'Swipe Candidates', href: '/recruiter/candidates', icon: Layers },
-  { name: 'Candidate Pipeline', href: '/recruiter/pipeline', icon: FileText },
+  { name: 'Candidates', href: '/recruiter/candidates', icon: Layers },
+  { name: 'Pipeline', href: '/recruiter/pipeline', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 const adminNavigation = [
   { name: 'Overview', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'User Directory', href: '/admin/users', icon: User },
+  { name: 'Users', href: '/admin/users', icon: User },
   { name: 'Recruiters', href: '/admin/recruiters', icon: Building2 },
-  { name: 'Activity Log', href: '/admin/activity', icon: Layers },
-  { name: 'Platform Analytics', href: '/admin/analytics', icon: BarChart3 },
-  { name: 'System Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Activity', href: '/admin/activity', icon: Layers },
+  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 const getNavItems = (role?: string) => {
@@ -71,46 +69,7 @@ const getNavItems = (role?: string) => {
   return candidateNavigation;
 };
 
-const bottomNavigation = [
-  { name: 'Profile', href: '/profile', icon: User },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
-
-const initialNotifications = [
-  {
-    id: 1,
-    title: 'New 95% Job Match!',
-    description: 'Vercel posted Senior Frontend Engineer in Remote.',
-    time: '10m ago',
-    read: false,
-    icon: Sparkles,
-    color: 'text-amber-500',
-  },
-  {
-    id: 2,
-    title: 'Interview Confirmed',
-    description: 'Google technical interview scheduled for Thursday 2:00 PM.',
-    time: '2h ago',
-    read: false,
-    icon: Calendar,
-    color: 'text-purple-500',
-  },
-  {
-    id: 3,
-    title: 'Application Viewed',
-    description: 'Stripe talent acquisition team viewed your resume.',
-    time: '5h ago',
-    read: true,
-    icon: Briefcase,
-    color: 'text-blue-500',
-  },
-];
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -119,9 +78,7 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState(initialNotifications);
 
-  // Global Cmd+K keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -138,33 +95,48 @@ export default function DashboardLayout({
     router.push('/login');
   };
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
   const getUserInitials = (name?: string) => {
-    if (!name) return 'NV';
+    if (!name) return 'U';
     const parts = name.split(' ');
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
 
-  const userName = user?.fullName || 'Nishanth Varma';
-  const userEmail = user?.email || 'nishvarma2007@gmail.com';
+  const userName = user?.fullName || 'User';
+  const userEmail = user?.email || '';
   const userInitials = getUserInitials(userName);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+
+  const sidebarW = isSidebarOpen ? 240 : 68;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Mobile Sidebar overlay */}
+    <div className="flex h-screen overflow-hidden" style={{ background: '#060B12' }}>
+      {/* Atmospheric background */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div
+          className="absolute"
+          style={{
+            top: '-15%', left: '15%', width: '55%', height: '55%',
+            background: 'radial-gradient(ellipse at center, rgba(37,99,235,0.05) 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            bottom: '-5%', right: '-5%', width: '35%', height: '45%',
+            background: 'radial-gradient(ellipse at center, rgba(125,211,252,0.03) 0%, transparent 70%)',
+          }}
+        />
+      </div>
+
+      {/* Mobile overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
@@ -173,27 +145,39 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ 
-          width: isSidebarOpen ? 256 : 80,
-        }}
+        animate={{ width: sidebarW }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-card transition-all duration-300",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-          "md:static md:translate-x-0",
-          !isSidebarOpen && "md:w-20"
+          'fixed inset-y-0 left-0 z-50 flex flex-col',
+          'backdrop-blur-2xl',
+          'border-r border-[rgba(190,225,255,0.08)]',
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+          'md:static md:translate-x-0',
         )}
+        style={{
+          background: 'rgba(6, 11, 18, 0.85)',
+          boxShadow: '1px 0 0 rgba(190,225,255,0.06), inset -1px 0 0 rgba(255,255,255,0.02)',
+        }}
       >
-        {/* Sidebar Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-4">
-          <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
-              <Sparkles className="h-5 w-5" />
+        {/* Logo */}
+        <div className="flex h-14 shrink-0 items-center justify-between px-4">
+          <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+              style={{
+                background: 'rgba(191,232,255,0.10)',
+                border: '1px solid rgba(191,232,255,0.20)',
+                boxShadow: '0 0 16px rgba(191,232,255,0.12)',
+              }}
+            >
+              <Sparkles className="h-4 w-4 text-[#BFE8FF]" />
             </div>
             {isSidebarOpen && (
               <motion.span
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-xl font-extrabold tracking-tight text-foreground"
+                exit={{ opacity: 0, x: -8 }}
+                className="text-[15px] font-bold tracking-tight text-[#F5FAFF]"
               >
                 SwipeX
               </motion.span>
@@ -202,206 +186,218 @@ export default function DashboardLayout({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-7 w-7"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Navigation */}
-        <div className="flex flex-1 flex-col justify-between overflow-y-auto px-3 py-4">
-          <div className="space-y-4">
-            <nav className="space-y-1">
-              {getNavItems(user?.role).map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all relative group",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    )}
-                    title={!isSidebarOpen ? item.name : undefined}
-                  >
-                    <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
-                    {isSidebarOpen && <span>{item.name}</span>}
-                  </Link>
-                );
-              })}
-            </nav>
-
-          </div>
-
-          {/* AI Resume Score Sidebar Widget (Matching Screenshot UI) */}
-          {isSidebarOpen && user?.role !== 'RECRUITER' && user?.role !== 'ADMIN' && (
-            <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border border-indigo-500/20 space-y-2">
-              <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">AI Resume Score</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 shrink-0 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center font-black text-sm text-emerald-600 dark:text-emerald-400">
-                  85
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-foreground">Good match!</p>
-                  <Link href="/resume" className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5 mt-0.5">
-                    Improve to 90+ <ChevronRight className="w-3 h-3" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Nav items */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-2.5 py-3 gap-0.5">
+          <nav className="flex flex-col gap-0.5">
+            {getNavItems(user?.role).map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  title={!isSidebarOpen ? item.name : undefined}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-all duration-150 relative group',
+                    isActive
+                      ? 'text-[#BFE8FF]'
+                      : 'text-[#66788A] hover:text-[#9BAFC2] hover:bg-white/4'
+                  )}
+                  style={isActive ? {
+                    background: 'rgba(191,232,255,0.07)',
+                    border: '1px solid rgba(191,232,255,0.14)',
+                    boxShadow: 'inset 0 0 12px rgba(191,232,255,0.04)',
+                  } : {}}
+                >
+                  {/* Active indicator */}
+                  {isActive && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full"
+                      style={{ background: 'linear-gradient(to bottom, #BFE8FF, #7DD3FC)', boxShadow: '0 0 8px rgba(191,232,255,0.5)' }}
+                    />
+                  )}
+                  <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A] group-hover:text-[#9BAFC2]')} />
+                  {isSidebarOpen && (
+                    <span className="font-medium text-[13px]">{item.name}</span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* User Profile Footer */}
-        <div className="border-t p-4">
-          <div className={cn("flex items-center gap-3", !isSidebarOpen && "justify-center")}>
-            <Link
-              href="/profile"
-              className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-primary/30 flex items-center justify-center font-bold text-primary hover:scale-105 transition-transform"
+        {/* User footer */}
+        <div
+          className="border-t border-[rgba(190,225,255,0.07)] p-3"
+        >
+          <div className={cn('flex items-center gap-2.5', !isSidebarOpen && 'justify-center')}>
+            <button
+              onClick={() => router.push('/profile')}
+              className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center font-bold text-xs text-[#BFE8FF] transition-all hover:scale-105"
+              style={{
+                background: 'rgba(191,232,255,0.08)',
+                border: '1px solid rgba(191,232,255,0.20)',
+                boxShadow: '0 0 12px rgba(191,232,255,0.08)',
+              }}
               title="View Profile"
             >
               {userInitials}
-            </Link>
+            </button>
             {isSidebarOpen && (
-              <div className="flex flex-1 flex-col overflow-hidden cursor-pointer" onClick={() => router.push('/profile')}>
-                <span className="truncate text-sm font-bold hover:text-primary transition-colors">{userName}</span>
-                <span className="truncate text-xs text-muted-foreground">{user?.role === 'ADMIN' ? 'Super Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}</span>
-              </div>
-            )}
-            {isSidebarOpen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                title="Log Out"
-                className="shrink-0 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push('/profile')}>
+                  <p className="truncate text-[13px] font-semibold text-[#F5FAFF] leading-none">{userName}</p>
+                  <p className="truncate text-[11px] text-[#66788A] mt-0.5">
+                    {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  title="Log Out"
+                  className="h-7 w-7 shrink-0 text-[#66788A] hover:text-[#FF7A90] hover:bg-[#FF7A90]/8"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              </>
             )}
           </div>
         </div>
 
-        {/* Collapse Toggle */}
-        <Button
-          variant="secondary"
-          size="icon"
-          className="absolute -right-4 top-20 hidden h-8 w-8 rounded-full border shadow-sm md:flex hover:scale-110 transition-transform"
+        {/* Collapse toggle */}
+        <button
+          className="absolute -right-3 top-16 hidden h-6 w-6 rounded-full md:flex items-center justify-center transition-all hover:scale-110"
+          style={{
+            background: 'rgba(8, 17, 28, 0.95)',
+            border: '1px solid rgba(190,225,255,0.15)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            color: '#9BAFC2',
+          }}
           onClick={toggleSidebar}
         >
-          {isSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </Button>
+          {isSidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        </button>
       </motion.aside>
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
+      {/* Main content */}
+      <div className="relative z-10 flex flex-1 flex-col overflow-hidden min-w-0">
+        {/* Top bar */}
+        <header
+          className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-[rgba(190,225,255,0.07)]"
+          style={{
+            background: 'rgba(6,11,18,0.75)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+          }}
+        >
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden -ml-2"
+              className="md:hidden h-8 w-8 -ml-1"
               onClick={() => setIsMobileMenuOpen(true)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4" />
             </Button>
-            <div className="hidden sm:flex items-center text-sm font-medium text-muted-foreground">
-              <Link href="/dashboard" className="hover:text-foreground transition-colors">Pages</Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground capitalize font-semibold">
-                {pathname.split('/').pop() || 'Dashboard'}
+            {/* Breadcrumb */}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#66788A]">
+              <span>SwipeX</span>
+              <span>/</span>
+              <span className="text-[#9BAFC2] capitalize font-medium">
+                {pathname.split('/').filter(Boolean).pop() || 'Dashboard'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Session Role Indicator */}
+          <div className="flex items-center gap-2">
+            {/* Role badge */}
             {user && (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-secondary border text-foreground">
-                <span>
-                  {user.role === 'ADMIN'
-                    ? '🛡️ Admin Workspace'
-                    : user.role === 'RECRUITER'
-                    ? '🏢 Recruiter Workspace'
-                    : '👤 Candidate Workspace'}
-                </span>
+              <div
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                style={{
+                  background: 'rgba(191,232,255,0.06)',
+                  border: '1px solid rgba(191,232,255,0.12)',
+                  color: '#9BAFC2',
+                }}
+              >
+                {user.role === 'ADMIN' ? '⬡ Admin' : user.role === 'RECRUITER' ? '⬡ Recruiter' : '⬡ Candidate'}
               </div>
             )}
 
-            {/* Search Button */}
-            <div className="relative hidden md:block">
-              <Button
-                variant="outline"
-                onClick={() => setSearchOpen(true)}
-                className="w-64 justify-start text-muted-foreground hover:border-primary/50 transition-all rounded-xl"
-              >
-                <Search className="mr-2 h-4 w-4 text-primary" />
-                Search jobs, skills...
-                <kbd className="pointer-events-none absolute right-2 top-2.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                  ⌘K
-                </kbd>
-              </Button>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
+            {/* Search */}
+            <button
               onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] text-[#66788A] hover:text-[#9BAFC2] transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(190,225,255,0.10)',
+              }}
             >
-              <Search className="h-5 w-5 text-primary" />
+              <Search className="h-3.5 w-3.5" />
+              <span>Search</span>
+              <kbd
+                className="ml-2 rounded px-1 text-[10px] font-mono"
+                style={{ background: 'rgba(255,255,255,0.06)', color: '#66788A', border: '1px solid rgba(190,225,255,0.10)' }}
+              >⌘K</kbd>
+            </button>
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setSearchOpen(true)}>
+              <Search className="h-4 w-4 text-[#66788A]" />
             </Button>
 
-            {/* Notifications Popover */}
+            {/* Notifications */}
             <div className="relative">
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative"
+                className="relative h-8 w-8 text-[#66788A] hover:text-[#F5FAFF]"
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               >
-                <Bell className="h-5 w-5" />
-                {useNotificationStore.getState().unreadCount > 0 && (
-                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full"
+                    style={{ background: '#FF7A90', boxShadow: '0 0 6px rgba(255,122,144,0.7)' }}
+                  />
                 )}
               </Button>
 
               <AnimatePresence>
                 {isNotificationsOpen && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsNotificationsOpen(false)}
-                    />
+                    <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)} />
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border bg-card p-4 shadow-2xl space-y-4"
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-2 z-50 w-80 rounded-xl p-4 space-y-3"
+                      style={{
+                        background: 'rgba(8,17,28,0.96)',
+                        border: '1px solid rgba(190,225,255,0.12)',
+                        backdropFilter: 'blur(32px)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                      }}
                     >
-                      <div className="flex items-center justify-between border-b pb-3">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-sm">Notifications</h4>
-                          {useNotificationStore.getState().unreadCount > 0 && (
-                            <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
-                              {useNotificationStore.getState().unreadCount} new
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => useNotificationStore.getState().markAllAsRead()}
-                          className="text-xs text-primary hover:underline font-medium cursor-pointer"
-                        >
-                          Mark all read
-                        </button>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[13px] font-semibold text-[#F5FAFF]">Notifications</h4>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => useNotificationStore.getState().markAllAsRead()}
+                            className="text-[11px] text-[#BFE8FF] hover:text-[#E0F5FF] transition-colors"
+                          >
+                            Mark all read
+                          </button>
+                        )}
                       </div>
-
-                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                        {useNotificationStore.getState().notifications.map((n) => (
+                      <div className="space-y-1 max-h-64 overflow-y-auto">
+                        {useNotificationStore.getState().notifications.slice(0, 5).map((n) => (
                           <div
                             key={n.id}
                             onClick={() => {
@@ -409,70 +405,68 @@ export default function DashboardLayout({
                               setIsNotificationsOpen(false);
                               router.push('/notifications');
                             }}
-                            className={cn(
-                              "flex items-start gap-3 p-2.5 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-border",
-                              n.isRead ? "hover:bg-secondary/50 opacity-75" : "bg-primary/5 hover:bg-primary/10"
-                            )}
+                            className="flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors hover:bg-white/4"
                           >
-                            <div className="p-2 rounded-lg bg-background shadow-xs text-primary">
-                              <Bell className="w-4 h-4" />
+                            <div
+                              className="h-7 w-7 shrink-0 rounded-md flex items-center justify-center mt-0.5"
+                              style={{ background: 'rgba(191,232,255,0.07)', border: '1px solid rgba(191,232,255,0.12)' }}
+                            >
+                              <Bell className="h-3.5 w-3.5 text-[#BFE8FF]" />
                             </div>
-                            <div className="flex-1 space-y-0.5">
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs font-bold text-foreground">{n.title}</p>
-                                <span className="text-[10px] text-muted-foreground">
-                                  {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-medium text-[#F5FAFF] truncate">{n.title}</p>
+                              <p className="text-[11px] text-[#66788A] mt-0.5 line-clamp-1">{n.message}</p>
                             </div>
+                            {!n.isRead && (
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: '#BFE8FF', boxShadow: '0 0 6px rgba(191,232,255,0.5)' }} />
+                            )}
                           </div>
                         ))}
                       </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-xs font-bold rounded-xl"
-                        onClick={() => {
-                          setIsNotificationsOpen(false);
-                          router.push('/notifications');
-                        }}
+                      <button
+                        onClick={() => { setIsNotificationsOpen(false); router.push('/notifications'); }}
+                        className="w-full py-2 rounded-lg text-[12px] font-medium text-[#9BAFC2] hover:text-[#F5FAFF] transition-colors text-center"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(190,225,255,0.08)' }}
                       >
-                        Open Notification Center
-                      </Button>
+                        View all notifications
+                      </button>
                     </motion.div>
                   </>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Theme Toggle */}
+            {/* Theme toggle */}
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 text-[#66788A] hover:text-[#F5FAFF]"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               title="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-700" />}
+              {theme === 'dark' ? <Sun className="h-4 w-4 text-[#F6C85F]" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            {/* User Profile Dropdown Menu */}
+            {/* Profile menu */}
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="flex items-center gap-2.5 p-1.5 rounded-2xl hover:bg-secondary transition-colors cursor-pointer border border-transparent hover:border-border"
+                className="flex items-center gap-2 p-1.5 rounded-lg transition-all hover:bg-white/5"
+                style={{ border: '1px solid transparent' }}
               >
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-primary/40 flex items-center justify-center font-black text-xs text-white shadow-xs">
+                <div
+                  className="h-7 w-7 rounded-full flex items-center justify-center font-bold text-[11px] text-[#BFE8FF]"
+                  style={{
+                    background: 'rgba(191,232,255,0.08)',
+                    border: '1px solid rgba(191,232,255,0.20)',
+                  }}
+                >
                   {userInitials}
                 </div>
                 <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-xs font-bold text-foreground leading-none">{userName}</span>
-                  <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                    {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}
-                  </span>
+                  <span className="text-[12px] font-semibold text-[#F5FAFF] leading-none">{userName}</span>
                 </div>
-                <ChevronRight className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform hidden sm:block", isProfileMenuOpen && "rotate-90")} />
+                <ChevronRight className={cn('w-3 h-3 text-[#66788A] hidden sm:block transition-transform', isProfileMenuOpen && 'rotate-90')} />
               </button>
 
               <AnimatePresence>
@@ -480,48 +474,42 @@ export default function DashboardLayout({
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsProfileMenuOpen(false)} />
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 z-50 w-60 rounded-2xl border bg-card p-2 shadow-2xl space-y-1"
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-2 z-50 w-52 rounded-xl p-1.5 space-y-0.5"
+                      style={{
+                        background: 'rgba(8,17,28,0.96)',
+                        border: '1px solid rgba(190,225,255,0.12)',
+                        backdropFilter: 'blur(32px)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                      }}
                     >
-                      <div className="p-2.5 border-b bg-muted/30 rounded-xl space-y-1">
-                        <p className="font-bold text-xs truncate text-foreground">{userName}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
-                        <div className="pt-1">
-                          <span className="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                            {user?.role === 'ADMIN' ? '🛡️ Super Admin' : user?.role === 'RECRUITER' ? '🏢 Recruiter' : '👤 Job Seeker'}
-                          </span>
-                        </div>
+                      <div className="px-3 py-2 border-b border-[rgba(190,225,255,0.07)] mb-1">
+                        <p className="text-[12px] font-semibold text-[#F5FAFF] truncate">{userName}</p>
+                        <p className="text-[11px] text-[#66788A] truncate mt-0.5">{userEmail}</p>
                       </div>
-
-                      <Link
-                        href="/profile"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-secondary transition-colors"
-                      >
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        My Profile
-                      </Link>
-                      <Link
-                        href="/settings"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-secondary transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-muted-foreground" />
-                        Account Settings
-                      </Link>
-
-                      <div className="h-px bg-border my-1" />
-
+                      {[
+                        { label: 'My Profile', href: '/profile', icon: User },
+                        { label: 'Settings', href: '/settings', icon: Settings },
+                      ].map((item) => (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-[#9BAFC2] hover:text-[#F5FAFF] hover:bg-white/5 transition-all"
+                        >
+                          <item.icon className="h-3.5 w-3.5 text-[#66788A]" />
+                          {item.label}
+                        </Link>
+                      ))}
+                      <div className="h-px bg-[rgba(190,225,255,0.07)] my-1" />
                       <button
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-extrabold text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        onClick={() => { setIsProfileMenuOpen(false); handleLogout(); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-[#FF7A90] hover:bg-[#FF7A90]/8 transition-all cursor-pointer"
                       >
-                        <LogOut className="w-4 h-4 text-rose-500" />
+                        <LogOut className="h-3.5 w-3.5" />
                         Log Out
                       </button>
                     </motion.div>
@@ -532,40 +520,47 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 lg:p-8">
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-5">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-7xl"
           >
             {children}
           </motion.div>
         </main>
       </div>
-      
-      {/* Global Cmd+K Search Modal */}
+
+      {/* Cmd+K search */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background flex justify-around p-3 z-40 pb-safe shadow-lg">
+      {/* Mobile bottom nav */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around px-2 py-2 z-40"
+        style={{
+          background: 'rgba(6,11,18,0.92)',
+          backdropFilter: 'blur(24px)',
+          borderTop: '1px solid rgba(190,225,255,0.08)',
+        }}
+      >
         {getNavItems(user?.role).slice(0, 4).map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1">
-              <item.icon className={cn("h-5 w-5", isActive ? "text-primary font-bold" : "text-muted-foreground")} />
-              <span className={cn("text-[10px]", isActive ? "text-primary font-bold" : "text-muted-foreground")}>
+            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 px-3 py-1.5">
+              <item.icon className={cn('h-5 w-5', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A]')} />
+              <span className={cn('text-[9px] font-medium', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A]')}>
                 {item.name}
               </span>
             </Link>
           );
         })}
-        <button onClick={() => setIsMobileMenuOpen(true)} className="flex flex-col items-center gap-1">
-          <Menu className="h-5 w-5 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground">More</span>
+        <button onClick={() => setIsMobileMenuOpen(true)} className="flex flex-col items-center gap-1 px-3 py-1.5">
+          <Menu className="h-5 w-5 text-[#66788A]" />
+          <span className="text-[9px] font-medium text-[#66788A]">More</span>
         </button>
       </div>
     </div>

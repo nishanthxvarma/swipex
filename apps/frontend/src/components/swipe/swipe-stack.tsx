@@ -54,32 +54,32 @@ export function SwipeStack({ jobs, onShowDetails }: SwipeStackProps) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
             onClick={() => setMatchedJob(null)}
           >
-            <div className="bg-card border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="glass-1 border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-purple-600" />
               <div className="w-20 h-20 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold text-2xl shadow-lg animate-pulse">
                 {matchedJob.matchPercentage || 96}%
               </div>
               <div>
                 <span className="text-xs font-extrabold tracking-widest text-emerald-400 uppercase">HIGH MATCH FOUND</span>
-                <h3 className="text-3xl font-extrabold tracking-tight mt-1 text-foreground">It's a Match!</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Your profile alignment with <span className="font-bold text-foreground">{matchedJob.company}</span> for <span className="font-bold text-foreground">{matchedJob.title}</span> is outstanding.
+                <h3 className="text-3xl font-extrabold tracking-tight mt-1 text-[#F5FAFF]">It's a Match!</h3>
+                <p className="text-sm text-[#66788A] mt-2">
+                  Your profile alignment with <span className="font-bold text-[#F5FAFF]">{matchedJob.company}</span> for <span className="font-bold text-[#F5FAFF]">{matchedJob.title}</span> is outstanding.
                 </p>
               </div>
-              <div className="p-4 rounded-2xl bg-secondary/50 border space-y-2 text-left text-xs">
+              <div className="p-4 rounded-2xl glass-1/50 border space-y-2 text-left text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-muted-foreground">Skill Overlap</span>
+                  <span className="font-semibold text-[#66788A]">Skill Overlap</span>
                   <span className="font-bold text-emerald-400">95%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-muted-foreground">Location Alignment</span>
+                  <span className="font-semibold text-[#66788A]">Location Alignment</span>
                   <span className="font-bold text-emerald-400">100%</span>
                 </div>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setMatchedJob(null)}
-                  className="flex-1 py-3 rounded-full bg-secondary hover:bg-secondary/80 font-bold text-xs transition-colors"
+                  className="flex-1 py-3 rounded-full glass-1 hover:glass-1/80 font-bold text-xs transition-colors"
                 >
                   Keep Swiping
                 </button>
@@ -99,16 +99,16 @@ export function SwipeStack({ jobs, onShowDetails }: SwipeStackProps) {
         )}
       </AnimatePresence>
 
-      <div className="text-sm font-medium text-muted-foreground mb-4">
+      <div className="text-sm font-medium text-[#66788A] mb-4">
         Card {jobs.length - cards.length + 1} of {jobs.length}
       </div>
 
       <div className="relative w-full h-[520px] flex items-center justify-center">
         {cards.length === 0 ? (
-          <div className="text-center p-8 bg-card rounded-2xl shadow-sm border w-full max-w-sm">
+          <div className="text-center p-8 glass-1 rounded-2xl shadow-sm border w-full max-w-sm">
             <div className="text-4xl mb-4">🎉</div>
             <h3 className="text-xl font-bold mb-2">No more jobs!</h3>
-            <p className="text-muted-foreground">Check back later for more opportunities matching your profile.</p>
+            <p className="text-[#66788A]">Check back later for more opportunities matching your profile.</p>
             <button 
               onClick={() => { setCards(jobs); setHistory([]); }}
               className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium"
@@ -152,7 +152,7 @@ export function SwipeStack({ jobs, onShowDetails }: SwipeStackProps) {
         <button
           onClick={handleUndo}
           disabled={history.length === 0}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground disabled:opacity-50 hover:bg-secondary/80 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-full glass-1 text-secondary-foreground disabled:opacity-50 hover:glass-1/80 transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
           <span>Undo</span>

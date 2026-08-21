@@ -34,7 +34,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
           >
             <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b p-4 flex justify-between items-center z-10">
               <h3 className="font-semibold text-lg">Job Details</h3>
-              <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors">
+              <button onClick={onClose} className="p-2 rounded-full hover:glass-1 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -53,7 +53,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                   <div className="flex items-center gap-2 text-lg">
                     <span className="font-semibold text-primary">{job.company}</span>
                     {job.verified && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
-                    <a href="#" className="text-muted-foreground hover:text-primary">
+                    <a href="#" className="text-[#66788A] hover:text-primary">
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
@@ -62,63 +62,63 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
 
               {/* Quick Info Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-secondary flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+                <div className="p-4 rounded-xl glass-1 flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-[#66788A] mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">Location</div>
+                    <div className="text-sm text-[#66788A]">Location</div>
                     <div className="font-medium">{job.location}</div>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-secondary flex items-start gap-3">
+                <div className="p-4 rounded-xl glass-1 flex items-start gap-3">
                   <DollarSign className="w-5 h-5 text-green-600 mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">Salary</div>
+                    <div className="text-sm text-[#66788A]">Salary</div>
                     <div className="font-medium">{job.salary}</div>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-secondary flex items-start gap-3">
+                <div className="p-4 rounded-xl glass-1 flex items-start gap-3">
                   <Briefcase className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">Job Type</div>
+                    <div className="text-sm text-[#66788A]">Job Type</div>
                     <div className="font-medium">{job.type}</div>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-secondary flex items-start gap-3">
+                <div className="p-4 rounded-xl glass-1 flex items-start gap-3">
                   <Calendar className="w-5 h-5 text-orange-500 mt-0.5" />
                   <div>
-                    <div className="text-sm text-muted-foreground">Posted</div>
+                    <div className="text-sm text-[#66788A]">Posted</div>
                     <div className="font-medium">{job.postedTime}</div>
                   </div>
                 </div>
               </div>
 
               {/* Applicant Competition Indicator Section */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-transparent border border-purple-500/20 space-y-3">
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-transparent border border-[rgba(190,225,255,0.12)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#7DD3FC] dark:text-[#BFE8FF]">
                     Applicant Competition Signal
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#BFE8FF]/20 text-[#7DD3FC] dark:text-[#BFE8FF] border border-purple-500/30">
                     {job.competition || 'Moderate'} Competition
                   </span>
                 </div>
                 
-                <p className="text-sm font-bold text-foreground">
+                <p className="text-sm font-bold text-[#F5FAFF]">
                   You&apos;re in the top 18% of applicants based on current matching signals.
                 </p>
 
                 <div className="grid grid-cols-3 gap-2 text-center pt-1 text-xs">
                   <div className="p-2 rounded-xl bg-background border">
-                    <p className="text-[10px] text-muted-foreground font-semibold">Skill Match</p>
+                    <p className="text-[10px] text-[#66788A] font-semibold">Skill Match</p>
                     <p className="font-extrabold text-emerald-600 dark:text-emerald-400">{job.matchPercentage || 92}%</p>
                   </div>
                   <div className="p-2 rounded-xl bg-background border">
-                    <p className="text-[10px] text-muted-foreground font-semibold">ATS Score</p>
+                    <p className="text-[10px] text-[#66788A] font-semibold">ATS Score</p>
                     <p className="font-extrabold text-primary">{job.atsScore || 88.5}</p>
                   </div>
                   <div className="p-2 rounded-xl bg-background border">
-                    <p className="text-[10px] text-muted-foreground font-semibold">Location Fit</p>
-                    <p className="font-extrabold text-indigo-600 dark:text-indigo-400">100%</p>
+                    <p className="text-[10px] text-[#66788A] font-semibold">Location Fit</p>
+                    <p className="font-extrabold text-[#2563EB] dark:text-[#7DD3FC]">100%</p>
                   </div>
                 </div>
               </div>
@@ -126,7 +126,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
               {/* Description */}
               <section>
                 <h2 className="text-xl font-bold mb-3 border-b pb-2">Description</h2>
-                <div className="text-muted-foreground space-y-4 leading-relaxed">
+                <div className="text-[#66788A] space-y-4 leading-relaxed">
                   <p>{job.description || "Join our fast-growing team to build next-generation experiences. You will be responsible for designing and developing highly scalable applications."}</p>
                   <p>We are looking for passionate individuals who care about performance, accessibility, and clean code.</p>
                 </div>
@@ -137,7 +137,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                 <h2 className="text-xl font-bold mb-3 border-b pb-2">Requirements</h2>
                 <ul className="space-y-3">
                   {(job.requirements || ["3+ years of experience", "Strong computer science fundamentals", "Experience with modern web technologies"]).map((req, i) => (
-                    <li key={i} className="flex gap-3 text-muted-foreground">
+                    <li key={i} className="flex gap-3 text-[#66788A]">
                       <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                       <span>{req}</span>
                     </li>
@@ -153,7 +153,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {job.skills.map((skill, i) => (
-                    <span key={i} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${i % 3 !== 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-secondary text-muted-foreground'}`}>
+                    <span key={i} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${i % 3 !== 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'glass-1 text-[#66788A]'}`}>
                       {skill} {i % 3 !== 0 && "✓"}
                     </span>
                   ))}
@@ -166,7 +166,7 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
               <button className="flex-1 bg-primary text-primary-foreground font-bold py-4 rounded-xl hover:bg-primary/90 transition-colors shadow-lg">
                 Apply Now
               </button>
-              <button className="w-16 flex items-center justify-center bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 transition-colors">
+              <button className="w-16 flex items-center justify-center glass-1 text-secondary-foreground rounded-xl hover:glass-1/80 transition-colors">
                 <Bookmark className="w-6 h-6" />
               </button>
             </div>

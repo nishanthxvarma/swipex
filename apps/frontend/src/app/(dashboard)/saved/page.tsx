@@ -122,7 +122,7 @@ export default function SavedJobsPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading bookmarked listings...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading bookmarked listings...</p>
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function SavedJobsPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <Button onClick={() => loadSavedJobs()} className="rounded-xl font-bold">Retry</Button>
       </div>
     );
@@ -157,23 +157,23 @@ export default function SavedJobsPage() {
             <Bookmark className="w-8 h-8 text-primary fill-primary/20" />
             Saved Jobs
           </h1>
-          <p className="text-muted-foreground mt-1">You have {savedJobs.length} bookmarked opportunities saved for review.</p>
+          <p className="text-[#66788A] mt-1">You have {savedJobs.length} bookmarked opportunities saved for review.</p>
         </div>
         
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#66788A]" />
             <input
               type="text"
               placeholder="Search saved jobs..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-card border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+              className="w-full pl-9 pr-4 py-2 glass-1 border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
             />
           </div>
           <button
             onClick={() => setSortBy(sortBy === "match" ? "date" : "match")}
-            className="px-4 py-2 bg-card border rounded-xl flex items-center gap-2 hover:bg-secondary transition-colors text-xs font-bold"
+            className="px-4 py-2 glass-1 border rounded-xl flex items-center gap-2 hover:glass-1 transition-colors text-xs font-bold"
           >
             Sort by: {sortBy === "match" ? "Highest Match" : "Date Saved"} <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -181,12 +181,12 @@ export default function SavedJobsPage() {
       </div>
 
       {filteredJobs.length === 0 ? (
-        <div className="text-center py-16 bg-card border rounded-2xl p-8 space-y-4">
+        <div className="text-center py-16 glass-1 border rounded-2xl p-8 space-y-4">
           <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto text-2xl">
             🔖
           </div>
           <h3 className="text-xl font-bold">No saved jobs found</h3>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+          <p className="text-[#66788A] text-sm max-w-md mx-auto">
             {search ? "No saved jobs match your search criteria." : "Start swiping right on job cards to bookmark roles you love!"}
           </p>
           <Button onClick={() => router.push("/jobs")} className="rounded-xl px-6 font-semibold">
@@ -196,7 +196,7 @@ export default function SavedJobsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.map(job => (
-            <div key={job.id} className="bg-card border rounded-2xl p-5 hover:shadow-xl transition-all group flex flex-col h-full hover:border-primary/50 relative overflow-hidden">
+            <div key={job.id} className="glass-1 border rounded-2xl p-5 hover:shadow-xl transition-all group flex flex-col h-full hover:border-primary/50 relative overflow-hidden">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
                   <div
@@ -207,7 +207,7 @@ export default function SavedJobsPage() {
                   </div>
                   <div>
                     <h3 className="font-bold line-clamp-1 group-hover:text-primary transition-colors">{job.title}</h3>
-                    <div className="text-sm font-semibold text-muted-foreground">{job.company}</div>
+                    <div className="text-sm font-semibold text-[#66788A]">{job.company}</div>
                   </div>
                 </div>
                 <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
@@ -216,13 +216,13 @@ export default function SavedJobsPage() {
               </div>
               
               <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                <div className="flex items-center gap-2 text-xs text-[#66788A] font-medium">
                   <MapPin className="w-3.5 h-3.5 text-primary" /> {job.location}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   <DollarSign className="w-3.5 h-3.5" /> {job.salary}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                <div className="flex items-center gap-2 text-xs text-[#66788A] font-medium">
                   <Calendar className="w-3.5 h-3.5" /> Saved {job.savedDate}
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default function SavedJobsPage() {
                 </Button>
                 <button
                   onClick={() => handleRemove(job.id)}
-                  className="p-2.5 bg-secondary text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
+                  className="p-2.5 glass-1 text-[#66788A] hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
                   title="Remove from Saved"
                 >
                   <Trash2 className="w-4 h-4" />

@@ -13,10 +13,10 @@ interface SkillGapAnalysisCardProps {
 export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skillGap, onOpenMatchModal }) => {
   if (!skillGap) {
     return (
-      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
+      <div className="glass-1 border rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
         <Target className="w-10 h-10 text-primary opacity-60" />
         <h3 className="font-bold text-base">Target Job Skill Gap Analysis</h3>
-        <p className="text-xs text-muted-foreground max-w-md">
+        <p className="text-xs text-[#66788A] max-w-md">
           Compare your resume skills against any target job role to see matched skills, missing prerequisites, and learning priorities.
         </p>
         {onOpenMatchModal && (
@@ -29,21 +29,21 @@ export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skil
   }
 
   return (
-    <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <Target className="w-5 h-5 text-primary" />
             Skill Gap & Competency Analysis
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#66788A] mt-0.5">
             Identify critical skill gaps required to reach 100% job requirement compatibility.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="text-xs text-muted-foreground block font-medium">Match Readiness</span>
+            <span className="text-xs text-[#66788A] block font-medium">Match Readiness</span>
             <span className="text-lg font-black text-primary">{skillGap.matchPercentage}%</span>
           </div>
           {onOpenMatchModal && (
@@ -55,14 +55,14 @@ export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skil
       </div>
 
       {/* Progress Bar */}
-      <div className="space-y-1.5 p-4 bg-secondary/30 rounded-2xl border">
+      <div className="space-y-1.5 p-4 glass-1/30 rounded-2xl border">
         <div className="flex justify-between items-center text-xs font-bold">
           <span className="flex items-center gap-1.5">
             <Flame className="w-4 h-4 text-amber-500" /> Target Competency Progress
           </span>
           <span className="text-primary">{skillGap.gapProgress}% Satisfied</span>
         </div>
-        <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+        <div className="w-full glass-1 rounded-full h-2.5 overflow-hidden">
           <div
             className="bg-primary h-2.5 rounded-full transition-all duration-500"
             style={{ width: `${skillGap.gapProgress}%` }}
@@ -78,7 +78,7 @@ export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skil
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {skillGap.alreadyKnown?.map((skill, idx) => (
-              <span key={idx} className="text-xs font-semibold px-2.5 py-1 bg-card border border-emerald-500/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+              <span key={idx} className="text-xs font-semibold px-2.5 py-1 glass-1 border border-emerald-500/30 rounded-lg text-emerald-600 dark:text-emerald-400">
                 ✓ {skill}
               </span>
             ))}
@@ -100,13 +100,13 @@ export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skil
         </div>
 
         {/* Need to Learn */}
-        <div className="p-4 rounded-2xl bg-secondary/50 border space-y-2.5">
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+        <div className="p-4 rounded-2xl glass-1/50 border space-y-2.5">
+          <h4 className="font-bold text-xs uppercase tracking-wider text-[#F5FAFF] flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-primary" /> Remaining Required Skills
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {skillGap.needToLearn?.map((skill, idx) => (
-              <span key={idx} className="text-xs font-semibold px-2.5 py-1 bg-card border rounded-lg text-muted-foreground">
+              <span key={idx} className="text-xs font-semibold px-2.5 py-1 glass-1 border rounded-lg text-[#66788A]">
                 • {skill}
               </span>
             ))}
@@ -114,13 +114,13 @@ export const SkillGapAnalysisCard: React.FC<SkillGapAnalysisCardProps> = ({ skil
         </div>
 
         {/* Optional Skills */}
-        <div className="p-4 rounded-2xl bg-secondary/50 border space-y-2.5">
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+        <div className="p-4 rounded-2xl glass-1/50 border space-y-2.5">
+          <h4 className="font-bold text-xs uppercase tracking-wider text-[#F5FAFF] flex items-center gap-1.5">
             Optional / Nice-to-Have Skills
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {skillGap.optionalSkills?.map((skill, idx) => (
-              <span key={idx} className="text-xs font-semibold px-2.5 py-1 bg-card border rounded-lg text-muted-foreground">
+              <span key={idx} className="text-xs font-semibold px-2.5 py-1 glass-1 border rounded-lg text-[#66788A]">
                 + {skill}
               </span>
             ))}

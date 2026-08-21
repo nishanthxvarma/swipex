@@ -73,7 +73,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: 
 
   return (
     <motion.div
-      className="absolute w-full max-w-sm h-[520px] bg-card rounded-2xl shadow-xl border overflow-hidden flex flex-col bg-white dark:bg-zinc-900 select-none"
+      className="absolute w-full max-w-sm h-[520px] glass-1 rounded-2xl shadow-xl border overflow-hidden flex flex-col bg-white dark:bg-zinc-900 select-none"
       style={{
         x: isTop ? x : 0,
         rotate: isTop ? rotate : 0,
@@ -118,7 +118,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: 
                 <span className="font-semibold">{job.company}</span>
                 {job.verified && <Check className="w-4 h-4 text-blue-500 bg-blue-100 rounded-full p-[2px]" />}
               </div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <div className="text-xs text-[#66788A] flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {job.postedTime}
               </div>
@@ -149,22 +149,22 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: 
         <h2 className="text-2xl font-bold mb-2 leading-tight">{job.title}</h2>
         
         <div className="flex flex-wrap gap-2 mb-4">
-          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 glass-1 rounded-lg">
             <MapPin className="w-3 h-3" />
             {job.location}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 glass-1 rounded-lg">
             <Briefcase className="w-3 h-3" />
             {job.type}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-secondary rounded-lg font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 glass-1 rounded-lg font-semibold text-emerald-600 dark:text-emerald-400">
             <DollarSign className="w-3 h-3" />
             {job.salary}
           </span>
         </div>
 
         <div className="mb-4">
-          <div className="text-xs font-semibold text-muted-foreground mb-2">Required Skills</div>
+          <div className="text-xs font-semibold text-[#66788A] mb-2">Required Skills</div>
           <div className="flex flex-wrap gap-1.5">
             {job.skills.map((skill, i) => (
               <span key={i} className="text-xs px-2.5 py-1 border rounded-lg bg-background/50 font-medium">
@@ -176,7 +176,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: 
         
         <div className="mt-auto pt-4 border-t flex justify-between items-center text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Competition:</span>
+            <span className="text-[#66788A]">Competition:</span>
             <div className="flex items-center gap-1">
               <div className={cn("w-2 h-2 rounded-full", competitionColors[job.competition])}></div>
               <span className="font-semibold">{job.competition}</span>
@@ -186,7 +186,7 @@ export function SwipeCard({ job, isTop, onSwipe, onShowDetails, onToggleSave }: 
       </div>
 
       {/* Action Buttons */}
-      <div className="p-4 bg-muted/40 border-t flex justify-center items-center gap-4">
+      <div className="p-4 glass-1/40 border-t flex justify-center items-center gap-4">
         <button
           onClick={() => onSwipe("left")}
           title="Skip"

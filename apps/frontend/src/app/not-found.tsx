@@ -21,7 +21,7 @@ export default function NotFound() {
         
         {/* Floating elements */}
         <div className="absolute top-10 left-10 h-16 w-16 animate-bounce rounded-2xl bg-blue-500/20 backdrop-blur-xl border border-blue-500/30" style={{ animationDuration: '3s' }} />
-        <div className="absolute bottom-10 right-10 h-20 w-20 rounded-full bg-purple-500/20 backdrop-blur-xl border border-purple-500/30 animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-10 right-10 h-20 w-20 rounded-full bg-[#BFE8FF]/20 backdrop-blur-xl border border-purple-500/30 animate-pulse" style={{ animationDuration: '4s' }} />
         <div className="absolute top-20 right-20 h-12 w-12 rounded-lg bg-amber-500/20 backdrop-blur-xl border border-amber-500/30 animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
       </div>
 
@@ -29,7 +29,7 @@ export default function NotFound() {
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Page not found
         </h2>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-lg text-[#66788A]">
           Sorry, we couldn't find the page you're looking for. It might have been moved or deleted.
         </p>
 
@@ -49,10 +49,10 @@ export default function NotFound() {
         </div>
 
         <nav className="flex justify-center pt-8">
-          <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <li><Link href="/" className="hover:text-foreground">Home</Link></li>
+          <ol className="flex items-center space-x-2 text-sm text-[#66788A]">
+            <li><Link href="/" className="hover:text-[#F5FAFF]">Home</Link></li>
             <li><ChevronRight className="h-4 w-4" /></li>
-            <li className="font-medium text-foreground">404</li>
+            <li className="font-medium text-[#F5FAFF]">404</li>
           </ol>
         </nav>
       </div>

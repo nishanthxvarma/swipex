@@ -61,7 +61,7 @@ export default function SettingsPage() {
           <Settings className="w-8 h-8 text-primary" />
           Settings
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your account preferences, notifications, and privacy controls.</p>
+        <p className="text-[#66788A] text-sm mt-1">Manage your account preferences, notifications, and privacy controls.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
@@ -74,7 +74,7 @@ export default function SettingsPage() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all ${
                 activeTab === tab.id
                   ? "bg-primary text-primary-foreground shadow-md"
-                  : "hover:bg-secondary text-muted-foreground hover:text-foreground"
+                  : "hover:glass-1 text-[#66788A] hover:text-[#F5FAFF]"
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -84,7 +84,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 bg-card border rounded-3xl p-6 sm:p-8 shadow-xs">
+        <div className="flex-1 glass-1 border rounded-3xl p-6 sm:p-8 shadow-xs">
           {activeTab === "general" && (
             <div className="space-y-8">
               <h2 className="text-2xl font-bold border-b pb-4">General Settings</h2>
@@ -93,12 +93,12 @@ export default function SettingsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-bold text-base">Application Theme</h3>
-                    <p className="text-muted-foreground text-xs">Choose between light, dark, or system preference.</p>
+                    <p className="text-[#66788A] text-xs">Choose between light, dark, or system preference.</p>
                   </div>
                   <select
                     value={theme || "dark"}
                     onChange={(e) => setTheme(e.target.value)}
-                    className="bg-secondary border px-4 py-2.5 rounded-xl outline-none text-xs font-semibold cursor-pointer"
+                    className="glass-1 border px-4 py-2.5 rounded-xl outline-none text-xs font-semibold cursor-pointer"
                   >
                     <option value="system">System Default</option>
                     <option value="light">Light Mode</option>
@@ -109,9 +109,9 @@ export default function SettingsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-bold text-base">Language</h3>
-                    <p className="text-muted-foreground text-xs">Select your preferred display language.</p>
+                    <p className="text-[#66788A] text-xs">Select your preferred display language.</p>
                   </div>
-                  <select className="bg-secondary border px-4 py-2.5 rounded-xl outline-none text-xs font-semibold cursor-pointer">
+                  <select className="glass-1 border px-4 py-2.5 rounded-xl outline-none text-xs font-semibold cursor-pointer">
                     <option>English (US)</option>
                     <option>Spanish</option>
                     <option>French</option>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                   <div key={item.key} className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-base">{item.title}</h3>
-                      <p className="text-muted-foreground text-xs">{item.desc}</p>
+                      <p className="text-[#66788A] text-xs">{item.desc}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -160,7 +160,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-base">Public Profile Visibility</h3>
-                    <p className="text-muted-foreground text-xs">Allow verified recruiters on SwipeX to discover your profile.</p>
+                    <p className="text-[#66788A] text-xs">Allow verified recruiters on SwipeX to discover your profile.</p>
                   </div>
                   <input
                     type="checkbox"
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-base">Show Expected Salary Range</h3>
-                    <p className="text-muted-foreground text-xs">Display your target compensation expectations on job cards.</p>
+                    <p className="text-[#66788A] text-xs">Display your target compensation expectations on job cards.</p>
                   </div>
                   <input
                     type="checkbox"
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                 <h3 className="font-bold text-lg text-destructive flex items-center gap-2 mb-2">
                   <Trash2 className="w-5 h-5" /> Danger Zone
                 </h3>
-                <p className="text-muted-foreground text-xs mb-4">
+                <p className="text-[#66788A] text-xs mb-4">
                   Permanently delete your SwipeX account, application history, and ATS resume data.
                 </p>
                 <Button variant="destructive" className="rounded-xl font-bold text-xs">

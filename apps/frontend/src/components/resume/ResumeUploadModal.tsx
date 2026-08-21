@@ -59,7 +59,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="bg-card border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative overflow-hidden"
+        className="glass-1 border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative overflow-hidden"
       >
         <div className="flex items-center justify-between border-b pb-4">
           <div className="flex items-center gap-2.5">
@@ -68,12 +68,12 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
             </div>
             <div>
               <h3 className="font-bold text-lg">Upload Resume</h3>
-              <p className="text-xs text-muted-foreground">PDF or DOCX format (Max 5 MB)</p>
+              <p className="text-xs text-[#66788A]">PDF or DOCX format (Max 5 MB)</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-full hover:glass-1 text-[#66788A] hover:text-[#F5FAFF] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -91,7 +91,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
           className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 ${
             isDragOver
               ? 'border-primary bg-primary/10 scale-[1.01]'
-              : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-secondary/40'
+              : 'border-muted-foreground/30 hover:border-primary/50 hover:glass-1/40'
           }`}
         >
           <input
@@ -102,15 +102,15 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
             className="hidden"
           />
 
-          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-primary shadow-xs">
+          <div className="w-14 h-14 rounded-full glass-1 flex items-center justify-center text-primary shadow-xs">
             <FileText className="w-7 h-7" />
           </div>
 
           <div>
-            <p className="text-sm font-bold text-foreground">
+            <p className="text-sm font-bold text-[#F5FAFF]">
               {selectedFile ? selectedFile.name : 'Click to upload or drag & drop'}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-[#66788A] mt-0.5">
               {selectedFile
                 ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI Parsing`
                 : 'Supports PDF & DOCX up to 5MB'}
@@ -128,14 +128,14 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
 
         {/* Upload Progress Bar */}
         {isUploading && (
-          <div className="space-y-2 p-3 bg-secondary/50 rounded-xl border">
+          <div className="space-y-2 p-3 glass-1/50 rounded-xl border">
             <div className="flex justify-between items-center text-xs font-bold">
               <span className="flex items-center gap-2 text-primary">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" /> Parsing & Evaluating Resume...
               </span>
               <span>{uploadProgress}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div className="w-full glass-1 rounded-full h-2 overflow-hidden">
               <div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}

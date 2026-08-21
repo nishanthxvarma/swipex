@@ -9,7 +9,7 @@ import { jobsApi } from '@swipex/api';
 const STAGES = [
   { id: 'new', title: 'New Applicants', color: 'bg-blue-500', badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   { id: 'screening', title: 'Screening', color: 'bg-amber-500', badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
-  { id: 'interview', title: 'Interviewing', color: 'bg-purple-500', badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  { id: 'interview', title: 'Interviewing', color: 'bg-purple-500', badgeColor: 'bg-[#BFE8FF]/10 text-[#7DD3FC] dark:text-[#BFE8FF]' },
   { id: 'offer', title: 'Offer Extended', color: 'bg-emerald-500', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
   { id: 'hired', title: 'Hired', color: 'bg-cyan-500', badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' },
 ];
@@ -86,7 +86,7 @@ export default function RecruiterPipelinePage() {
             <Users className="w-8 h-8 text-primary" />
             Candidate Pipeline
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Review applicant profiles and progress candidates across recruitment stages.</p>
+          <p className="text-[#66788A] text-sm mt-1">Review applicant profiles and progress candidates across recruitment stages.</p>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ export default function RecruiterPipelinePage() {
           {STAGES.map((stg) => {
             const list = candidates.filter((c) => c.stage === stg.id);
             return (
-              <div key={stg.id} className="w-80 flex flex-col bg-muted/40 border rounded-2xl p-4 min-h-[520px]">
+              <div key={stg.id} className="w-80 flex flex-col glass-1/40 border rounded-2xl p-4 min-h-[520px]">
                 <div className="flex justify-between items-center mb-4 pb-2 border-b">
                   <div className="flex items-center gap-2">
                     <div className={cn('w-3 h-3 rounded-full', stg.color)} />
@@ -109,14 +109,14 @@ export default function RecruiterPipelinePage() {
                 <div className="flex-1 space-y-3 overflow-y-auto pr-1">
                   {list.length === 0 ? (
                     <div className="text-center py-12 border border-dashed rounded-xl p-4">
-                      <p className="text-xs text-muted-foreground">No candidates in this stage</p>
+                      <p className="text-xs text-[#66788A]">No candidates in this stage</p>
                     </div>
                   ) : (
                     list.map((cand) => (
                       <div
                         key={cand.id}
                         onClick={() => setSelectedCandidate(cand)}
-                        className="bg-card border rounded-xl p-4 shadow-xs hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
+                        className="glass-1 border rounded-xl p-4 shadow-xs hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start gap-3 mb-3">
                           <div
@@ -132,11 +132,11 @@ export default function RecruiterPipelinePage() {
                                 {cand.matchScore}%
                               </span>
                             </div>
-                            <p className="text-xs font-semibold text-muted-foreground">{cand.roleApplied}</p>
+                            <p className="text-xs font-semibold text-[#66788A]">{cand.roleApplied}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t">
+                        <div className="flex items-center justify-between text-[11px] text-[#66788A] pt-3 border-t">
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-primary" /> {cand.appliedDate}</span>
                           <span className="font-semibold text-primary group-hover:underline">Review Candidate</span>
                         </div>
@@ -153,7 +153,7 @@ export default function RecruiterPipelinePage() {
       {/* Candidate Action Modal */}
       {selectedCandidate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedCandidate(null)}>
-          <div className="bg-card border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-1 border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start border-b pb-4">
               <div className="flex items-center gap-3">
                 <div
@@ -167,17 +167,17 @@ export default function RecruiterPipelinePage() {
                   <p className="text-sm font-semibold text-primary">{selectedCandidate.roleApplied}</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedCandidate(null)} className="p-1.5 rounded-full hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button onClick={() => setSelectedCandidate(null)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="space-y-4 text-sm">
-              <div className="p-3 bg-muted/50 rounded-xl space-y-1">
-                <span className="text-xs text-muted-foreground block">Email</span>
+              <div className="p-3 glass-1 rounded-xl space-y-1">
+                <span className="text-xs text-[#66788A] block">Email</span>
                 <span className="font-semibold text-xs flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-primary" /> {selectedCandidate.email}</span>
               </div>
 
               <div>
-                <span className="text-xs font-bold text-muted-foreground block mb-2">Move Recruitment Stage</span>
+                <span className="text-xs font-bold text-[#66788A] block mb-2">Move Recruitment Stage</span>
                 <div className="flex flex-wrap gap-2">
                   {STAGES.map((stg) => (
                     <button
@@ -187,7 +187,7 @@ export default function RecruiterPipelinePage() {
                         'px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
                         selectedCandidate.stage === stg.id
                           ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                          : 'bg-card hover:bg-muted text-muted-foreground'
+                          : 'glass-1 hover:glass-1 text-[#66788A]'
                       )}
                     >
                       {stg.title}

@@ -13,14 +13,14 @@ export const AiResumeSuggestions: React.FC<AiResumeSuggestionsProps> = ({ sugges
   if (!suggestions || suggestions.length === 0) return null;
 
   return (
-    <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-500" />
             AI Recommended Improvements
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#66788A] mt-0.5">
             Actionable suggestions to increase recruiter callbacks and ATS ranking score.
           </p>
         </div>
@@ -33,14 +33,14 @@ export const AiResumeSuggestions: React.FC<AiResumeSuggestionsProps> = ({ sugges
         {suggestions.map((sug) => (
           <div
             key={sug.id}
-            className="p-5 rounded-2xl border bg-secondary/30 hover:border-primary/50 transition-all space-y-4"
+            className="p-5 rounded-2xl border glass-1/30 hover:border-primary/50 transition-all space-y-4"
           >
             <div className="flex justify-between items-start">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2.5 py-0.5 rounded-md">
                   {sug.category}
                 </span>
-                <h4 className="font-bold text-sm text-foreground mt-1.5">{sug.problem}</h4>
+                <h4 className="font-bold text-sm text-[#F5FAFF] mt-1.5">{sug.problem}</h4>
               </div>
               {sug.impactScore && (
                 <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
@@ -49,7 +49,7 @@ export const AiResumeSuggestions: React.FC<AiResumeSuggestionsProps> = ({ sugges
               )}
             </div>
 
-            <p className="text-xs text-muted-foreground leading-relaxed">{sug.reason}</p>
+            <p className="text-xs text-[#66788A] leading-relaxed">{sug.reason}</p>
 
             <div className="grid gap-3 sm:grid-cols-2 text-xs font-medium pt-1">
               {/* Current */}
@@ -57,7 +57,7 @@ export const AiResumeSuggestions: React.FC<AiResumeSuggestionsProps> = ({ sugges
                 <span className="text-[10px] font-bold text-destructive uppercase tracking-wider block">
                   Current Phrasing
                 </span>
-                <p className="text-muted-foreground italic">&ldquo;{sug.current}&rdquo;</p>
+                <p className="text-[#66788A] italic">&ldquo;{sug.current}&rdquo;</p>
               </div>
 
               {/* Suggested */}
@@ -65,7 +65,7 @@ export const AiResumeSuggestions: React.FC<AiResumeSuggestionsProps> = ({ sugges
                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" /> Recommended ATS Phrasing
                 </span>
-                <p className="text-foreground font-semibold">&ldquo;{sug.suggested}&rdquo;</p>
+                <p className="text-[#F5FAFF] font-semibold">&ldquo;{sug.suggested}&rdquo;</p>
               </div>
             </div>
           </div>

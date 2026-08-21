@@ -16,29 +16,29 @@ export const ResumeAnalyticsSection: React.FC<ResumeAnalyticsSectionProps> = ({ 
   const maxMonthlyUpload = Math.max(...(analytics.monthlyUploads?.map((m) => m.uploads) || [1]));
 
   return (
-    <div className="bg-card border rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="glass-1 border rounded-3xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-primary" />
             Resume Optimization Analytics & Trends
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-[#66788A] mt-0.5">
             Track your ATS score evolution, skill distribution, and target job matching performance.
           </p>
         </div>
 
         <div className="flex gap-2">
-          <div className="p-3 bg-secondary/50 rounded-2xl border text-center min-w-[100px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+          <div className="p-3 glass-1/50 rounded-2xl border text-center min-w-[100px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#66788A] block">
               Improvement
             </span>
             <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
               +{analytics.resumeImprovementRate}%
             </span>
           </div>
-          <div className="p-3 bg-secondary/50 rounded-2xl border text-center min-w-[100px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+          <div className="p-3 glass-1/50 rounded-2xl border text-center min-w-[100px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#66788A] block">
               Job Matches
             </span>
             <span className="text-base font-black text-primary">
@@ -50,7 +50,7 @@ export const ResumeAnalyticsSection: React.FC<ResumeAnalyticsSectionProps> = ({ 
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* ATS Score Trend Line Chart Visualization */}
-        <div className="p-5 rounded-2xl border bg-secondary/30 space-y-4">
+        <div className="p-5 rounded-2xl border glass-1/30 space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-bold text-sm flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-500" /> ATS Score Evolution Trend
@@ -76,7 +76,7 @@ export const ResumeAnalyticsSection: React.FC<ResumeAnalyticsSectionProps> = ({ 
                       {t.version}
                     </div>
                   </motion.div>
-                  <span className="text-[10px] font-semibold text-muted-foreground">{t.date}</span>
+                  <span className="text-[10px] font-semibold text-[#66788A]">{t.date}</span>
                 </div>
               );
             })}
@@ -84,7 +84,7 @@ export const ResumeAnalyticsSection: React.FC<ResumeAnalyticsSectionProps> = ({ 
         </div>
 
         {/* Skill Category Distribution Bar Chart */}
-        <div className="p-5 rounded-2xl border bg-secondary/30 space-y-4">
+        <div className="p-5 rounded-2xl border glass-1/30 space-y-4">
           <h4 className="font-bold text-sm flex items-center gap-2">
             <Layers className="w-4 h-4 text-primary" /> Skill Inventory Category Breakdown
           </h4>
@@ -98,7 +98,7 @@ export const ResumeAnalyticsSection: React.FC<ResumeAnalyticsSectionProps> = ({ 
                     <span>{sk.category}</span>
                     <span className="text-primary">{sk.count} skills</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="w-full glass-1 rounded-full h-2 overflow-hidden">
                     <motion.div
                       className="bg-primary h-2 rounded-full"
                       initial={{ width: 0 }}

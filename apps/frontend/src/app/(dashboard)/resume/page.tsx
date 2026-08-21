@@ -78,8 +78,7 @@ export default function ResumeDashboardPage() {
       value: activeResume?.originalName || 'No resume uploaded',
       subtitle: activeResume ? `Uploaded ${new Date(activeResume.uploadedAt).toLocaleDateString()}` : 'Upload PDF / DOCX',
       icon: FileText,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
+      iconColor: '#7DD3FC',
       action: () => setUploadModalOpen(true),
       actionText: 'Upload New',
     },
@@ -88,8 +87,7 @@ export default function ResumeDashboardPage() {
       value: `${atsScore} / 100`,
       subtitle: atsScore >= 80 ? 'Green (Optimal Filter Pass)' : 'Moderate ATS Rank',
       icon: Award,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
+      iconColor: '#5EE7C2',
       action: () => setPreviewModalOpen(true),
       actionText: 'View Details',
     },
@@ -98,8 +96,7 @@ export default function ResumeDashboardPage() {
       value: `${skillGap?.matchPercentage || 91}%`,
       subtitle: `${skillGap?.alreadyKnown?.length || 6} Satisfied Skills`,
       icon: Target,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
+      iconColor: '#BFE8FF',
       action: () => setJobMatchModalOpen(true),
       actionText: 'Compare Job',
     },
@@ -108,8 +105,7 @@ export default function ResumeDashboardPage() {
       value: `${recommendations.length || 4} Roles`,
       subtitle: 'Skill-matched opportunities',
       icon: Sparkles,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10',
+      iconColor: '#F6C85F',
       action: () => {
         const el = document.getElementById('recommendations-section');
         el?.scrollIntoView({ behavior: 'smooth' });
@@ -119,45 +115,69 @@ export default function ResumeDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8 pb-20 md:pb-8">
-      {/* Top Banner Header */}
+    <div className="space-y-8 pb-20 md:pb-8" style={{ position: 'relative' }}>
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-xl"
+        style={{ background: 'radial-gradient(ellipse at top, rgba(191,232,255,0.03) 0%, transparent 60%)' }}
+      />
+
+      {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">AI Resume Analysis & ATS Hub</h1>
-            <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full border border-primary/20">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[22px] font-bold text-[#F5FAFF] tracking-tight">
+              AI Resume Analysis &amp; ATS Hub
+            </h1>
+            <span
+              className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+              style={{
+                background: 'rgba(191,232,255,0.08)',
+                border: '1px solid rgba(191,232,255,0.18)',
+                color: '#BFE8FF',
+              }}
+            >
               Milestone 3
             </span>
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base mt-1">
+          <p className="text-[13px] text-[#66788A] mt-1">
             Parse resume content, evaluate weighted ATS scores, identify skill gaps, and match top target jobs.
           </p>
         </div>
 
         {/* Header Actions */}
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="outline"
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
             onClick={() => setVersionsModalOpen(true)}
-            className="rounded-xl font-bold text-xs h-11"
+            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold text-[#9BAFC2] transition-all hover:text-[#BFE8FF]"
+            style={{
+              background: 'rgba(255,255,255,0.038)',
+              border: '1px solid rgba(190,225,255,0.10)',
+              backdropFilter: 'blur(20px)',
+            }}
           >
-            <History className="w-4 h-4 mr-2 text-primary" /> Versions
-          </Button>
+            <History className="w-4 h-4" /> Versions
+          </button>
 
-          <Button
-            variant="outline"
+          <button
             onClick={() => setPreviewModalOpen(true)}
-            className="rounded-xl font-bold text-xs h-11"
+            className="flex items-center gap-2 rounded-xl px-4 h-10 text-[13px] font-semibold text-[#9BAFC2] transition-all hover:text-[#BFE8FF]"
+            style={{
+              background: 'rgba(255,255,255,0.038)',
+              border: '1px solid rgba(190,225,255,0.10)',
+              backdropFilter: 'blur(20px)',
+            }}
           >
-            <Eye className="w-4 h-4 mr-2 text-primary" /> Preview Resume
-          </Button>
+            <Eye className="w-4 h-4" /> Preview Resume
+          </button>
 
-          <Button
+          <button
             onClick={() => setUploadModalOpen(true)}
-            className="rounded-xl font-bold text-xs h-11 px-5 shadow-md bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] transition-all"
+            className="flex items-center gap-2 rounded-xl px-5 h-10 text-[13px] font-semibold text-[#060B12] transition-all hover:opacity-90 hover:scale-[1.02]"
+            style={{ background: '#BFE8FF' }}
           >
-            <UploadCloud className="w-4 h-4 mr-2" /> Upload Resume
-          </Button>
+            <UploadCloud className="w-4 h-4" /> Upload Resume
+          </button>
         </div>
       </div>
 
@@ -166,13 +186,20 @@ export default function ResumeDashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-between shadow-xs"
+          className="p-4 rounded-2xl flex items-center justify-between text-[13px] font-semibold"
+          style={{
+            background: 'rgba(94,231,194,0.08)',
+            border: '1px solid rgba(94,231,194,0.20)',
+            color: '#5EE7C2',
+          }}
         >
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{successMessage}</span>
           </div>
-          <button onClick={clearNotifications} className="hover:underline">Dismiss</button>
+          <button onClick={clearNotifications} className="text-[12px] opacity-70 hover:opacity-100 transition-opacity">
+            Dismiss
+          </button>
         </motion.div>
       )}
 
@@ -181,28 +208,35 @@ export default function ResumeDashboardPage() {
         {dashboardCards.map((card, i) => (
           <div
             key={i}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-xs transition-all hover:shadow-md hover:border-primary/50 flex flex-col justify-between space-y-4"
+            className="group relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between space-y-4 transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.038)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(190,225,255,0.10)',
+            }}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between gap-3">
               <div className="space-y-1 min-w-0">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{card.title}</p>
-                <p className="text-xl font-black tracking-tight truncate">{card.value}</p>
-                <p className="text-[11px] text-muted-foreground font-medium truncate">{card.subtitle}</p>
+                <p className="text-[11px] font-semibold text-[#66788A] uppercase tracking-wider">{card.title}</p>
+                <p className="text-[20px] font-bold text-[#F5FAFF] tracking-tight truncate leading-tight">{card.value}</p>
+                <p className="text-[11px] text-[#66788A] font-medium truncate">{card.subtitle}</p>
               </div>
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${card.bgColor} ${card.color}`}>
-                <card.icon className="h-5.5 w-5.5" />
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.05)', color: card.iconColor }}
+              >
+                <card.icon className="h-5 w-5" />
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={card.action}
-              className="text-xs font-bold text-primary hover:text-primary justify-between p-0 h-auto hover:bg-transparent"
+              className="flex items-center justify-between text-[12px] font-semibold transition-all"
+              style={{ color: '#7DD3FC' }}
             >
               <span>{card.actionText}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </Button>
+            </button>
           </div>
         ))}
       </div>

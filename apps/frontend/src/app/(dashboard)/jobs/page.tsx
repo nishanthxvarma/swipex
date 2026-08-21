@@ -105,7 +105,7 @@ export default function JobFeedPage() {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live matching feed...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading live matching feed...</p>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function JobFeedPage() {
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
         <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
         <button onClick={() => fetchJobs()} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold">Retry</button>
       </div>
     );
@@ -133,17 +133,17 @@ export default function JobFeedPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Location</label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-                <input type="text" placeholder="City or Remote" className="w-full pl-9 pr-3 py-2 bg-secondary rounded-md text-sm border-none" />
+                <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-[#66788A]" />
+                <input type="text" placeholder="City or Remote" className="w-full pl-9 pr-3 py-2 glass-1 rounded-md text-sm border-none" />
               </div>
             </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Salary Range</label>
               <div className="flex items-center gap-2">
-                <input type="number" placeholder="Min" className="w-full px-3 py-2 bg-secondary rounded-md text-sm border-none" />
+                <input type="number" placeholder="Min" className="w-full px-3 py-2 glass-1 rounded-md text-sm border-none" />
                 <span>-</span>
-                <input type="number" placeholder="Max" className="w-full px-3 py-2 bg-secondary rounded-md text-sm border-none" />
+                <input type="number" placeholder="Max" className="w-full px-3 py-2 glass-1 rounded-md text-sm border-none" />
               </div>
             </div>
             
@@ -151,7 +151,7 @@ export default function JobFeedPage() {
               <label className="text-sm font-medium">Experience Level</label>
               <div className="flex flex-wrap gap-2">
                 {["Entry", "Mid", "Senior", "Lead"].map(level => (
-                  <button key={level} className="px-3 py-1.5 rounded-full text-xs bg-secondary hover:bg-secondary/80 transition-colors">
+                  <button key={level} className="px-3 py-1.5 rounded-full text-xs glass-1 hover:glass-1/80 transition-colors">
                     {level}
                   </button>
                 ))}
@@ -166,7 +166,7 @@ export default function JobFeedPage() {
       </div>
 
       {/* Center: Swipe Stack */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-muted/20">
+      <div className="flex-1 flex flex-col relative overflow-hidden glass-1/20">
         <div className="absolute top-0 inset-x-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-background to-transparent">
           <div className="lg:hidden">
             <button className="p-2 bg-background rounded-full shadow-sm" onClick={() => setIsMobileFiltersOpen(true)}>
@@ -205,40 +205,40 @@ export default function JobFeedPage() {
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Skills Alignment</span>
+                  <span className="text-[#66788A]">Skills Alignment</span>
                   <span className="text-primary font-bold">95%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                   <div className="h-full bg-primary rounded-full" style={{ width: '95%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Experience Match</span>
-                  <span className="text-indigo-500 dark:text-indigo-400 font-bold">91%</span>
+                  <span className="text-[#66788A]">Experience Match</span>
+                  <span className="text-[#7DD3FC] dark:text-[#7DD3FC] font-bold">91%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-500 rounded-full" style={{ width: '91%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Location Preference</span>
+                  <span className="text-[#66788A]">Location Preference</span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold">100%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-muted-foreground">Salary Alignment</span>
+                  <span className="text-[#66788A]">Salary Alignment</span>
                   <span className="text-amber-600 dark:text-amber-400 font-bold">88%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: '88%' }} />
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function JobFeedPage() {
 
             {/* Skill Matches vs Gaps */}
             <div className="pt-4 border-t border-border space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Strong Matches</h4>
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#66788A]">Strong Matches</h4>
               <div className="flex flex-wrap gap-1.5">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
                   React ✓
@@ -261,7 +261,7 @@ export default function JobFeedPage() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Potential Skill Gaps</h4>
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#66788A]">Potential Skill Gaps</h4>
               <div className="flex flex-wrap gap-1.5">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                   AWS
@@ -287,7 +287,7 @@ export default function JobFeedPage() {
         <div className="fixed inset-0 z-50 bg-background lg:hidden p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-semibold text-lg">Filters</h3>
-            <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 bg-secondary rounded-full">
+            <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 glass-1 rounded-full">
               <Filter className="w-5 h-5" />
             </button>
           </div>

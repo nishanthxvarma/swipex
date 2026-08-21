@@ -44,10 +44,10 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="bg-card border rounded-3xl max-w-4xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+        className="glass-1 border rounded-3xl max-w-4xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b bg-muted/30">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b glass-1/30">
           <div className="flex items-center gap-2">
             <Button
               variant={viewTab === 'document' ? 'default' : 'ghost'}
@@ -70,10 +70,10 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
           {/* Controls */}
           <div className="flex items-center gap-2">
             {viewTab === 'document' && (
-              <div className="flex items-center gap-1 bg-secondary rounded-xl p-1 border">
+              <div className="flex items-center gap-1 glass-1 rounded-xl p-1 border">
                 <button
                   onClick={() => setZoomLevel((z) => Math.max(60, z - 10))}
-                  className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+                  className="p-1 text-[#66788A] hover:text-[#F5FAFF] rounded-lg"
                   title="Zoom Out"
                 >
                   <ZoomOut className="w-4 h-4" />
@@ -81,14 +81,14 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
                 <span className="text-xs font-bold w-12 text-center">{zoomLevel}%</span>
                 <button
                   onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
-                  className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+                  className="p-1 text-[#66788A] hover:text-[#F5FAFF] rounded-lg"
                   title="Zoom In"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setZoomLevel(100)}
-                  className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+                  className="p-1 text-[#66788A] hover:text-[#F5FAFF] rounded-lg"
                   title="Reset Zoom"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -104,29 +104,29 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               <Download className="w-4 h-4 mr-1.5" /> Export Data
             </Button>
 
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground">
+            <button onClick={onClose} className="p-2 rounded-full hover:glass-1 text-[#66788A] hover:text-[#F5FAFF]">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Content Viewer */}
-        <div className="flex-1 overflow-auto p-6 bg-muted/20">
+        <div className="flex-1 overflow-auto p-6 glass-1/20">
           {viewTab === 'json' ? (
             <pre className="p-4 bg-zinc-950 text-emerald-400 text-xs font-mono rounded-2xl overflow-auto border max-h-full">
               {JSON.stringify(data, null, 2)}
             </pre>
           ) : (
             <div
-              className="mx-auto bg-white dark:bg-zinc-900 border rounded-2xl shadow-lg p-8 space-y-6 text-foreground transition-all origin-top"
+              className="mx-auto bg-white dark:bg-zinc-900 border rounded-2xl shadow-lg p-8 space-y-6 text-[#F5FAFF] transition-all origin-top"
               style={{ transform: `scale(${zoomLevel / 100})`, maxWidth: '800px' }}
             >
               {/* Header */}
               <div className="border-b pb-4 space-y-2">
-                <h1 className="text-3xl font-black text-foreground tracking-tight">{personal.name || 'Developer Name'}</h1>
+                <h1 className="text-3xl font-black text-[#F5FAFF] tracking-tight">{personal.name || 'Developer Name'}</h1>
                 <p className="text-sm font-bold text-primary">{personal.headline}</p>
 
-                <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
+                <div className="flex flex-wrap gap-4 text-xs text-[#66788A] pt-1">
                   {personal.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-primary" /> {personal.email}</span>}
                   {personal.phone && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-primary" /> {personal.phone}</span>}
                   {personal.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-primary" /> {personal.location}</span>}
@@ -137,16 +137,16 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               {/* Education */}
               {data.education && data.education.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#66788A] border-b pb-1">
                     Education
                   </h3>
                   {data.education.map((edu, idx) => (
                     <div key={idx} className="flex justify-between items-start text-xs">
                       <div>
                         <span className="font-bold text-sm block">{edu.degree}</span>
-                        <span className="text-muted-foreground font-semibold">{edu.college}</span>
+                        <span className="text-[#66788A] font-semibold">{edu.college}</span>
                       </div>
-                      <div className="text-right text-muted-foreground font-semibold">
+                      <div className="text-right text-[#66788A] font-semibold">
                         <span>Graduation: {edu.graduationYear}</span>
                         <span className="block text-primary font-bold">{edu.cgpa}</span>
                       </div>
@@ -158,7 +158,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               {/* Technical Skills */}
               {data.skills && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#66788A] border-b pb-1">
                     Technical Skills & Tools
                   </h3>
                   <div className="space-y-1.5 text-xs">
@@ -166,7 +166,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
                       if (!list || list.length === 0) return null;
                       return (
                         <div key={idx} className="flex gap-2">
-                          <span className="font-bold text-muted-foreground min-w-[130px] capitalize">
+                          <span className="font-bold text-[#66788A] min-w-[130px] capitalize">
                             {cat.replace(/([A-Z])/g, ' $1')}:
                           </span>
                           <span className="font-semibold">{list.join(', ')}</span>
@@ -180,16 +180,16 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               {/* Experience */}
               {data.experience && data.experience.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#66788A] border-b pb-1">
                     Work Experience
                   </h3>
                   {data.experience.map((exp, idx) => (
                     <div key={idx} className="space-y-1 text-xs">
                       <div className="flex justify-between items-center font-bold text-sm">
                         <span>{exp.role} — <span className="text-primary">{exp.company}</span></span>
-                        <span className="text-xs text-muted-foreground font-normal">{exp.duration}</span>
+                        <span className="text-xs text-[#66788A] font-normal">{exp.duration}</span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{exp.description}</p>
+                      <p className="text-[#66788A] leading-relaxed">{exp.description}</p>
                     </div>
                   ))}
                 </div>
@@ -198,7 +198,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               {/* Featured Projects */}
               {data.projects && data.projects.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#66788A] border-b pb-1">
                     Featured Projects
                   </h3>
                   {data.projects.map((proj, idx) => (
@@ -207,7 +207,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
                         <span className="text-sm">{proj.title}</span>
                         <span className="text-primary text-[11px] font-semibold">{proj.technologies?.join(' • ')}</span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{proj.description}</p>
+                      <p className="text-[#66788A] leading-relaxed">{proj.description}</p>
                     </div>
                   ))}
                 </div>
@@ -216,10 +216,10 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, 
               {/* Certifications & Achievements */}
               {data.certifications && data.certifications.length > 0 && (
                 <div className="space-y-1">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground border-b pb-1">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#66788A] border-b pb-1">
                     Certifications
                   </h3>
-                  <ul className="list-disc list-inside text-xs text-muted-foreground font-medium">
+                  <ul className="list-disc list-inside text-xs text-[#66788A] font-medium">
                     {data.certifications.map((c, idx) => (
                       <li key={idx}>{c}</li>
                     ))}

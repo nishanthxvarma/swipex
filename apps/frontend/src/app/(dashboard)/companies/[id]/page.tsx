@@ -35,7 +35,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
     return (
       <div className="max-w-5xl mx-auto py-24 flex flex-col items-center justify-center space-y-3">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading company profile...</p>
+        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading company profile...</p>
       </div>
     );
   }
@@ -46,7 +46,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         <div className="p-8 bg-destructive/10 border border-destructive/20 rounded-3xl max-w-md mx-auto space-y-3">
           <AlertTriangle className="w-8 h-8 text-destructive mx-auto" />
           <h3 className="font-bold text-lg">Company Not Found</h3>
-          <p className="text-xs text-muted-foreground">{error || "Unable to locate this employer in the database."}</p>
+          <p className="text-xs text-[#66788A]">{error || "Unable to locate this employer in the database."}</p>
           <Button size="sm" onClick={() => router.push("/companies")} className="rounded-xl mt-2">
             Back to Companies
           </Button>
@@ -85,7 +85,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         </div>
         <div className="flex-1 pb-2">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">{company.name}</h1>
-          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-muted-foreground font-medium">
+          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-[#66788A] font-medium">
             <span className="flex items-center gap-1"><Building2 className="w-4 h-4 text-primary" /> {company.industry}</span>
             <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {company.location}</span>
             <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {company.size}</span>
@@ -116,7 +116,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 pb-4 border-b-2 text-sm font-bold transition-all whitespace-nowrap ${
-              activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+              activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-[#66788A] hover:text-[#F5FAFF]"
             }`}
           >
             <tab.icon className="w-4 h-4" /> {tab.label}
@@ -129,22 +129,22 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         {activeTab === "overview" && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              <section className="bg-card border rounded-2xl p-6 shadow-xs space-y-3">
+              <section className="glass-1 border rounded-2xl p-6 shadow-xs space-y-3">
                 <h3 className="text-xl font-bold">About {company.name}</h3>
-                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{company.description}</p>
+                <p className="text-[#66788A] leading-relaxed text-sm sm:text-base">{company.description}</p>
               </section>
             </div>
             <div className="space-y-6">
-              <div className="bg-card border rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="glass-1 border rounded-2xl p-6 shadow-xs space-y-4">
                 <h4 className="font-bold text-sm">Company Links</h4>
                 <div className="flex gap-3">
-                  <a href={company.website} target="_blank" rel="noreferrer" className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center hover:text-primary transition-colors">
+                  <a href={company.website} target="_blank" rel="noreferrer" className="w-10 h-10 glass-1 rounded-xl flex items-center justify-center hover:text-primary transition-colors">
                     <Globe className="w-5 h-5" />
                   </a>
-                  <a href="#" className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center hover:text-primary transition-colors">
+                  <a href="#" className="w-10 h-10 glass-1 rounded-xl flex items-center justify-center hover:text-primary transition-colors">
                     <Send className="w-5 h-5" />
                   </a>
-                  <a href="#" className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center hover:text-primary transition-colors">
+                  <a href="#" className="w-10 h-10 glass-1 rounded-xl flex items-center justify-center hover:text-primary transition-colors">
                     <AtSign className="w-5 h-5" />
                   </a>
                 </div>
@@ -156,16 +156,16 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         {activeTab === "jobs" && (
           <div className="space-y-4">
             {openJobs.length === 0 ? (
-              <div className="p-12 text-center bg-card border rounded-2xl">
-                <Briefcase className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-xs font-semibold text-muted-foreground">No active job openings posted by {company.name} at this time.</p>
+              <div className="p-12 text-center glass-1 border rounded-2xl">
+                <Briefcase className="w-8 h-8 text-[#66788A] mx-auto mb-2" />
+                <p className="text-xs font-semibold text-[#66788A]">No active job openings posted by {company.name} at this time.</p>
               </div>
             ) : (
               openJobs.map((job: any) => (
-                <div key={job.id} className="bg-card border rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/50 transition-all shadow-xs group">
+                <div key={job.id} className="glass-1 border rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/50 transition-all shadow-xs group">
                   <div>
                     <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{job.title}</h4>
-                    <div className="text-xs text-muted-foreground flex gap-3 mt-1 font-medium">
+                    <div className="text-xs text-[#66788A] flex gap-3 mt-1 font-medium">
                       <span>{job.location}</span>
                       <span>•</span>
                       <span>{job.jobType || job.type || "Full-time"}</span>
@@ -185,7 +185,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         {activeTab === "tech" && (
           <div className="flex flex-wrap gap-3">
             {company.techStack.map((tech: string) => (
-              <div key={tech} className="px-4 py-3 bg-card border rounded-xl font-semibold text-sm flex items-center gap-2.5 shadow-xs">
+              <div key={tech} className="px-4 py-3 glass-1 border rounded-xl font-semibold text-sm flex items-center gap-2.5 shadow-xs">
                 <Cpu className="w-4 h-4 text-primary" /> {tech}
               </div>
             ))}
@@ -195,7 +195,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
         {activeTab === "benefits" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {company.benefits.map((benefit: string) => (
-              <div key={benefit} className="bg-card border rounded-2xl p-5 flex flex-col items-center text-center gap-3 shadow-xs">
+              <div key={benefit} className="glass-1 border rounded-2xl p-5 flex flex-col items-center text-center gap-3 shadow-xs">
                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
                   <Heart className="w-6 h-6" />
                 </div>

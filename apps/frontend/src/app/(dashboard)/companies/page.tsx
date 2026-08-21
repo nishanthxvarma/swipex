@@ -47,17 +47,17 @@ export default function CompaniesPage() {
             <Building2 className="w-8 h-8 text-primary" />
             Top Companies
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Discover and follow top hiring companies aligned with your career vision.</p>
+          <p className="text-[#66788A] text-sm mt-1">Discover and follow top hiring companies aligned with your career vision.</p>
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#66788A]" />
           <input
             type="text"
             placeholder="Search companies..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-card border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+            className="w-full pl-9 pr-4 py-2 glass-1 border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
           />
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function CompaniesPage() {
               "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border",
               selectedIndustry === tag
                 ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                : "bg-card hover:bg-muted text-muted-foreground"
+                : "glass-1 hover:glass-1 text-[#66788A]"
             )}
           >
             {tag}
@@ -80,21 +80,21 @@ export default function CompaniesPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-20 bg-card border rounded-2xl p-8 space-y-3 flex flex-col items-center justify-center">
+        <div className="text-center py-20 glass-1 border rounded-2xl p-8 space-y-3 flex flex-col items-center justify-center">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading verified company directory...</p>
+          <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading verified company directory...</p>
         </div>
       ) : companies.length === 0 ? (
-        <div className="text-center py-16 bg-card border rounded-2xl p-8 space-y-2">
-          <Building2 className="w-12 h-12 text-muted-foreground mx-auto" />
+        <div className="text-center py-16 glass-1 border rounded-2xl p-8 space-y-2">
+          <Building2 className="w-12 h-12 text-[#66788A] mx-auto" />
           <h3 className="text-lg font-bold">No companies found</h3>
-          <p className="text-muted-foreground text-xs">Try clearing your search query or selecting another industry tag.</p>
+          <p className="text-[#66788A] text-xs">Try clearing your search query or selecting another industry tag.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {companies.map(company => (
             <Link href={`/companies/${company.id}`} key={company.id}>
-              <div className="bg-card border rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col h-full cursor-pointer hover:border-primary/50 relative overflow-hidden">
+              <div className="glass-1 border rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col h-full cursor-pointer hover:border-primary/50 relative overflow-hidden">
                 <div className="flex justify-between items-start mb-6">
                   <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-md group-hover:scale-105 transition-transform"
@@ -108,9 +108,9 @@ export default function CompaniesPage() {
                 </div>
                 
                 <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">{company.name}</h3>
-                <div className="text-xs font-semibold text-muted-foreground mb-4">{company.industry}</div>
+                <div className="text-xs font-semibold text-[#66788A] mb-4">{company.industry}</div>
                 
-                <div className="space-y-2 mt-auto text-xs text-muted-foreground font-medium">
+                <div className="space-y-2 mt-auto text-xs text-[#66788A] font-medium">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-primary" /> {company.location || company.headquarters || "Remote"}
                   </div>
@@ -121,7 +121,7 @@ export default function CompaniesPage() {
                 
                 <div className="mt-6 pt-4 border-t flex justify-between items-center text-xs">
                   <span className="font-bold text-primary">{company.openRolesCount || company.activeJobsCount || (company.jobs?.length) || 0} open positions</span>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ExternalLink className="w-4 h-4 text-[#66788A] group-hover:text-primary transition-colors" />
                 </div>
               </div>
             </Link>
