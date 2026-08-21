@@ -68,7 +68,7 @@ export const jobsApi = {
   searchJobs: (query: string, filters?: JobFilters, page = 1) => 
     api.post<Job[]>(API_ENDPOINTS.JOBS.SEARCH, { query, filters, page }),
     
-  swipeJob: (jobId: string, direction: SwipeDirection) => 
+  swipeJob: (jobId: string, direction: SwipeDirection | 'left' | 'right' | 'up') => 
     api.post<{ success: boolean }>(API_ENDPOINTS.JOBS.SWIPE, { jobId, direction }),
     
   saveJob: (jobId: string) => 
@@ -106,6 +106,11 @@ export const jobsApi = {
     
   createApplication: (jobId: string, data: any) => 
     api.post<Application>(API_ENDPOINTS.APPLICATIONS.CREATE, { jobId, ...data }),
+
+  applyToJob: (jobId: string, data?: any) =>
+    api.post<Application>(API_ENDPOINTS.APPLICATIONS.CREATE, { jobId, ...(data || {}) }),
+
+  getUserApplications: (page = 1) => jobsApi.getApplications(page),
 
   createJob: (data: any) =>
     api.post<Job>('/jobs/', data),

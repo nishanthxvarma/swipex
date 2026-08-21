@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Loader2, Mail, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Loader2, Mail, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,7 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const {
     register,
@@ -34,8 +34,6 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true);
     setErrorMsg(null);
@@ -44,99 +42,90 @@ export default function ForgotPasswordPage() {
       setIsSubmitted(true);
     } catch (error: any) {
       console.error('Forgot password error:', error);
-      setErrorMsg(error?.response?.data?.detail || 'Failed to send reset link. Please try again.');
+      setErrorMsg(error.message || 'Unable to process request. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center space-y-6"
-      >
-        <div className="flex justify-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          >
-            <CheckCircle2 className="h-16 w-16 text-green-500" />
-          </motion.div>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
-          <p className="text-muted-foreground">
-            We've sent a password reset link to your email address.
-          </p>
-        </div>
-        <Button asChild className="w-full" variant="outline">
-          <Link href="/login">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to sign in
-          </Link>
-        </Button>
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <div className="space-y-2 text-center md:text-left">
-        <h1 className="text-3xl font-bold tracking-tight">Forgot Password</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
+    <div className="space-y-6">
+      <div className="space-y-1.5">
+        <Link
+          href="/login"
+          className="inline-flex items-center text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors gap-1 mb-2"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to sign in</span>
+        </Link>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-100">Reset password</h2>
+        <p className="text-xs text-slate-400">
+          Enter the email address associated with your SwipeX account.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              className={cn("pl-9", errors.email && "border-destructive")}
-              {...register('email')}
-            />
-          </div>
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
-          )}
-          {errorMsg && (
-            <div className="p-3 text-xs rounded-xl bg-destructive/10 text-destructive border border-destructive/20 font-medium">
-              {errorMsg}
-            </div>
-          )}
+      {errorMsg && (
+        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+          {errorMsg}
         </div>
+      )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
+      {isSubmitted ? (
+        <div className="p-6 rounded-2xl bg-[#0C1119] border border-emerald-500/30 text-center space-y-4 shadow-xl">
+          <div className="w-12 h-12 mx-auto rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-slate-100">Check your inbox</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              If an account exists with that email, we have sent a secure password reset link.
+            </p>
+          </div>
+          <Button
+            asChild
+            className="w-full h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+          >
+            <Link href="/login">Return to Sign In</Link>
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-semibold text-slate-300">Account Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                className={cn(
+                  "pl-9 bg-[#0C1119] border-slate-800 text-slate-100 placeholder:text-slate-500 text-sm focus-visible:ring-primary rounded-xl",
+                  errors.email && "border-rose-500"
+                )}
+                {...register('email')}
+              />
+            </div>
+            {errors.email && (
+              <p className="text-[11px] text-rose-400">{errors.email.message}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md transition-all cursor-pointer"
+            disabled={isLoading}
+          >
+            {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending link...
-            </>
-          ) : (
-            'Send Reset Link'
-          )}
-        </Button>
-      </form>
-
-      <div className="text-center text-sm text-muted-foreground">
-        <Link href="/login" className="flex items-center justify-center font-medium text-primary hover:underline">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to sign in
-        </Link>
-      </div>
-    </motion.div>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                Send Reset Link
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            )}
+          </Button>
+        </form>
+      )}
+    </div>
   );
 }

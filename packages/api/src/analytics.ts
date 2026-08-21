@@ -27,3 +27,6 @@ export class AnalyticsApi {
     return this.client.get<any>('/analytics/admin');
   }
 }
+
+import { api } from './client';
+export const analyticsApi = new AnalyticsApi(api);

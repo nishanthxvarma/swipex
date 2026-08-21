@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Mail, Building2, User, Shield, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Building2, User, Shield, Lock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +23,24 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+const roles = [
+  {
+    id: 'JOB_SEEKER',
+    title: 'Candidate',
+    icon: User,
+  },
+  {
+    id: 'RECRUITER',
+    title: 'Recruiter',
+    icon: Building2,
+  },
+  {
+    id: 'ADMIN',
+    title: 'Admin',
+    icon: Shield,
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -101,161 +118,148 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (error: any) {
-      console.error(error);
-      setLoginError(error.message || 'Invalid credentials or database connection failure.');
+      console.error('Login error:', error);
+      setLoginError(error.message || 'Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-        <p className="text-muted-foreground text-sm">
-          Log in to access your Candidate, Recruiter, or Admin workspace.
+    <div className="space-y-6">
+      <div className="space-y-1.5">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-100">Welcome back</h2>
+        <p className="text-xs text-slate-400">
+          Enter your credentials to access your SwipeX workspace.
         </p>
       </div>
 
-      {/* Role Selection Tabs */}
-      <div className="grid grid-cols-3 gap-2 p-1.5 bg-muted rounded-2xl border">
-        <button
-          type="button"
-          onClick={() => setValue('role', 'JOB_SEEKER')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
-            selectedRole === 'JOB_SEEKER'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <User className="w-3.5 h-3.5 text-primary" />
-          Job Seeker
-        </button>
-        <button
-          type="button"
-          onClick={() => setValue('role', 'RECRUITER')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
-            selectedRole === 'RECRUITER'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Building2 className="w-3.5 h-3.5 text-primary" />
-          Recruiter
-        </button>
-        <button
-          type="button"
-          onClick={() => setValue('role', 'ADMIN')}
-          className={cn(
-            'flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all',
-            selectedRole === 'ADMIN'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Shield className="w-3.5 h-3.5 text-primary" />
-          Admin
-        </button>
-      </div>
-
-{loginError && (
-        <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold animate-pulse">
+      {loginError && (
+        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
           {loginError}
         </div>
       )}
 
+      {/* Role Selection Segmented Control */}
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold text-slate-300">Select Workspace</Label>
+        <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-[#0C1119] border border-slate-800">
+          {roles.map((r) => {
+            const isSelected = selectedRole === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setValue('role', r.id as any)}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                )}
+              >
+                <r.icon className="w-3.5 h-3.5" />
+                <span>{r.title}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">
-            {selectedRole === 'RECRUITER' ? 'Work Email' : 'Email Address'}
-          </Label>
+        {/* Email */}
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-xs font-semibold text-slate-300">Work / Personal Email</Label>
           <div className="relative">
+            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
             <Input
               id="email"
               type="email"
-              placeholder={selectedRole === 'RECRUITER' ? 'hr@company.com' : 'name@example.com'}
+              placeholder="name@example.com"
+              className={cn(
+                "pl-9 bg-[#0C1119] border-slate-800 text-slate-100 placeholder:text-slate-500 text-sm focus-visible:ring-primary rounded-xl",
+                errors.email && "border-rose-500"
+              )}
               {...register('email')}
-              className={cn('h-11 pl-10 rounded-xl', errors.email && 'border-destructive')}
             />
-            <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
           </div>
           {errors.email && (
-            <p className="text-xs font-semibold text-destructive">{errors.email.message}</p>
+            <p className="text-[11px] text-rose-400">{errors.email.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
+        {/* Password */}
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-xs font-semibold text-slate-300">Password</Label>
             <Link
               href="/forgot-password"
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-xs text-primary hover:underline font-medium"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
+            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
+              className={cn(
+                "pl-9 pr-9 bg-[#0C1119] border-slate-800 text-slate-100 placeholder:text-slate-500 text-sm focus-visible:ring-primary rounded-xl",
+                errors.password && "border-rose-500"
+              )}
               {...register('password')}
-              className={cn('h-11 pl-10 pr-10 rounded-xl', errors.password && 'border-destructive')}
             />
-            <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 cursor-pointer"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {errors.password && (
-            <p className="text-xs font-semibold text-destructive">{errors.password.message}</p>
+            <p className="text-[11px] text-rose-400">{errors.password.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
-            />
-            <label htmlFor="remember" className="text-xs font-semibold text-muted-foreground cursor-pointer">
-              Remember me
-            </label>
-          </div>
+        {/* Remember me */}
+        <div className="flex items-center space-x-2 pt-1">
+          <Checkbox
+            id="rememberMe"
+            checked={rememberMe}
+            onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
+            className="border-slate-700 data-[state=checked]:bg-primary"
+          />
+          <Label htmlFor="rememberMe" className="text-xs text-slate-400 cursor-pointer">
+            Remember this device
+          </Label>
         </div>
 
-        <Button type="submit" className="w-full h-11 rounded-xl font-bold shadow-md" disabled={isLoading}>
+        {/* Submit button */}
+        <Button
+          type="submit"
+          className="w-full h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md transition-all cursor-pointer"
+          disabled={isLoading}
+        >
           {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loggin in...
-            </>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <>
-              Sign In as {selectedRole === 'RECRUITER' ? 'Recruiter' : 'Candidate'}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
+            <span className="flex items-center justify-center gap-2">
+              Sign In to Workspace
+              <ArrowRight className="w-4 h-4" />
+            </span>
           )}
         </Button>
       </form>
 
-      <div className="text-center text-xs text-muted-foreground pt-2">
+      <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800/80">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-bold text-primary hover:underline">
+        <Link href="/signup" className="text-primary hover:underline font-semibold">
           Create an account
         </Link>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -6,5 +6,7 @@ export * from './resume';
 export * from './notifications';
 export * from './analytics';
 export * from './companies';
+export * from './search';
+export * from './admin';
 
 

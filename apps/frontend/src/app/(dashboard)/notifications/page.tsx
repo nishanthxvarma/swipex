@@ -3,11 +3,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Bell, CheckCircle2, Trash2, Filter, Settings, Sparkles, Calendar, Briefcase, Award, ShieldAlert, Check
+  Bell, CheckCircle2, Trash2, Filter, Settings, Sparkles, Calendar, Briefcase, Award, Check 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNotificationStore } from '@/stores/notification-store';
-import { NotificationType } from '@swipex/types';
 
 export default function NotificationCenterPage() {
   const {
@@ -20,25 +19,25 @@ export default function NotificationCenterPage() {
     updatePreferences,
   } = useNotificationStore();
 
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'applications' | 'interviews' | 'jobs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'applications' | 'interviews'>('all');
   const [showPreferences, setShowPreferences] = useState(false);
 
   const getIconForType = (type: string) => {
     switch (type) {
       case 'job_matched':
       case 'job_recommendation':
-        return <Sparkles className="w-5 h-5 text-amber-500" />;
+        return <Sparkles className="w-4 h-4 text-amber-400" />;
       case 'interview_scheduled':
       case 'interview_reminder':
-        return <Calendar className="w-5 h-5 text-purple-500" />;
+        return <Calendar className="w-4 h-4 text-purple-400" />;
       case 'application_submitted':
       case 'application_status_changed':
       case 'application_viewed':
-        return <Briefcase className="w-5 h-5 text-blue-500" />;
+        return <Briefcase className="w-4 h-4 text-primary" />;
       case 'ats_analysis_completed':
-        return <Award className="w-5 h-5 text-emerald-500" />;
+        return <Award className="w-4 h-4 text-emerald-400" />;
       default:
-        return <Bell className="w-5 h-5 text-primary" />;
+        return <Bell className="w-4 h-4 text-slate-400" />;
     }
   };
 
@@ -46,28 +45,24 @@ export default function NotificationCenterPage() {
     if (activeTab === 'unread') return !n.isRead;
     if (activeTab === 'applications') return n.type.includes('application');
     if (activeTab === 'interviews') return n.type.includes('interview');
-    if (activeTab === 'jobs') return n.type.includes('job');
     return true;
   });
 
   return (
-    <div className="space-y-6 pb-16 max-w-5xl mx-auto">
+    <div className="flex-1 overflow-y-auto bg-[#070A0F] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary">
-              <Bell className="w-6 h-6" />
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Notification Center</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-100">Notification Center</h1>
             {unreadCount > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs font-bold px-2.5 py-0.5 rounded-full">
+              <span className="bg-primary/20 text-primary border border-primary/30 text-xs font-mono font-bold px-2 py-0.5 rounded-full">
                 {unreadCount} unread
               </span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
-            Stay updated on application responses, interview schedules, ATS analyses, and job matches.
+          <p className="text-xs text-slate-400 mt-1">
+            Application updates, recruiter reviews, and interview schedules.
           </p>
         </div>
 
@@ -76,147 +71,90 @@ export default function NotificationCenterPage() {
             variant="outline"
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="rounded-xl font-bold text-xs gap-1.5"
+            className="rounded-xl font-semibold text-xs h-9 bg-[#0C1119] border-slate-800 text-slate-300 hover:bg-slate-800"
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mark All Read
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> Mark All Read
           </Button>
           <Button
-            variant={showPreferences ? 'secondary' : 'outline'}
+            variant="outline"
             onClick={() => setShowPreferences(!showPreferences)}
-            className="rounded-xl font-bold text-xs gap-1.5"
+            className="rounded-xl font-semibold text-xs h-9 bg-[#0C1119] border-slate-800 text-slate-300 hover:bg-slate-800"
           >
-            <Settings className="w-4 h-4" /> Preferences
+            <Settings className="w-3.5 h-3.5 mr-1.5 text-slate-400" /> Preferences
           </Button>
         </div>
       </div>
 
-      {/* Notification Preferences Drawer / Card */}
-      {showPreferences && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="p-6 rounded-3xl bg-card border shadow-sm space-y-4"
-        >
-          <div className="flex items-center justify-between border-b pb-3">
-            <h3 className="font-bold text-base flex items-center gap-2">
-              <Settings className="w-4 h-4 text-primary" /> Notification Delivery Preferences
-            </h3>
-            <span className="text-xs text-muted-foreground font-medium">Persisted to account</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-semibold">
-            {[
-              { key: 'jobRecommendations', label: 'Job Recommendations & Matches' },
-              { key: 'applications', label: 'Application Status Updates' },
-              { key: 'interviews', label: 'Interview Schedules & Reminders' },
-              { key: 'recruiterActivity', label: 'Recruiter Profile Views' },
-              { key: 'analytics', label: 'ATS Analysis & Analytics Reports' },
-              { key: 'systemNotifications', label: 'System & Security Alerts' },
-            ].map((pref) => (
-              <div key={pref.key} className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 border">
-                <span>{pref.label}</span>
-                <input
-                  type="checkbox"
-                  checked={(preferences as any)[pref.key]}
-                  onChange={(e) => updatePreferences({ [pref.key]: e.target.checked })}
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
-                />
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Category Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-1.5 p-1.5 bg-muted rounded-2xl border text-xs font-bold">
-          {[
-            { id: 'all', label: 'All Notifications' },
-            { id: 'unread', label: `Unread (${unreadCount})` },
-            { id: 'applications', label: 'Applications' },
-            { id: 'interviews', label: 'Interviews' },
-            { id: 'jobs', label: 'Job Matches' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3.5 py-2 rounded-xl transition-all ${
-                activeTab === tab.id
-                  ? 'bg-card text-foreground shadow-xs border border-border'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-800/60 pb-3">
+        {(['all', 'unread', 'applications', 'interviews'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+              activeTab === tab
+                ? 'bg-slate-800 text-slate-100 border border-slate-700'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* Notifications List */}
-      <div className="space-y-3">
-        {filteredNotifications.length === 0 ? (
-          <div className="p-12 text-center bg-card border rounded-3xl space-y-3">
-            <Bell className="w-10 h-10 text-muted-foreground mx-auto opacity-50" />
-            <h3 className="font-bold text-base">No notifications found</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              You are all caught up! New job matches, application views, and interview alerts will appear here.
-            </p>
+      {filteredNotifications.length === 0 ? (
+        <div className="p-12 text-center bg-[#0C1119] rounded-2xl border border-slate-800 max-w-md mx-auto space-y-2 my-6">
+          <div className="w-10 h-10 mx-auto rounded-xl bg-slate-800 flex items-center justify-center text-slate-500">
+            <Bell className="w-5 h-5" />
           </div>
-        ) : (
-          filteredNotifications.map((notif) => (
-            <motion.div
-              key={notif.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-5 rounded-3xl border transition-all flex items-start justify-between gap-4 ${
-                notif.isRead ? 'bg-card' : 'bg-primary/5 border-primary/20 shadow-xs'
+          <h3 className="text-sm font-bold text-slate-200">No notifications</h3>
+          <p className="text-xs text-slate-500">You are all caught up.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredNotifications.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => markAsRead(n.id)}
+              className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-4 cursor-pointer ${
+                n.isRead
+                  ? 'bg-[#0C1119]/60 border-slate-800/60 opacity-75'
+                  : 'bg-[#0C1119] border-slate-800 hover:border-slate-700'
               }`}
             >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-background border shadow-xs shrink-0 mt-0.5">
-                  {getIconForType(notif.type)}
+              <div className="flex items-start gap-3.5">
+                <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 shrink-0 mt-0.5">
+                  {getIconForType(n.type)}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-foreground">{notif.title}</h4>
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-primary" />
+                    <p className="text-xs font-bold text-slate-100">{n.title}</p>
+                    {!n.isRead && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{notif.message}</p>
-                  <p className="text-[10px] text-muted-foreground font-mono pt-1">
-                    {new Date(notif.createdAt).toLocaleString()}
-                  </p>
+                  <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 shrink-0">
-                {!notif.isRead && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => markAsRead(notif.id)}
-                    title="Mark as read"
-                    className="rounded-xl text-xs font-semibold text-primary hover:bg-primary/10"
-                  >
-                    <Check className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => dismissNotification(notif.id)}
-                  title="Dismiss"
-                  className="rounded-xl text-xs text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </motion.div>
-          ))
-        )}
-      </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissNotification(n.id);
+                }}
+                className="text-slate-600 hover:text-rose-400 transition-colors p-1 cursor-pointer"
+                title="Dismiss"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
