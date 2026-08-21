@@ -35,13 +35,55 @@ def format_candidate(user) -> dict:
         "email": user.email
     }
 
+def format_profile_dict(profile) -> dict:
+    if not profile:
+        return {}
+    return {
+        "id": str(profile.id) if profile.id else None,
+        "userId": str(profile.user_id) if profile.user_id else None,
+        "fullName": profile.full_name or "",
+        "full_name": profile.full_name or "",
+        "headline": profile.headline or "",
+        "bio": profile.bio or "",
+        "location": profile.location or "",
+        "phone": profile.phone or "",
+        "skills": profile.skills or [],
+        "experiences": profile.experiences or [],
+        "socialLinks": profile.social_links or [],
+        "social_links": profile.social_links or [],
+        "githubUrl": profile.github_url or "",
+        "linkedinUrl": profile.linkedin_url or "",
+        "portfolioUrl": profile.portfolio_url or "",
+        "profileCompletion": profile.profile_completion or "10%"
+    }
+
 @router.get("/profile")
 async def get_profile(current_user: dict = Depends(get_current_user), user_service: UserService = Depends(get_user_service)):
-    return await user_service.get_profile(current_user["id"])
+    profile = await user_service.get_profile(current_user["id"])
+    return format_profile_dict(profile)
 
 @router.put("/profile")
-async def update_profile(current_user: dict = Depends(get_current_user), user_service: UserService = Depends(get_user_service)):
-    pass
+@router.patch("/profile")
+async def update_profile(
+    body: dict,
+    current_user: dict = Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    key_mapping = {
+        "fullName": "full_name",
+        "socialLinks": "social_links",
+        "githubUrl": "github_url",
+        "linkedinUrl": "linkedin_url",
+        "portfolioUrl": "portfolio_url",
+        "profileCompletion": "profile_completion"
+    }
+    payload = {}
+    for k, v in body.items():
+        db_key = key_mapping.get(k, k)
+        payload[db_key] = v
+
+    profile = await user_service.update_profile(current_user["id"], payload)
+    return format_profile_dict(profile)
 
 @router.post("/resume/upload")
 async def upload_resume():

@@ -33,7 +33,16 @@ class UserRepository:
 
     async def get_profile(self, user_id: uuid.UUID):
         result = await self.db.execute(select(ProfileModel).where(ProfileModel.user_id == user_id))
-        return result.scalars().first()
+        profile = result.scalars().first()
+        if not profile:
+            user = await self.get_by_id(user_id)
+            if user:
+                name = user.email.split("@")[0] if user.email else "Candidate"
+                profile = ProfileModel(user_id=user_id, full_name=name, profile_completion="10%")
+                self.db.add(profile)
+                await self.db.commit()
+                await self.db.refresh(profile)
+        return profile
 
     async def update_profile(self, profile: ProfileModel):
         self.db.add(profile)

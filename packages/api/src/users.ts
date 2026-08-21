@@ -4,10 +4,10 @@ import { api } from './client';
 
 export const usersApi = {
   getProfile: () => 
-    api.get<ApiResponse<Profile>>(API_ENDPOINTS.USERS.PROFILE),
+    api.get<any>(API_ENDPOINTS.USERS.PROFILE),
     
-  updateProfile: (data: Partial<Profile>) => 
-    api.patch<ApiResponse<Profile>>(API_ENDPOINTS.USERS.UPDATE_PROFILE, data),
+  updateProfile: (data: any) => 
+    api.put<any>(API_ENDPOINTS.USERS.UPDATE_PROFILE, data),
     
   getDashboardStats: () => 
     api.get<ApiResponse<DashboardStats>>(API_ENDPOINTS.USERS.DASHBOARD_STATS),

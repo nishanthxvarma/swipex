@@ -35,17 +35,28 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         profile = await self.user_repo.get_profile(user.id)
-        fullName = profile.full_name if profile else email.split("@")[0]
+        fullName = profile.full_name if (profile and profile.full_name) else email.split("@")[0]
+        
+        user_dict = {
+            "id": str(user.id),
+            "email": user.email,
+            "role": user.role,
+            "fullName": fullName
+        }
+        if profile:
+            user_dict.update({
+                "headline": profile.headline or "",
+                "location": profile.location or "",
+                "bio": profile.bio or "",
+                "skills": profile.skills or [],
+                "experiences": profile.experiences or [],
+                "socialLinks": profile.social_links or []
+            })
         
         return {
             "access_token": create_access_token(user.id, user.role),
             "refresh_token": create_refresh_token(user.id),
-            "user": {
-                "id": str(user.id),
-                "email": user.email,
-                "role": user.role,
-                "fullName": fullName
-            }
+            "user": user_dict
         }
     
     async def refresh_token(self, refresh_token):

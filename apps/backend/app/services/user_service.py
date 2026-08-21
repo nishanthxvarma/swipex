@@ -10,9 +10,16 @@ class UserService:
     
     async def update_profile(self, user_id: uuid.UUID, profile_data):
         profile = await self.user_repo.get_profile(user_id)
-        if profile:
-            # Update attributes
-            pass
+        if not profile:
+            from app.models.user import ProfileModel
+            profile = ProfileModel(user_id=user_id)
+            self.user_repo.db.add(profile)
+
+        data = profile_data.model_dump(exclude_unset=True) if hasattr(profile_data, "model_dump") else profile_data
+        for field, value in data.items():
+            if hasattr(profile, field) and value is not None:
+                setattr(profile, field, value)
+
         return await self.user_repo.update_profile(profile)
     
     async def get_dashboard_stats(self, user_id: uuid.UUID):

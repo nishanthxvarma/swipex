@@ -36,9 +36,25 @@ class ProfileUpdate(BaseModel):
     headline: Optional[str] = None
     bio: Optional[str] = None
     location: Optional[str] = None
+    phone: Optional[str] = None
+    skills: Optional[list] = None
+    experiences: Optional[list] = None
+    social_links: Optional[list] = None
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    profile_completion: Optional[str] = None
 
 class ProfileResponse(BaseModel):
     full_name: Optional[str] = None
     headline: Optional[str] = None
     bio: Optional[str] = None
     location: Optional[str] = None
+    phone: Optional[str] = None
+    skills: Optional[list] = []
+    experiences: Optional[list] = []
+    social_links: Optional[list] = []
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    profile_completion: Optional[str] = None

@@ -40,6 +40,8 @@ class ProfileModel(Base):
     education = Column(JSON, default=list)
     certifications = Column(JSON, default=list)
     projects = Column(JSON, default=list)
+    experiences = Column(JSON, default=list)
+    social_links = Column(JSON, default=list)
     github_url = Column(String)
     linkedin_url = Column(String)
     portfolio_url = Column(String)
