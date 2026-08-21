@@ -184,24 +184,19 @@ export default function DashboardLayout({
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-border/40">
-          <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden group">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-sm tracking-wider shadow-sm transition-transform group-hover:scale-105">
-              SX
+        <div className="flex h-16 shrink-0 items-center justify-between px-4">
+          <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
+              <Sparkles className="h-5 w-5" />
             </div>
             {isSidebarOpen && (
-              <motion.div
-                initial={{ opacity: 0, x: -6 }}
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2"
+                className="text-xl font-extrabold tracking-tight text-foreground"
               >
-                <span className="text-lg font-black tracking-tight text-foreground">
-                  SwipeX
-                </span>
-                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/40">
-                  AI v2
-                </span>
-              </motion.div>
+                SwipeX
+              </motion.span>
             )}
           </Link>
           <Button
@@ -210,7 +205,7 @@ export default function DashboardLayout({
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
@@ -225,20 +220,39 @@ export default function DashboardLayout({
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all relative group",
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all relative group",
                       isActive
-                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     )}
                     title={!isSidebarOpen ? item.name : undefined}
                   >
-                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                    <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
                     {isSidebarOpen && <span>{item.name}</span>}
                   </Link>
                 );
               })}
             </nav>
+
           </div>
+
+          {/* AI Resume Score Sidebar Widget (Matching Screenshot UI) */}
+          {isSidebarOpen && user?.role !== 'RECRUITER' && user?.role !== 'ADMIN' && (
+            <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border border-indigo-500/20 space-y-2">
+              <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">AI Resume Score</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 shrink-0 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center font-black text-sm text-emerald-600 dark:text-emerald-400">
+                  85
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Good match!</p>
+                  <Link href="/resume" className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5 mt-0.5">
+                    Improve to 90+ <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* User Profile Footer */}

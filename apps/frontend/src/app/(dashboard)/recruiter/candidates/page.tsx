@@ -1,30 +1,81 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Sparkles, MapPin, Briefcase, Award, Check, X, RotateCcw, FileText, UserCheck, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, MapPin, Briefcase, Award, Check, X, RotateCcw, FileText, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usersApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface CandidateProfile {
+  id: string;
+  name: string;
+  headline: string;
+  location: string;
+  experience: string;
+  matchScore: number;
+  skills: string[];
+  bio: string;
+  color: string;
+  initials: string;
+}
+
+const CANDIDATES: CandidateProfile[] = [
+  {
+    id: 'c1',
+    name: 'Alex Rivers',
+    headline: 'Senior React 19 & Next.js Architect',
+    location: 'San Francisco, CA',
+    experience: '6 Years Exp',
+    matchScore: 96,
+    skills: ['React 19', 'Next.js', 'TypeScript', 'TailwindCSS', 'GraphQL'],
+    bio: 'Experienced frontend engineer specializing in design systems, performance optimization, and Next.js App Router applications.',
+    color: '#3B82F6',
+    initials: 'AR',
+  },
+  {
+    id: 'c2',
+    name: 'Sarah Chen',
+    headline: 'Full Stack Engineer (Node.js & Postgres)',
+    location: 'Remote (US)',
+    experience: '5 Years Exp',
+    matchScore: 92,
+    skills: ['Node.js', 'React', 'PostgreSQL', 'Docker', 'AWS'],
+    bio: 'Passionate full stack developer building high-throughput microservices and responsive web UIs.',
+    color: '#10B981',
+    initials: 'SC',
+  },
+  {
+    id: 'c3',
+    name: 'Michael Vance',
+    headline: 'Mobile Lead (React Native / iOS)',
+    location: 'New York, NY',
+    experience: '4 Years Exp',
+    matchScore: 88,
+    skills: ['React Native', 'Swift', 'Kotlin', 'Redux'],
+    bio: 'Mobile software engineer focused on shipping polished iOS and Android applications used by millions.',
+    color: '#8B5CF6',
+    initials: 'MV',
+  },
+];
+
 export default function RecruiterCandidatesPage() {
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [shortlisted, setShortlisted] = useState<any[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
+  const [shortlisted, setShortlisted] = useState<CandidateProfile[]>([]);
+  const [history, setHistory] = useState<CandidateProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadCandidates() {
       setIsLoading(true);
       setError(null);
       try {
         const list = await usersApi.getCandidates();
-        if (Array.isArray(list)) {
-          setCandidates(list);
-        }
+        setCandidates(list);
       } catch (err: any) {
-        console.error('Candidate directory load error:', err);
-        setError('Failed to load candidate talent directory.');
+        console.error(err);
+        setError('Failed to load candidate directory.');
       } finally {
         setIsLoading(false);
       }
@@ -39,6 +90,7 @@ export default function RecruiterCandidatesPage() {
     const prevShortlisted = [...shortlisted];
     const prevHistory = [...history];
 
+    // Optimistic UI update
     if (direction === 'right') {
       setShortlisted([current, ...shortlisted]);
     }
@@ -48,158 +100,157 @@ export default function RecruiterCandidatesPage() {
     try {
       await usersApi.recordCandidateAction({
         candidateId: current.id,
-        action: direction === 'right' ? 'shortlist' : 'pass',
-        notes: direction === 'right' ? 'Candidate shortlisted by recruiter' : 'Candidate passed',
+        action: direction === 'right' ? 'shortlist' : 'pass'
       });
-    } catch (err) {
-      console.error('Error persisting candidate action:', err);
-      // Rollback
+    } catch (err: any) {
+      console.error('Failed to persist candidate action:', err);
+      // Rollback on error
       setCandidates(prevCandidates);
       setShortlisted(prevShortlisted);
       setHistory(prevHistory);
-      setError('Could not record action on server.');
+      setError('Failed to record candidate decision. Please check your connection.');
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading candidates feed...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
+
   const handleUndo = () => {
     if (history.length === 0) return;
-    const last = history[0];
-    setHistory(history.slice(1));
+    const last = history[history.length - 1];
+    setHistory(history.slice(0, -1));
     setShortlisted(shortlisted.filter((c) => c.id !== last.id));
     setCandidates([last, ...candidates]);
   };
 
-  const currentCandidate = candidates[0];
+  const activeCandidate = candidates[0];
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#070A0F] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100">Candidate Discovery Feed</h1>
-          <p className="text-xs text-slate-400">Discover and evaluate engineering talent with ATS match analysis.</p>
+          <h1 className="text-3xl font-bold flex items-center gap-3 tracking-tight">
+            <Sparkles className="w-8 h-8 text-primary" />
+            Candidate Discovery
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Swipe right to shortlist top matched talent for your open roles.</p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono px-3 py-1 rounded-lg bg-[#0C1119] border border-slate-800 text-slate-300">
-            {candidates.length} in discovery pool
-          </span>
+        
+        <div className="text-xs font-bold bg-secondary px-3 py-1.5 rounded-full border">
+          Shortlisted: <span className="text-primary ml-1">{shortlisted.length}</span>
         </div>
       </div>
 
-      {error && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="h-96 rounded-2xl bg-[#0C1119] border border-slate-800 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-primary animate-spin" />
-        </div>
-      ) : candidates.length === 0 ? (
-        <div className="p-12 text-center bg-[#0C1119] rounded-2xl border border-slate-800 max-w-md mx-auto space-y-4 my-8">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-            <UserCheck className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-slate-200">No more candidates in pool</h3>
-            <p className="text-xs text-slate-400">You have reviewed all available candidate profiles.</p>
-          </div>
-          {history.length > 0 && (
-            <Button onClick={handleUndo} variant="outline" className="h-9 text-xs rounded-xl border-slate-700">
-              <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Undo Last Action
+      <div className="relative w-full max-w-md mx-auto h-[540px] flex flex-col items-center justify-center">
+        {!activeCandidate ? (
+          <div className="text-center p-8 bg-card rounded-3xl border shadow-md w-full space-y-4">
+            <div className="text-4xl">🎉</div>
+            <h3 className="text-xl font-bold">All Candidates Reviewed!</h3>
+            <p className="text-muted-foreground text-xs">You have reviewed all available candidate profiles for your active listings.</p>
+            <Button
+              onClick={() => {
+                setCandidates(CANDIDATES);
+                setHistory([]);
+                setShortlisted([]);
+              }}
+              className="rounded-xl font-bold text-xs"
+            >
+              Reset Stack
             </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Candidate Card */}
-          <div className="lg:col-span-8 p-6 sm:p-8 rounded-2xl bg-[#0C1119] border border-slate-800/80 space-y-6 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary">
-                  {(currentCandidate.name || 'Candidate').substring(0, 2).toUpperCase()}
+          </div>
+        ) : (
+          <div className="relative w-full h-[480px] bg-card border rounded-3xl shadow-xl p-6 flex flex-col justify-between overflow-hidden">
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                    style={{ backgroundColor: activeCandidate.color }}
+                  >
+                    {activeCandidate.initials}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl">{activeCandidate.name}</h3>
+                    <p className="text-xs font-semibold text-primary">{activeCandidate.headline}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-100">{currentCandidate.name || 'Software Engineer'}</h3>
-                  <p className="text-xs text-slate-300 font-medium">{currentCandidate.headline || currentCandidate.title || 'Full Stack Engineer'}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{currentCandidate.location || 'Remote'}</p>
+                <div className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  {activeCandidate.matchScore}% Match
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">
-                <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold">ATS Alignment</span>
-                <p className="text-lg font-mono font-bold text-emerald-400">{currentCandidate.matchScore || 92}%</p>
+              <div className="flex flex-wrap gap-2 text-xs font-medium text-muted-foreground mb-4">
+                <span className="flex items-center gap-1 bg-secondary px-2.5 py-1 rounded-lg">
+                  <MapPin className="w-3.5 h-3.5 text-primary" /> {activeCandidate.location}
+                </span>
+                <span className="flex items-center gap-1 bg-secondary px-2.5 py-1 rounded-lg">
+                  <Briefcase className="w-3.5 h-3.5 text-primary" /> {activeCandidate.experience}
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <span className="text-xs font-bold text-muted-foreground block">Key Technical Skills</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {activeCandidate.skills.map((s, i) => (
+                    <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-secondary border rounded-lg">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-muted-foreground block">About</span>
+                <p className="text-xs text-muted-foreground leading-relaxed p-3 bg-secondary/40 rounded-xl">
+                  {activeCandidate.bio}
+                </p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Candidate Bio</h4>
-              <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-                {currentCandidate.bio || 'Experienced engineer with verified proficiency in core frameworks, cloud microservices, and database design.'}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Technical Skills</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {(currentCandidate.skills || ['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'Docker']).map((s: string, idx: number) => (
-                  <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-200 border border-slate-700/60 font-medium">
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Bar */}
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-4">
+            <div className="flex justify-center items-center gap-4 pt-4 border-t">
+              <button
+                onClick={() => handleAction('left')}
+                className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-red-500 hover:scale-110 active:scale-95 transition-transform"
+                title="Pass"
+              >
+                <X className="w-6 h-6" />
+              </button>
               <button
                 onClick={handleUndo}
                 disabled={history.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 disabled:opacity-30 cursor-pointer"
+                className="w-10 h-10 rounded-full bg-secondary text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center justify-center transition-all"
+                title="Undo"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Undo</span>
+                <RotateCcw className="w-4 h-4" />
               </button>
-
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => handleAction('left')}
-                  variant="outline"
-                  className="h-10 px-5 rounded-xl border-slate-700 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 text-xs font-semibold"
-                >
-                  <X className="w-4 h-4 mr-1.5" /> Pass
-                </Button>
-                <Button
-                  onClick={() => handleAction('right')}
-                  className="h-10 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm"
-                >
-                  <Check className="w-4 h-4 mr-1.5" /> Shortlist Candidate
-                </Button>
-              </div>
+              <button
+                onClick={() => handleAction('right')}
+                className="w-14 h-14 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center text-emerald-500 hover:scale-110 active:scale-95 transition-transform"
+                title="Shortlist / Match"
+              >
+                <Check className="w-6 h-6" />
+              </button>
             </div>
           </div>
-
-          {/* Shortlisted Candidates Panel */}
-          <div className="lg:col-span-4 p-5 rounded-2xl bg-[#0C1119] border border-slate-800/80 space-y-4">
-            <h3 className="text-sm font-bold text-slate-100">Shortlisted This Session ({shortlisted.length})</h3>
-            {shortlisted.length === 0 ? (
-              <p className="text-xs text-slate-500">Shortlisted candidates will appear here.</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {shortlisted.map((c) => (
-                  <div key={c.id} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-1">
-                    <p className="font-bold text-slate-200">{c.name}</p>
-                    <p className="text-[11px] text-slate-400">{c.headline || 'Software Engineer'}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

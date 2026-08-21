@@ -9,10 +9,9 @@ interface JobDetailModalProps {
   job: Job | null;
   isOpen: boolean;
   onClose: () => void;
-  onApply?: (job: Job) => void;
 }
 
-export function JobDetailModal({ job, isOpen, onClose, onApply }: JobDetailModalProps) {
+export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
   if (!job) return null;
 
   return (

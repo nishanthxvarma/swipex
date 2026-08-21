@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, Building2, Briefcase, User, Sparkles, X, Loader2, ArrowRight } from "lucide-react";
-import { searchApi, GlobalSearchResponse } from "@swipex/api";
+import { Search, MapPin, Building2, TerminalSquare, TrendingUp, Clock, X } from "lucide-react";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -12,12 +10,9 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
-  const router = useRouter();
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<GlobalSearchResponse | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
 
+  // Handle Cmd+K to open (handled in layout/provider usually, but modal should handle Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -26,45 +21,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Live debounced search
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults(null);
-      setSuggestions([]);
-      setLoading(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const [searchRes, suggRes] = await Promise.allSettled([
-          searchApi.globalSearch({ q: query }),
-          searchApi.getSuggestions(query)
-        ]);
-
-        if (searchRes.status === "fulfilled") {
-          setResults(searchRes.value);
-        }
-        if (suggRes.status === "fulfilled") {
-          setSuggestions(suggRes.value || []);
-        }
-      } catch (err) {
-        console.error("Search error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
   if (!isOpen) return null;
-
-  const navigateTo = (path: string) => {
-    onClose();
-    router.push(path);
-  };
 
   return (
     <AnimatePresence>
@@ -72,176 +29,110 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/75 backdrop-blur-md"
+        className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.96, y: -16, opacity: 0 }}
+          initial={{ scale: 0.95, y: -20, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0.96, y: -16, opacity: 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-2xl bg-[#0C1119] rounded-2xl shadow-2xl border border-slate-700/40 overflow-hidden flex flex-col max-h-[80vh]"
+          exit={{ scale: 0.95, y: -20, opacity: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="w-full max-w-2xl bg-background rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[80vh]"
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {/* Search Input Header */}
-          <div className="flex items-center px-4 py-3.5 border-b border-border/60 gap-3 bg-[#090E16]">
-            <Search className="w-5 h-5 text-primary shrink-0" />
+          <div className="flex items-center p-4 border-b gap-3">
+            <Search className="w-6 h-6 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search jobs, companies, skills, candidates..."
-              className="flex-1 bg-transparent border-none outline-none text-base text-foreground placeholder:text-muted-foreground font-medium"
+              placeholder="Search jobs, companies, skills..."
+              className="flex-1 bg-transparent border-none outline-none text-xl placeholder:text-muted-foreground"
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {loading && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
             <button
               onClick={onClose}
-              className="px-2 py-1 rounded-md bg-muted/60 hover:bg-muted text-muted-foreground text-xs font-mono font-semibold"
+              className="p-1 rounded-md hover:bg-muted text-muted-foreground text-xs font-medium px-2"
             >
               ESC
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          <div className="flex-1 overflow-y-auto p-2">
             {!query ? (
-              <div className="p-4 space-y-4">
-                <div>
-                  <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                    Instant Search Suggestions
+              <>
+                <div className="p-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Recent Searches
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Type a title, technology (e.g. <span className="text-primary font-mono">React</span>, <span className="text-primary font-mono">Python</span>), or company to query the live database.
-                  </p>
+                  <div className="space-y-1">
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span>Frontend Engineer Remote</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span>Stripe</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+
+                <div className="p-4 pt-0">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Trending
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                      <TrendingUp className="w-3.5 h-3.5 text-primary" /> React
+                    </span>
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                      <TrendingUp className="w-3.5 h-3.5 text-primary" /> AI Engineer
+                    </span>
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm cursor-pointer hover:bg-secondary/80">
+                      <TrendingUp className="w-3.5 h-3.5 text-primary" /> San Francisco
+                    </span>
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="space-y-4">
-                {/* Auto suggestions */}
-                {suggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 px-2">
-                    {suggestions.map((s, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setQuery(s)}
-                        className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted hover:bg-muted/80 text-foreground border border-border/40 transition-colors"
-                      >
-                        {s}
-                      </button>
-                    ))}
+              <div className="p-2 space-y-4">
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                    Jobs
+                  </h3>
+                  <div className="space-y-1">
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                      <TerminalSquare className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <div className="font-medium">Senior Software Engineer</div>
+                        <div className="text-xs text-muted-foreground">Google • Remote</div>
+                      </div>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                      <TerminalSquare className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <div className="font-medium">Software Developer (React)</div>
+                        <div className="text-xs text-muted-foreground">Meta • New York</div>
+                      </div>
+                    </button>
                   </div>
-                )}
+                </div>
 
-                {/* Jobs Results */}
-                {results?.jobs && results.jobs.length > 0 && (
-                  <div>
-                    <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2 flex items-center justify-between">
-                      <span>Jobs ({results.jobs.length})</span>
-                    </h3>
-                    <div className="space-y-1">
-                      {results.jobs.map((job) => (
-                        <button
-                          key={job.id}
-                          onClick={() => navigateTo(`/jobs?id=${job.id}`)}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-left transition-colors group border border-transparent hover:border-border/40"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary shrink-0">
-                              {job.companyInitials}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
-                                {job.title}
-                              </div>
-                              <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                                <span>{job.company}</span>
-                                <span>•</span>
-                                <span>{job.location}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-xs font-mono font-medium text-emerald-500">{job.salary}</span>
-                        </button>
-                      ))}
-                    </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                    Companies
+                  </h3>
+                  <div className="space-y-1">
+                    <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                      <Building2 className="w-5 h-5 text-purple-500" />
+                      <div>
+                        <div className="font-medium">Vercel</div>
+                        <div className="text-xs text-muted-foreground">Technology • 100+ open jobs</div>
+                      </div>
+                    </button>
                   </div>
-                )}
-
-                {/* Companies Results */}
-                {results?.companies && results.companies.length > 0 && (
-                  <div>
-                    <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-                      Companies ({results.companies.length})
-                    </h3>
-                    <div className="space-y-1">
-                      {results.companies.map((comp) => (
-                        <button
-                          key={comp.id}
-                          onClick={() => navigateTo(`/companies/${comp.id}`)}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-left transition-colors group border border-transparent hover:border-border/40"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center font-bold text-xs text-foreground shrink-0 border border-border/40">
-                              {comp.initials}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
-                                {comp.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {comp.industry} • {comp.location}
-                              </div>
-                            </div>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Candidates Results (Recruiter/Admin) */}
-                {results?.candidates && results.candidates.length > 0 && (
-                  <div>
-                    <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-                      Candidates ({results.candidates.length})
-                    </h3>
-                    <div className="space-y-1">
-                      {results.candidates.map((cand) => (
-                        <button
-                          key={cand.id}
-                          onClick={() => navigateTo(`/recruiter/candidates?id=${cand.id}`)}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-left transition-colors group border border-transparent hover:border-border/40"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center font-bold text-xs text-accent shrink-0">
-                              <User className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
-                                {cand.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {cand.headline} • {cand.location}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                            {cand.experienceYears}y exp
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Empty State */}
-                {results && results.totalResults === 0 && !loading && (
-                  <div className="p-8 text-center space-y-2">
-                    <p className="text-sm font-semibold text-foreground">No matches found for &quot;{query}&quot;</p>
-                    <p className="text-xs text-muted-foreground">Try searching for a different skill, job title, or company.</p>
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </div>

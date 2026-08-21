@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { Building2, Users, MapPin, Search, Loader2, AlertCircle, ArrowRight, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { companiesApi, Company } from '@swipex/api';
+import React, { useState, useEffect, useCallback } from "react";
+import { Building2, Users, Star, ExternalLink, MapPin, Search, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { companiesApi, Company } from "@swipex/api";
 
-const INDUSTRIES = ['All Industries', 'Technology', 'Fintech', 'Developer Tools', 'AI / ML', 'Productivity', 'Infrastructure'];
+const INDUSTRIES = ["All Industries", "Technology", "Fintech", "Developer Tools", "AI / ML", "Productivity", "Travel", "Entertainment"];
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [search, setSearch] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('All Industries');
+  const [search, setSearch] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,12 +21,12 @@ export default function CompaniesPage() {
     try {
       const data = await companiesApi.listCompanies({
         query: search || undefined,
-        industry: selectedIndustry !== 'All Industries' ? selectedIndustry : undefined,
+        industry: selectedIndustry !== "All Industries" ? selectedIndustry : undefined
       });
       setCompanies(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to load companies:', err);
-      setError('Failed to load company directory from database.');
+      console.error("Failed to load companies:", err);
+      setError("Failed to load company directory from database.");
     } finally {
       setIsLoading(false);
     }
@@ -40,49 +40,38 @@ export default function CompaniesPage() {
   }, [fetchCompanies]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#070A0F] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-20">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2.5">
-            <Building2 className="w-6 h-6 text-primary" />
-            <span>Company Catalog</span>
+          <h1 className="text-3xl font-bold flex items-center gap-3 tracking-tight">
+            <Building2 className="w-8 h-8 text-primary" />
+            Top Companies
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Verified tech companies and infrastructure teams hiring on SwipeX.
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">Discover and follow top hiring companies aligned with your career vision.</p>
         </div>
 
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search companies by name..."
+            placeholder="Search companies..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#0C1119] border border-slate-800 rounded-xl outline-none focus:border-primary text-xs font-medium text-slate-100 placeholder:text-slate-500"
+            className="w-full pl-9 pr-4 py-2 bg-card border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
           />
         </div>
       </div>
 
-      {error && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Industry Filter Pills */}
       <div className="flex gap-2 overflow-x-auto pb-2">
-        {INDUSTRIES.map((tag) => (
+        {INDUSTRIES.map(tag => (
           <button
             key={tag}
             onClick={() => setSelectedIndustry(tag)}
             className={cn(
-              "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border cursor-pointer",
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border",
               selectedIndustry === tag
                 ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                : "bg-[#0C1119] border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200"
+                : "bg-card hover:bg-muted text-muted-foreground"
             )}
           >
             {tag}
@@ -91,48 +80,48 @@ export default function CompaniesPage() {
       </div>
 
       {isLoading ? (
-        <div className="h-80 rounded-2xl bg-[#0C1119] border border-slate-800 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-primary animate-spin" />
+        <div className="text-center py-20 bg-card border rounded-2xl p-8 space-y-3 flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading verified company directory...</p>
         </div>
       ) : companies.length === 0 ? (
-        <div className="p-12 text-center bg-[#0C1119] rounded-2xl border border-slate-800 max-w-md mx-auto space-y-2 my-8">
-          <Building2 className="w-10 h-10 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-200">No companies found</h3>
-          <p className="text-xs text-slate-500">Try adjusting your search query or industry filter.</p>
+        <div className="text-center py-16 bg-card border rounded-2xl p-8 space-y-2">
+          <Building2 className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h3 className="text-lg font-bold">No companies found</h3>
+          <p className="text-muted-foreground text-xs">Try clearing your search query or selecting another industry tag.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {companies.map((company) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+          {companies.map(company => (
             <Link href={`/companies/${company.id}`} key={company.id}>
-              <div className="bg-[#0C1119] border border-slate-800/80 hover:border-slate-700 rounded-2xl p-5 transition-all flex flex-col justify-between h-full space-y-4 hover-lift">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center font-bold text-sm text-slate-200">
-                      {company.name.substring(0, 2).toUpperCase()}
-                    </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/40">
-                      {company.industry || 'Technology'}
-                    </span>
+              <div className="bg-card border rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col h-full cursor-pointer hover:border-primary/50 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-md group-hover:scale-105 transition-transform"
+                    style={{ backgroundColor: company.color || "#635BFF" }}
+                  >
+                    {company.initials || company.name.substring(0, 2).toUpperCase()}
                   </div>
-
-                  <div>
-                    <h3 className="font-bold text-base text-slate-100">{company.name}</h3>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-slate-500" />
-                      <span>{company.location || 'San Francisco, CA'}</span>
-                    </p>
+                  <div className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full text-xs font-bold">
+                    <Star className="w-3.5 h-3.5 fill-current" /> {company.rating || 4.8}
                   </div>
-
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                    {company.description || 'Technology company hiring engineering talent on SwipeX.'}
-                  </p>
                 </div>
-
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                  <span className="font-mono">{company.activeJobsCount || 0} active roles</span>
-                  <span className="text-primary font-semibold flex items-center gap-1">
-                    Explore <ArrowRight className="w-3 h-3" />
-                  </span>
+                
+                <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">{company.name}</h3>
+                <div className="text-xs font-semibold text-muted-foreground mb-4">{company.industry}</div>
+                
+                <div className="space-y-2 mt-auto text-xs text-muted-foreground font-medium">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-primary" /> {company.location || company.headquarters || "Remote"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5" /> {company.size || `${company.employeeCount} employees`}
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t flex justify-between items-center text-xs">
+                  <span className="font-bold text-primary">{company.openRolesCount || company.activeJobsCount || (company.jobs?.length) || 0} open positions</span>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
               </div>
             </Link>
