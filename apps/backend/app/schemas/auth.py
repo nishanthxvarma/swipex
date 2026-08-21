@@ -3,7 +3,8 @@ from typing import Optional
 import uuid
 
 class UserRegister(BaseModel):
-    email: str
+    email: Optional[str] = None
+    username: Optional[str] = None
     password: str
     full_name: Optional[str] = None
     fullName: Optional[str] = None
@@ -13,14 +14,28 @@ class UserRegister(BaseModel):
     @classmethod
     def resolve_full_name(cls, data: any):
         if isinstance(data, dict):
-            fn = data.get("full_name") or data.get("fullName") or data.get("email", "").split("@")[0]
+            em = data.get("email") or data.get("username") or ""
+            fn = data.get("full_name") or data.get("fullName") or em.split("@")[0]
+            data["email"] = em
+            data["username"] = em
             data["full_name"] = fn
             data["fullName"] = fn
         return data
 
 class UserLogin(BaseModel):
-    email: str
+    email: Optional[str] = None
+    username: Optional[str] = None
     password: str
+    role: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_login(cls, data: any):
+        if isinstance(data, dict):
+            em = data.get("email") or data.get("username") or ""
+            data["email"] = em
+            data["username"] = em
+        return data
 
 class TokenResponse(BaseModel):
     access_token: str

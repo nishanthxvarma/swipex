@@ -55,10 +55,18 @@ export default function LoginPage() {
     setIsLoading(true);
     setLoginError(null);
     try {
-      const res = await authApi.login({
+      const roleMap: Record<string, string> = {
+        JOB_SEEKER: 'job_seeker',
+        RECRUITER: 'recruiter',
+        ADMIN: 'admin'
+      };
+
+      const res: any = await authApi.login({
         email: data.email,
+        username: data.email,
         password: data.password,
-      });
+        role: (roleMap[selectedRole] || 'job_seeker'),
+      } as any);
 
       const backendRoleMap: Record<string, string> = {
         job_seeker: 'JOB_SEEKER',
@@ -66,16 +74,21 @@ export default function LoginPage() {
         admin: 'ADMIN'
       };
 
+      const rawRole = res.user?.role || res.role || roleMap[selectedRole] || 'JOB_SEEKER';
+      const userId = res.user?.id ? String(res.user.id) : (res.user_id ? String(res.user_id) : '1');
+      const userEmail = res.user?.email || res.username || data.email;
+      const userFullName = res.user?.fullName || res.user?.full_name || userEmail.split('@')[0];
+
       const mappedUser = {
-        id: res.user.id,
-        email: res.user.email,
-        fullName: res.user.fullName || res.user.email.split('@')[0],
-        role: (backendRoleMap[res.user.role] || res.user.role) as any,
+        id: userId,
+        email: userEmail,
+        fullName: userFullName,
+        role: (backendRoleMap[rawRole] || rawRole) as any,
       };
 
       const mappedTokens = {
-        accessToken: res.access_token,
-        refreshToken: res.refresh_token,
+        accessToken: res.access_token || '',
+        refreshToken: res.refresh_token || res.access_token || '',
       };
 
       loginStore(mappedUser, mappedTokens);

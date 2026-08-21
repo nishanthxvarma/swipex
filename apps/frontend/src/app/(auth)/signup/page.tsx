@@ -117,8 +117,9 @@ export default function SignupPage() {
         ADMIN: 'admin'
       };
 
-      const res = await authApi.register({
+      const res: any = await authApi.register({
         email: data.email,
+        username: data.email,
         password: data.password,
         role: (roleMap[data.role] || 'job_seeker') as any,
         fullName: data.fullName,
@@ -131,16 +132,21 @@ export default function SignupPage() {
         admin: 'ADMIN'
       };
 
+      const rawRole = res.user?.role || res.role || roleMap[data.role] || 'JOB_SEEKER';
+      const userId = res.user?.id ? String(res.user.id) : (res.user_id ? String(res.user_id) : '1');
+      const userEmail = res.user?.email || res.username || data.email;
+      const userFullName = res.user?.fullName || res.user?.full_name || data.fullName;
+
       const mappedUser = {
-        id: res.user.id,
-        email: res.user.email,
-        fullName: res.user.fullName || data.fullName,
-        role: (backendRoleMap[res.user.role] || res.user.role) as any,
+        id: userId,
+        email: userEmail,
+        fullName: userFullName,
+        role: (backendRoleMap[rawRole] || rawRole) as any,
       };
 
       const mappedTokens = {
-        accessToken: res.access_token,
-        refreshToken: res.refresh_token,
+        accessToken: res.access_token || '',
+        refreshToken: res.refresh_token || res.access_token || '',
       };
 
       loginStore(mappedUser, mappedTokens);
