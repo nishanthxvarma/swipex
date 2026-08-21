@@ -12,9 +12,6 @@ redis
 httpx
 python-dotenv
 structlog
-spacy
-scikit-learn
-sentence-transformers
 openai
 cloudinary
 pytest
