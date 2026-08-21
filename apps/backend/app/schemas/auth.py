@@ -1,12 +1,22 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import Optional
 import uuid
 
 class UserRegister(BaseModel):
     email: str
     password: str
-    full_name: str
+    full_name: Optional[str] = None
+    fullName: Optional[str] = None
     role: str = "job_seeker"
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_full_name(cls, data: any):
+        if isinstance(data, dict):
+            fn = data.get("full_name") or data.get("fullName") or data.get("email", "").split("@")[0]
+            data["full_name"] = fn
+            data["fullName"] = fn
+        return data
 
 class UserLogin(BaseModel):
     email: str

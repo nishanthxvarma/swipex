@@ -66,10 +66,27 @@ export class ApiClient {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
+        let errorMsg = '';
+        if (data) {
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+          } else if (typeof data.message === 'string') {
+            errorMsg = data.message;
+          }
+        }
+        if (!errorMsg && response.statusText) {
+          errorMsg = response.statusText;
+        }
+        if (!errorMsg) {
+          errorMsg = `Request failed with status ${response.status}`;
+        }
+
         const error: ApiError = {
-          code: data?.code || 'UNKNOWN_ERROR',
-          message: data?.message || response.statusText || 'An error occurred',
-          details: data?.details
+          code: data?.code || `HTTP_${response.status}`,
+          message: errorMsg,
+          details: data?.details || data?.detail
         };
         throw error;
       }

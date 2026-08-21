@@ -122,7 +122,8 @@ export default function SignupPage() {
         password: data.password,
         role: (roleMap[data.role] || 'job_seeker') as any,
         fullName: data.fullName,
-      });
+        full_name: data.fullName,
+      } as any);
 
       const backendRoleMap: Record<string, string> = {
         job_seeker: 'JOB_SEEKER',
