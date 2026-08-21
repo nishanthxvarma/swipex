@@ -65,3 +65,5 @@ yarn-error.log*
 *.log
 .vercel
 scratch/
+uploads/
+

@@ -54,11 +54,14 @@ export class ApiClient {
     }
 
     const token = this.getToken();
+    const isFormData = typeof FormData !== 'undefined' && restConfig.body instanceof FormData;
     const defaultHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(headers as Record<string, string> || {})
     };
+    if (!isFormData && !defaultHeaders['Content-Type']) {
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     try {
       let response = await fetch(url, {
@@ -123,27 +126,29 @@ export class ApiClient {
   }
 
   public post<T>(endpoint: string, body?: any, config?: RequestConfig) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       ...config,
       method: 'POST',
-      body: body instanceof FormData ? body as any : JSON.stringify(body),
-      headers: body instanceof FormData ? { 'Content-Type': undefined as any } : undefined
+      body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
     });
   }
 
   public put<T>(endpoint: string, body?: any, config?: RequestConfig) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       ...config,
       method: 'PUT',
-      body: body instanceof FormData ? body as any : JSON.stringify(body)
+      body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
     });
   }
 
   public patch<T>(endpoint: string, body?: any, config?: RequestConfig) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       ...config,
       method: 'PATCH',
-      body: body instanceof FormData ? body as any : JSON.stringify(body)
+      body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
     });
   }
 

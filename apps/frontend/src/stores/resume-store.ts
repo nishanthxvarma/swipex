@@ -22,6 +22,30 @@ const getApiClient = () => {
   );
 };
 
+function mapErrorMessage(err: any, fallback: string): string {
+  if (!err) return fallback;
+  if (typeof err === 'string') return err;
+  if (err.message && typeof err.message === 'string') {
+    if (err.message.includes('405') || err.code === 'HTTP_405') {
+      return 'Resume analysis service endpoint mismatch. Please check your connection.';
+    }
+    if (err.message.includes('413') || err.code === 'HTTP_413') {
+      return 'File size exceeds maximum allowed limit of 5 MB.';
+    }
+    if (err.message.includes('415') || err.code === 'HTTP_415') {
+      return 'Unsupported document format. Please upload a PDF or DOCX file.';
+    }
+    if (err.message.includes('401') || err.code === 'HTTP_401') {
+      return 'Authentication session expired. Please log in again.';
+    }
+    if (err.message.includes('422') || err.code === 'HTTP_422') {
+      return 'Could not parse resume data. Please ensure the document contains readable text.';
+    }
+    return err.message;
+  }
+  return fallback;
+}
+
 interface ResumeState {
   activeResume: ActiveResumeResponse | null;
   isLoading: boolean;
@@ -101,7 +125,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({
         activeResume: null,
         isLoading: false,
-        error: 'Failed to fetch active resume.',
+        error: mapErrorMessage(err, 'Failed to fetch active resume.'),
       });
     }
   },
@@ -112,9 +136,9 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       return false;
     }
 
-    set({ isUploading: true, uploadProgress: 10, error: null, successMessage: null });
+    set({ isUploading: true, uploadProgress: 15, error: null, successMessage: null });
     const progressInterval = setInterval(() => {
-      set((s) => ({ uploadProgress: Math.min(90, s.uploadProgress + 20) }));
+      set((s) => ({ uploadProgress: Math.min(90, s.uploadProgress + 15) }));
     }, 200);
 
     try {
@@ -125,7 +149,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         activeResume: res,
         isUploading: false,
         uploadProgress: 100,
-        successMessage: `✓ '${file.name}' uploaded and analyzed successfully!`,
+        successMessage: `✓ '${file.name}' parsed and analyzed successfully!`,
         isUploadModalOpen: false,
       });
       get().fetchRecommendations();
@@ -137,7 +161,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({
         isUploading: false,
         uploadProgress: 0,
-        error: err?.message || 'Failed to upload resume. Please try again.',
+        error: mapErrorMessage(err, 'Failed to upload and parse resume. Please try again.'),
       });
       return false;
     }
@@ -151,7 +175,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({ successMessage: 'Resume version deleted.' });
       return true;
     } catch (err: any) {
-      set({ error: 'Failed to delete version.' });
+      set({ error: mapErrorMessage(err, 'Failed to delete version.') });
       return false;
     }
   },
@@ -164,7 +188,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({ activeResume: res, isLoading: false, successMessage: 'Activated selected resume version.' });
       return true;
     } catch (err: any) {
-      set({ isLoading: false });
+      set({ isLoading: false, error: mapErrorMessage(err, 'Failed to activate resume version.') });
       return false;
     }
   },
@@ -183,7 +207,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       console.error('Failed to match job:', err);
       set({
         isMatchingJob: false,
-        error: 'Failed to match job.',
+        error: mapErrorMessage(err, 'Failed to match job.'),
       });
     }
   },
@@ -199,7 +223,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({
         recommendations: [],
         isLoadingRecommendations: false,
-        error: 'Failed to fetch recommendations.',
       });
     }
   },
@@ -215,9 +238,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       set({
         analytics: null,
         isLoadingAnalytics: false,
-        error: 'Failed to fetch analytics.',
       });
     }
   },
 }));
-
