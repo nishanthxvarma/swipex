@@ -100,9 +100,15 @@ class NotificationRepository:
         self, user_id: uuid.UUID, updates: dict
     ) -> NotificationPreferenceModel:
         prefs = await self.get_preferences(user_id)
+        field_map = {
+            "jobRecommendations": "job_recommendations",
+            "recruiterActivity": "recruiter_activity",
+            "systemNotifications": "system_notifications"
+        }
         for key, value in updates.items():
-            if hasattr(prefs, key) and value is not None:
-                setattr(prefs, key, value)
+            db_field = field_map.get(key, key)
+            if hasattr(prefs, db_field) and value is not None:
+                setattr(prefs, db_field, value)
         prefs.updated_at = datetime.now(timezone.utc)
         self.db.add(prefs)
         await self.db.commit()

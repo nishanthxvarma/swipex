@@ -52,3 +52,12 @@ def get_analytics_service(db: AsyncSession = Depends(get_db)):
 def get_competition_service(db: AsyncSession = Depends(get_db)):
     return CompetitionService(db)
 
+from app.services.audit_service import AuditService
+from app.repositories.company_repository import CompanyRepository
+
+def get_audit_service(db: AsyncSession = Depends(get_db)):
+    return AuditService(db)
+
+def get_company_repository(db: AsyncSession = Depends(get_db)):
+    return CompanyRepository(db)
+

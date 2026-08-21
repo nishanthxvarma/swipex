@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { authApi } from '@swipex/api';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -33,15 +34,17 @@ export default function ForgotPasswordPage() {
     },
   });
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true);
+    setErrorMsg(null);
     try {
-      console.log('Forgot password email:', data.email);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await authApi.forgotPassword({ email: data.email });
       setIsSubmitted(true);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      setErrorMsg(error?.response?.data?.detail || 'Failed to send reset link. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +111,11 @@ export default function ForgotPasswordPage() {
           </div>
           {errors.email && (
             <p className="text-sm text-destructive">{errors.email.message}</p>
+          )}
+          {errorMsg && (
+            <div className="p-3 text-xs rounded-xl bg-destructive/10 text-destructive border border-destructive/20 font-medium">
+              {errorMsg}
+            </div>
           )}
         </div>
 

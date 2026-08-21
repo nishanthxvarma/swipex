@@ -22,7 +22,18 @@ class ApplicationRepository:
         result = await self.db.execute(query)
         return result.scalars().all()
 
-    async def update_status(self, application_id: uuid.UUID, status: str):
+    async def get_recruiter_pipeline_applications(self, recruiter_id: uuid.UUID = None):
+        from app.models.user import UserModel
+        query = select(ApplicationModel).options(
+            joinedload(ApplicationModel.job).joinedload(JobModel.company),
+            joinedload(ApplicationModel.user).joinedload(UserModel.profile)
+        ).order_by(ApplicationModel.applied_at.desc())
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
+    async def update_status(self, application_id, status: str):
+        if isinstance(application_id, str):
+            application_id = uuid.UUID(application_id)
         result = await self.db.execute(select(ApplicationModel).where(ApplicationModel.id == application_id))
         app = result.scalars().first()
         if app:

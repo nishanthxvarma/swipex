@@ -83,14 +83,33 @@ export default function RecruiterCandidatesPage() {
     loadCandidates();
   }, []);
 
-  const handleAction = (direction: 'left' | 'right') => {
+  const handleAction = async (direction: 'left' | 'right') => {
     if (candidates.length === 0) return;
     const current = candidates[0];
+    const prevCandidates = [...candidates];
+    const prevShortlisted = [...shortlisted];
+    const prevHistory = [...history];
+
+    // Optimistic UI update
     if (direction === 'right') {
-      setShortlisted([...shortlisted, current]);
+      setShortlisted([current, ...shortlisted]);
     }
-    setHistory([...history, current]);
+    setHistory([current, ...history]);
     setCandidates(candidates.slice(1));
+
+    try {
+      await usersApi.recordCandidateAction({
+        candidateId: current.id,
+        action: direction === 'right' ? 'shortlist' : 'pass'
+      });
+    } catch (err: any) {
+      console.error('Failed to persist candidate action:', err);
+      // Rollback on error
+      setCandidates(prevCandidates);
+      setShortlisted(prevShortlisted);
+      setHistory(prevHistory);
+      setError('Failed to record candidate decision. Please check your connection.');
+    }
   };
 
   if (isLoading) {

@@ -1,30 +1,71 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Building2, CheckCircle2, XCircle, Search, ShieldCheck, 
-  ExternalLink, Briefcase, Plus, AlertCircle
+  ExternalLink, Briefcase, Plus, AlertCircle, Loader2, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usersApi } from '@swipex/api';
+
+interface RecruiterRecord {
+  id: string;
+  company: string;
+  email: string;
+  status: 'VERIFIED' | 'PENDING' | 'SUSPENDED';
+  isVerified: boolean;
+  isActive: boolean;
+  postsQuota: number;
+  activeJobs: number;
+}
 
 export default function AdminRecruitersPage() {
-  const [recruiters, setRecruiters] = useState([
-    { id: 'rec_101', company: 'TechCorp International', email: 'hr@techcorp.com', status: 'VERIFIED', postsQuota: 25, activeJobs: 12 },
-    { id: 'rec_102', company: 'Starlight AI Labs', email: 'talent@starlight.ai', status: 'PENDING', postsQuota: 5, activeJobs: 2 },
-    { id: 'rec_103', company: 'Quantum Global', email: 'recruit@quantum.io', status: 'VERIFIED', postsQuota: 50, activeJobs: 34 },
-    { id: 'rec_104', company: 'Apex Ventures', email: 'careers@apex.com', status: 'SUSPENDED', postsQuota: 0, activeJobs: 0 },
-  ]);
+  const [recruiters, setRecruiters] = useState<RecruiterRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleVerification = (id: string) => {
-    setRecruiters(prev => prev.map(r => {
+  const fetchRecruiters = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await usersApi.getAdminRecruiters();
+      setRecruiters(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load recruiters:', err);
+      setError('Failed to fetch recruiter accreditation directory.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecruiters();
+  }, [fetchRecruiters]);
+
+  const toggleVerification = async (id: string) => {
+    const prev = [...recruiters];
+    setRecruiters(prevList => prevList.map(r => {
       if (r.id === id) {
-        return { ...r, status: r.status === 'VERIFIED' ? 'PENDING' : 'VERIFIED' };
+        const nextStatus = r.status === 'VERIFIED' ? 'PENDING' : 'VERIFIED';
+        return { ...r, status: nextStatus, isVerified: nextStatus === 'VERIFIED' };
       }
       return r;
     }));
+
+    try {
+      await usersApi.verifyRecruiter(id);
+    } catch (err) {
+      console.error('Failed to update verification status:', err);
+      setRecruiters(prev);
+      setError('Failed to update recruiter accreditation.');
+    }
   };
+
+  const verifiedCount = recruiters.filter(r => r.status === 'VERIFIED').length;
+  const pendingCount = recruiters.filter(r => r.status === 'PENDING').length;
+  const suspendedCount = recruiters.filter(r => r.status === 'SUSPENDED').length;
 
   return (
     <div className="space-y-6 pb-12">
@@ -40,64 +81,76 @@ export default function AdminRecruitersPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-3xl bg-card border">
           <p className="text-xs font-bold text-muted-foreground uppercase">Verified Employers</p>
-          <h3 className="text-3xl font-black mt-2">1,420</h3>
+          <h3 className="text-3xl font-black mt-2 text-emerald-600">{verifiedCount}</h3>
         </div>
         <div className="p-5 rounded-3xl bg-card border">
           <p className="text-xs font-bold text-muted-foreground uppercase">Pending Applications</p>
-          <h3 className="text-3xl font-black mt-2 text-purple-600">14</h3>
+          <h3 className="text-3xl font-black mt-2 text-purple-600">{pendingCount}</h3>
         </div>
         <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Total Active Postings</p>
-          <h3 className="text-3xl font-black mt-2 text-emerald-600">5,890</h3>
+          <p className="text-xs font-bold text-muted-foreground uppercase">Total Registered Recruiters</p>
+          <h3 className="text-3xl font-black mt-2">{recruiters.length}</h3>
         </div>
         <div className="p-5 rounded-3xl bg-card border">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Flagged Recruiter Alerts</p>
-          <h3 className="text-3xl font-black mt-2 text-rose-600">2</h3>
+          <p className="text-xs font-bold text-muted-foreground uppercase">Suspended Accounts</p>
+          <h3 className="text-3xl font-black mt-2 text-rose-600">{suspendedCount}</h3>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold flex items-center justify-between">
+          <span>{error}</span>
+          <Button size="sm" variant="outline" onClick={fetchRecruiters} className="text-xs h-7">Retry</Button>
+        </div>
+      )}
 
       {/* Recruiter List */}
       <div className="bg-card border rounded-3xl overflow-hidden shadow-xs">
         <div className="p-4 border-b flex items-center justify-between">
           <h3 className="font-bold text-base">Registered Employer Companies</h3>
+          {isLoading && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
         </div>
         <div className="divide-y">
-          {recruiters.map((rec) => (
-            <div key={rec.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 font-bold">
-                  <Building2 className="w-6 h-6" />
+          {recruiters.length === 0 && !isLoading ? (
+            <div className="p-8 text-center text-xs text-muted-foreground">No recruiters registered yet.</div>
+          ) : (
+            recruiters.map((rec) => (
+              <div key={rec.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 font-bold">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-base flex items-center gap-2">
+                      {rec.company}
+                      {rec.status === 'VERIFIED' && (
+                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                      )}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">{rec.email} • Quota: {rec.postsQuota} postings</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-base flex items-center gap-2">
-                    {rec.company}
-                    {rec.status === 'VERIFIED' && (
-                      <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                    )}
-                  </h4>
-                  <p className="text-xs text-muted-foreground">{rec.email} • Quota: {rec.postsQuota} postings</p>
+
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                    rec.status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-600' :
+                    rec.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'
+                  }`}>
+                    {rec.status}
+                  </span>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => toggleVerification(rec.id)}
+                    className="rounded-xl text-xs font-semibold"
+                  >
+                    {rec.status === 'VERIFIED' ? 'Revoke Verification' : 'Verify Company'}
+                  </Button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                  rec.status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-600' :
-                  rec.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'
-                }`}>
-                  {rec.status}
-                </span>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => toggleVerification(rec.id)}
-                  className="rounded-xl text-xs font-semibold"
-                >
-                  {rec.status === 'VERIFIED' ? 'Revoke Verification' : 'Verify Company'}
-                </Button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

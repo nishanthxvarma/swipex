@@ -35,63 +35,67 @@ def format_candidate(user) -> dict:
         "email": user.email
     }
 
+from app.schemas.auth import ProfileUpdate, ProfileResponse
+
 def format_profile_dict(profile) -> dict:
     if not profile:
         return {}
     return {
         "id": str(profile.id) if profile.id else None,
         "userId": str(profile.user_id) if profile.user_id else None,
+        "user_id": str(profile.user_id) if profile.user_id else None,
         "fullName": profile.full_name or "",
         "full_name": profile.full_name or "",
         "headline": profile.headline or "",
         "bio": profile.bio or "",
+        "about": profile.bio or "",
         "location": profile.location or "",
         "phone": profile.phone or "",
         "skills": profile.skills or [],
+        "experience_years": profile.experience_years or "",
+        "experienceYears": profile.experience_years or "",
+        "education": profile.education or [],
+        "certifications": profile.certifications or [],
+        "projects": profile.projects or [],
         "experiences": profile.experiences or [],
         "socialLinks": profile.social_links or [],
         "social_links": profile.social_links or [],
         "githubUrl": profile.github_url or "",
+        "github_url": profile.github_url or "",
         "linkedinUrl": profile.linkedin_url or "",
+        "linkedin_url": profile.linkedin_url or "",
         "portfolioUrl": profile.portfolio_url or "",
-        "profileCompletion": profile.profile_completion or "10%"
+        "portfolio_url": profile.portfolio_url or "",
+        "profileCompletion": profile.profile_completion or "25%",
+        "profile_completion": profile.profile_completion or "25%"
     }
 
 @router.get("/profile")
-async def get_profile(current_user: dict = Depends(get_current_user), user_service: UserService = Depends(get_user_service)):
+async def get_profile(
+    current_user: dict = Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service)
+):
     profile = await user_service.get_profile(current_user["id"])
     return format_profile_dict(profile)
 
 @router.put("/profile")
 @router.patch("/profile")
 async def update_profile(
-    body: dict,
+    body: ProfileUpdate,
     current_user: dict = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service)
 ):
-    key_mapping = {
-        "fullName": "full_name",
-        "socialLinks": "social_links",
-        "githubUrl": "github_url",
-        "linkedinUrl": "linkedin_url",
-        "portfolioUrl": "portfolio_url",
-        "profileCompletion": "profile_completion"
-    }
-    payload = {}
-    for k, v in body.items():
-        db_key = key_mapping.get(k, k)
-        payload[db_key] = v
-
-    profile = await user_service.update_profile(current_user["id"], payload)
+    profile = await user_service.update_profile(current_user["id"], body)
     return format_profile_dict(profile)
 
-@router.post("/resume/upload")
-async def upload_resume():
-    pass
-
 @router.get("/dashboard/stats")
-async def dashboard_stats(current_user: dict = Depends(get_current_user), user_service: UserService = Depends(get_user_service)):
+async def dashboard_stats(
+    current_user: dict = Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service)
+):
     return await user_service.get_dashboard_stats(current_user["id"])
+
+from app.schemas.auth import ProfileUpdate, ProfileResponse, CandidateActionRequest
 
 @router.get("/candidates")
 async def get_candidates(
@@ -103,6 +107,37 @@ async def get_candidates(
         raise HTTPException(status_code=403, detail="Recruiter access required")
     candidates = await user_service.get_candidates()
     return [format_candidate(c) for c in candidates]
+
+@router.post("/candidates/action")
+async def candidate_action(
+    body: CandidateActionRequest,
+    current_user: dict = Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service)
+):
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=403, detail="Recruiter or Admin access required")
+    
+    if not body.candidate_id:
+        raise HTTPException(status_code=400, detail="candidate_id required")
+    if body.action not in ("pass", "shortlist", "interest"):
+        raise HTTPException(status_code=400, detail="Action must be pass, shortlist, or interest")
+
+    action = await user_service.record_candidate_action(
+        recruiter_id=current_user["id"],
+        candidate_id=body.candidate_id,
+        action_type=body.action,
+        job_id=body.job_id,
+        notes=body.notes
+    )
+    return {
+        "success": True,
+        "actionId": str(action.id),
+        "recruiterId": str(action.recruiter_id),
+        "candidateId": str(action.candidate_id),
+        "action": action.action.value,
+        "timestamp": action.created_at.isoformat()
+    }
 
 @router.get("/")
 async def list_all_users(

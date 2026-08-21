@@ -1,39 +1,77 @@
+import uuid
+import secrets
+import hashlib
+from datetime import datetime, timedelta, timezone
+import structlog
+import httpx
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
 from app.repositories.user_repository import UserRepository
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
-from app.models.user import UserModel
-from fastapi import HTTPException
+from app.core.config import settings
+from app.models.user import UserModel, ProfileModel, PasswordResetTokenModel, RefreshTokenModel
+
+logger = structlog.get_logger()
 
 class AuthService:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
+    def _hash_token(self, token_str: str) -> str:
+        return hashlib.sha256(token_str.encode("utf-8")).hexdigest()
+
     async def register(self, data):
-        if await self.user_repo.get_by_email(data.email):
+        existing = await self.user_repo.get_by_email(data.email)
+        if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
-        user = UserModel(email=data.email, hashed_password=hash_password(data.password), role=data.role)
+        
+        user = UserModel(
+            email=data.email, 
+            hashed_password=hash_password(data.password), 
+            role=data.role,
+            is_active=True,
+            is_verified=False
+        )
         created_user = await self.user_repo.create(user)
         
         # Create default profile with full_name
-        from app.models.user import ProfileModel
-        profile = ProfileModel(user_id=created_user.id, full_name=data.full_name, profile_completion="10%")
+        full_name = data.full_name or data.email.split("@")[0]
+        profile = ProfileModel(user_id=created_user.id, full_name=full_name, profile_completion="10%")
         await self.user_repo.update_profile(profile)
 
+        access_token = create_access_token(str(created_user.id), created_user.role)
+        refresh_token_str = create_refresh_token(str(created_user.id))
+
+        # Persist refresh token hash
+        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        refresh_record = RefreshTokenModel(
+            user_id=created_user.id,
+            token_hash=self._hash_token(refresh_token_str),
+            expires_at=expires_at,
+            is_revoked=False
+        )
+        await self.user_repo.save_refresh_token(refresh_record)
+
         return {
-            "access_token": create_access_token(created_user.id, created_user.role),
-            "refresh_token": create_refresh_token(created_user.id),
+            "access_token": access_token,
+            "refresh_token": refresh_token_str,
+            "token_type": "bearer",
             "user": {
                 "id": str(created_user.id),
                 "email": created_user.email,
                 "role": created_user.role,
-                "fullName": data.full_name
+                "fullName": full_name
             }
         }
     
     async def login(self, email, password):
         user = await self.user_repo.get_by_email(email)
         if not user or not verify_password(password, user.hashed_password):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
         
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Account is suspended or deactivated. Contact administrator.")
+
         profile = await self.user_repo.get_profile(user.id)
         fullName = profile.full_name if (profile and profile.full_name) else email.split("@")[0]
         
@@ -52,23 +90,193 @@ class AuthService:
                 "experiences": profile.experiences or [],
                 "socialLinks": profile.social_links or []
             })
-        
+
+        access_token = create_access_token(str(user.id), user.role)
+        refresh_token_str = create_refresh_token(str(user.id))
+
+        # Persist refresh token
+        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        refresh_record = RefreshTokenModel(
+            user_id=user.id,
+            token_hash=self._hash_token(refresh_token_str),
+            expires_at=expires_at,
+            is_revoked=False
+        )
+        await self.user_repo.save_refresh_token(refresh_record)
+
         return {
-            "access_token": create_access_token(user.id, user.role),
-            "refresh_token": create_refresh_token(user.id),
+            "access_token": access_token,
+            "refresh_token": refresh_token_str,
+            "token_type": "bearer",
             "user": user_dict
         }
     
-    async def refresh_token(self, refresh_token):
-        # Implementation for refresh
-        pass
+    async def refresh_token(self, refresh_token_str: str):
+        if not refresh_token_str:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Refresh token required")
+        
+        try:
+            payload = jwt.decode(refresh_token_str, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            if payload.get("type") != "refresh":
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+            user_id_str = payload.get("sub")
+            if not user_id_str:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
+            user_id = uuid.UUID(user_id_str)
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
+
+        # Verify token in DB
+        token_hash = self._hash_token(refresh_token_str)
+        valid_record = await self.user_repo.get_valid_refresh_token(token_hash)
+        if not valid_record:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token revoked or expired")
+
+        user = await self.user_repo.get_by_id(user_id)
+        if not user or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+
+        # Rotate refresh token (revoke current token and issue new pair)
+        valid_record.is_revoked = True
+        self.user_repo.db.add(valid_record)
+        await self.user_repo.db.commit()
+
+        new_access = create_access_token(str(user.id), user.role)
+        new_refresh = create_refresh_token(str(user.id))
+
+        new_refresh_record = RefreshTokenModel(
+            user_id=user.id,
+            token_hash=self._hash_token(new_refresh),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            is_revoked=False
+        )
+        await self.user_repo.save_refresh_token(new_refresh_record)
+
+        profile = await self.user_repo.get_profile(user.id)
+        fullName = profile.full_name if (profile and profile.full_name) else user.email.split("@")[0]
+
+        return {
+            "access_token": new_access,
+            "refresh_token": new_refresh,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+                "fullName": fullName
+            }
+        }
     
-    async def google_oauth(self, token):
-        # Implementation for Google OAuth
-        pass
+    async def forgot_password(self, email: str):
+        user = await self.user_repo.get_by_email(email)
+        if user:
+            # Generate secure token
+            raw_token = secrets.token_urlsafe(32)
+            token_hash = self._hash_token(raw_token)
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+            reset_record = PasswordResetTokenModel(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at,
+                is_used=False
+            )
+            await self.user_repo.create_password_reset_token(reset_record)
+
+            # In production: dispatch email via SMTP/SES/SendGrid
+            # In development/preview: log secure reset token
+            await logger.ainfo("Password reset token generated", email=email, reset_token=raw_token)
+
+        return {
+            "message": "If the email is registered, password reset instructions have been sent."
+        }
     
-    async def forgot_password(self, email):
-        pass
-    
-    async def reset_password(self, token, new_password):
-        pass
+    async def reset_password(self, token: str, new_password: str):
+        if not token or not new_password:
+            raise HTTPException(status_code=400, detail="Token and new password required")
+        if len(new_password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+
+        token_hash = self._hash_token(token)
+        reset_record = await self.user_repo.get_valid_password_reset_token(token_hash)
+        if not reset_record:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+        user = await self.user_repo.get_by_id(reset_record.user_id)
+        if not user:
+            raise HTTPException(status_code=400, detail="User not found")
+
+        # Update password
+        user.hashed_password = hash_password(new_password)
+        self.user_repo.db.add(user)
+
+        # Mark token used
+        reset_record.is_used = True
+        self.user_repo.db.add(reset_record)
+
+        # Revoke all existing refresh tokens for security
+        await self.user_repo.revoke_refresh_tokens_for_user(user.id)
+        await self.user_repo.db.commit()
+
+        return {"message": "Password reset successfully. You can now log in with your new password."}
+
+    async def google_oauth(self, token: str, role: str = "job_seeker"):
+        if not token:
+            raise HTTPException(status_code=400, detail="Google token required")
+        
+        google_user = None
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
+                if res.status_code == 200:
+                    google_user = res.json()
+        except Exception as e:
+            await logger.aerror("Google token verification request failed", error=str(e))
+
+        if not google_user or not google_user.get("email"):
+            raise HTTPException(status_code=400, detail="Google token validation failed or token is expired")
+
+        email = google_user["email"].lower().strip()
+        google_id = google_user.get("sub")
+        full_name = google_user.get("name") or email.split("@")[0]
+        picture = google_user.get("picture")
+
+        user = await self.user_repo.get_by_email(email)
+        if not user:
+            random_pw = secrets.token_urlsafe(24)
+            user = UserModel(
+                email=email,
+                hashed_password=hash_password(random_pw),
+                role=role,
+                google_id=google_id,
+                avatar_url=picture,
+                is_active=True,
+                is_verified=True
+            )
+            user = await self.user_repo.create(user)
+            profile = ProfileModel(user_id=user.id, full_name=full_name, profile_completion="20%")
+            await self.user_repo.update_profile(profile)
+        else:
+            if not user.google_id and google_id:
+                user.google_id = google_id
+                user.is_verified = True
+                self.user_repo.db.add(user)
+                await self.user_repo.db.commit()
+
+        profile = await self.user_repo.get_profile(user.id)
+        fullName = profile.full_name if (profile and profile.full_name) else full_name
+
+        access_token = create_access_token(str(user.id), user.role)
+        refresh_token_str = create_refresh_token(str(user.id))
+
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token_str,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+                "fullName": fullName
+            }
+        }

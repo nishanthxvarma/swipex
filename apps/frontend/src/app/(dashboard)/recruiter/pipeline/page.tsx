@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Users, Clock, Plus, ChevronRight, CheckCircle, X, Mail } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, Clock, Plus, ChevronRight, CheckCircle, X, Mail, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { jobsApi } from '@swipex/api';
 
 const STAGES = [
   { id: 'new', title: 'New Applicants', color: 'bg-blue-500', badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
@@ -15,6 +16,7 @@ const STAGES = [
 
 interface CandidateApplicant {
   id: string;
+  applicationId: string;
   name: string;
   roleApplied: string;
   stage: 'new' | 'screening' | 'interview' | 'offer' | 'hired';
@@ -23,65 +25,56 @@ interface CandidateApplicant {
   color: string;
   initials: string;
   email: string;
+  resumeUrl?: string;
+  coverLetter?: string;
 }
 
-const INITIAL_CANDIDATES: CandidateApplicant[] = [
-  {
-    id: 'ca1',
-    name: 'Alex Rivers',
-    roleApplied: 'Senior Frontend Engineer',
-    stage: 'interview',
-    matchScore: 96,
-    appliedDate: '2 hours ago',
-    color: '#3B82F6',
-    initials: 'AR',
-    email: 'alex.rivers@dev.io',
-  },
-  {
-    id: 'ca2',
-    name: 'Sarah Chen',
-    roleApplied: 'Full Stack Developer',
-    stage: 'screening',
-    matchScore: 92,
-    appliedDate: '5 hours ago',
-    color: '#10B981',
-    initials: 'SC',
-    email: 'sarah.chen@tech.com',
-  },
-  {
-    id: 'ca3',
-    name: 'Michael Vance',
-    roleApplied: 'Senior Frontend Engineer',
-    stage: 'new',
-    matchScore: 88,
-    appliedDate: '1 day ago',
-    color: '#8B5CF6',
-    initials: 'MV',
-    email: 'michael.v@mobile.net',
-  },
-  {
-    id: 'ca4',
-    name: 'Elena Rostova',
-    roleApplied: 'Product Designer',
-    stage: 'offer',
-    matchScore: 95,
-    appliedDate: '3 days ago',
-    color: '#F59E0B',
-    initials: 'ER',
-    email: 'elena.design@studio.org',
-  },
-];
-
 export default function RecruiterPipelinePage() {
-  const [candidates, setCandidates] = useState<CandidateApplicant[]>(INITIAL_CANDIDATES);
+  const [candidates, setCandidates] = useState<CandidateApplicant[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateApplicant | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const moveStage = (id: string, newStage: CandidateApplicant['stage']) => {
+  const fetchPipeline = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await jobsApi.getRecruiterPipeline();
+      setCandidates(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load recruiter pipeline:', err);
+      setError('Failed to load live applications pipeline.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPipeline();
+  }, [fetchPipeline]);
+
+  const moveStage = async (id: string, newStage: CandidateApplicant['stage']) => {
+    const prevCandidates = [...candidates];
+    
+    // Optimistic UI update
     setCandidates((prev) =>
       prev.map((c) => (c.id === id ? { ...c, stage: newStage } : c))
     );
     if (selectedCandidate && selectedCandidate.id === id) {
       setSelectedCandidate((prev) => (prev ? { ...prev, stage: newStage } : null));
+    }
+
+    try {
+      await jobsApi.updateApplicationStatus(id, newStage);
+    } catch (err) {
+      console.error('Failed to update stage in database:', err);
+      // Rollback
+      setCandidates(prevCandidates);
+      if (selectedCandidate && selectedCandidate.id === id) {
+        const orig = prevCandidates.find((c) => c.id === id);
+        if (orig) setSelectedCandidate(orig);
+      }
+      setError('Failed to update candidate status on server.');
     }
   };
 

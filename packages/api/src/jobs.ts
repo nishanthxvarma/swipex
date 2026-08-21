@@ -111,5 +111,8 @@ export const jobsApi = {
     api.post<Job>('/jobs/', data),
 
   updateApplicationStatus: (id: string, status: string) =>
-    api.put<Application>(`/applications/${id}/status`, { status })
+    api.put<Application>(`/applications/${id}/status`, { status }),
+
+  getRecruiterPipeline: () =>
+    api.get<any[]>('/applications/recruiter/pipeline')
 };

@@ -26,6 +26,24 @@ export const usersApi = {
   getCandidates: () =>
     api.get<any[]>('/users/candidates'),
 
+  recordCandidateAction: (payload: { candidateId: string; action: 'pass' | 'shortlist' | 'interest'; jobId?: string; notes?: string }) =>
+    api.post<any>('/users/candidates/action', payload),
+
   listAllUsers: () =>
-    api.get<any[]>('/users/')
+    api.get<any[]>('/admin/users'),
+
+  getAdminRecruiters: () =>
+    api.get<any[]>('/admin/recruiters'),
+
+  verifyRecruiter: (id: string) =>
+    api.put<any>(`/admin/recruiters/${id}/verify`, {}),
+
+  setRecruiterStatus: (id: string, status: string) =>
+    api.put<any>(`/admin/recruiters/${id}/status`, { status }),
+
+  getAdminActivity: (type = 'ALL', page = 1) =>
+    api.get<any[]>('/admin/activity', { params: { type, page } }),
+
+  updateUserStatus: (id: string, status: string) =>
+    api.put<any>(`/admin/users/${id}/status`, { status })
 };

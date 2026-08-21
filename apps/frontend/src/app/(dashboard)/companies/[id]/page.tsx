@@ -1,75 +1,65 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, MapPin, Users, Globe, Send, AtSign, Building2, Briefcase, Heart, Cpu, Check, ArrowLeft } from "lucide-react";
+import { ExternalLink, MapPin, Users, Globe, Send, AtSign, Building2, Briefcase, Heart, Cpu, Check, ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const COMPANY_DATABASE: Record<string, any> = {
-  c1: {
-    name: "Stripe",
-    initials: "S",
-    color: "#635BFF",
-    industry: "Financial Services",
-    location: "San Francisco, CA (HQ)",
-    size: "5,000+ employees",
-    website: "https://stripe.com",
-    rating: 4.8,
-    description: "Stripe is a technology company that builds economic infrastructure for the internet. Businesses of every size—from new startups to public companies—use our software to accept payments and manage their businesses online.",
-    techStack: ["React", "Ruby", "Go", "PostgreSQL", "Kafka", "AWS", "TypeScript"],
-    benefits: ["100% Health Coverage", "Remote Work Flexibility", "401(k) Match", "Unlimited PTO", "Wellness Stipend", "$3,000 Learning Budget"],
-    openJobs: [
-      { id: "j1", title: "Backend Engineer, Core", location: "Remote", type: "Full-time", salary: "$160k - $200k" },
-      { id: "j2", title: "Product Manager, Payments", location: "San Francisco, CA", type: "Full-time", salary: "$175k - $220k" },
-      { id: "j3", title: "Staff Data Scientist", location: "New York, NY", type: "Full-time", salary: "$190k - $240k" }
-    ]
-  },
-  c2: {
-    name: "Airbnb",
-    initials: "A",
-    color: "#FF5A5F",
-    industry: "Travel & Hospitality",
-    location: "San Francisco, CA (HQ)",
-    size: "5,000+ employees",
-    website: "https://airbnb.com",
-    rating: 4.6,
-    description: "Airbnb is an online marketplace that connects people who want to rent out their homes with people who are looking for accommodations in specific locales.",
-    techStack: ["React Native", "Java", "Kotlin", "Swift", "GraphQL", "MySQL"],
-    benefits: ["$2,000 Annual Travel Credit", "Work From Anywhere Policy", "Parental Leave", "Health Benefits"],
-    openJobs: [
-      { id: "j4", title: "React Native Mobile Engineer", location: "Remote", type: "Full-time", salary: "$130k - $170k" },
-      { id: "j5", title: "Staff Product Designer", location: "San Francisco, CA", type: "Full-time", salary: "$160k - $210k" }
-    ]
-  },
-  c3: {
-    name: "Vercel",
-    initials: "V",
-    color: "#000000",
-    industry: "Developer Tools",
-    location: "Remote",
-    size: "100-500 employees",
-    website: "https://vercel.com",
-    rating: 4.9,
-    description: "Vercel is the platform for frontend developers, providing the speed and reliability innovators need to create at the moment of inspiration.",
-    techStack: ["Next.js", "React", "TypeScript", "Rust", "TailwindCSS", "Node.js"],
-    benefits: ["Unlimited PTO", "Remote First Culture", "Top Tier Equipment Stipend", "Learning & Growth Fund"],
-    openJobs: [
-      { id: "j6", title: "Senior Frontend Engineer (Next.js)", location: "Remote", type: "Full-time", salary: "$140k - $180k" },
-      { id: "j7", title: "Developer Advocate", location: "Remote", type: "Full-time", salary: "$130k - $165k" }
-    ]
-  }
-};
+import { companiesApi, Company } from "@swipex/api";
 
 export default function CompanyDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const company = COMPANY_DATABASE[params.id] || COMPANY_DATABASE["c1"];
+  useEffect(() => {
+    async function loadCompany() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await companiesApi.getCompany(params.id);
+        setCompany(data);
+      } catch (err) {
+        console.error("Failed to load company:", err);
+        setError("Company profile not found in database.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadCompany();
+  }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto py-24 flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading company profile...</p>
+      </div>
+    );
+  }
+
+  if (error || !company) {
+    return (
+      <div className="max-w-5xl mx-auto py-20 text-center space-y-4">
+        <div className="p-8 bg-destructive/10 border border-destructive/20 rounded-3xl max-w-md mx-auto space-y-3">
+          <AlertTriangle className="w-8 h-8 text-destructive mx-auto" />
+          <h3 className="font-bold text-lg">Company Not Found</h3>
+          <p className="text-xs text-muted-foreground">{error || "Unable to locate this employer in the database."}</p>
+          <Button size="sm" onClick={() => router.push("/companies")} className="rounded-xl mt-2">
+            Back to Companies
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const openJobs = company.jobs || [];
 
   const tabs = [
     { id: "overview", label: "Overview", icon: Building2 },
-    { id: "jobs", label: "Open Positions (" + company.openJobs.length + ")", icon: Briefcase },
+    { id: "jobs", label: `Open Positions (${openJobs.length})`, icon: Briefcase },
     { id: "tech", label: "Tech Stack", icon: Cpu },
     { id: "benefits", label: "Benefits", icon: Heart },
   ];
@@ -165,23 +155,30 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
 
         {activeTab === "jobs" && (
           <div className="space-y-4">
-            {company.openJobs.map((job: any) => (
-              <div key={job.id} className="bg-card border rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/50 transition-all shadow-xs group">
-                <div>
-                  <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{job.title}</h4>
-                  <div className="text-xs text-muted-foreground flex gap-3 mt-1 font-medium">
-                    <span>{job.location}</span>
-                    <span>•</span>
-                    <span>{job.type}</span>
-                    <span>•</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{job.salary}</span>
-                  </div>
-                </div>
-                <Button onClick={() => router.push("/jobs")} className="rounded-xl font-semibold shadow-xs">
-                  Apply via Swipe
-                </Button>
+            {openJobs.length === 0 ? (
+              <div className="p-12 text-center bg-card border rounded-2xl">
+                <Briefcase className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-xs font-semibold text-muted-foreground">No active job openings posted by {company.name} at this time.</p>
               </div>
-            ))}
+            ) : (
+              openJobs.map((job: any) => (
+                <div key={job.id} className="bg-card border rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/50 transition-all shadow-xs group">
+                  <div>
+                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{job.title}</h4>
+                    <div className="text-xs text-muted-foreground flex gap-3 mt-1 font-medium">
+                      <span>{job.location}</span>
+                      <span>•</span>
+                      <span>{job.jobType || job.type || "Full-time"}</span>
+                      <span>•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{job.salary}</span>
+                    </div>
+                  </div>
+                  <Button onClick={() => router.push("/jobs")} className="rounded-xl font-semibold shadow-xs">
+                    Apply via Swipe
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
         )}
 

@@ -8,8 +8,10 @@ from app.core.database import Base
 class ApplicationStatus(str, enum.Enum):
     applied = "applied"
     reviewing = "reviewing"
+    shortlisted = "shortlisted"
     interview = "interview"
     offer = "offer"
+    hired = "hired"
     rejected = "rejected"
     withdrawn = "withdrawn"
 
@@ -17,6 +19,8 @@ class SwipeDirection(str, enum.Enum):
     left = "left"
     right = "right"
     up = "up"
+
+from sqlalchemy.orm import relationship
 
 class ApplicationModel(Base):
     __tablename__ = "applications"
@@ -32,6 +36,9 @@ class ApplicationModel(Base):
     applied_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+    user = relationship("UserModel", foreign_keys=[user_id])
+    job = relationship("JobModel", foreign_keys=[job_id])
+
 class SavedJobModel(Base):
     __tablename__ = "saved_jobs"
     __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_user_job_saved"),)
@@ -40,6 +47,9 @@ class SavedJobModel(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), index=True, nullable=False)
     saved_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = relationship("UserModel", foreign_keys=[user_id])
+    job = relationship("JobModel", foreign_keys=[job_id])
 
 class SwipeModel(Base):
     __tablename__ = "swipes"
@@ -50,3 +60,27 @@ class SwipeModel(Base):
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), index=True, nullable=False)
     direction = Column(Enum(SwipeDirection), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = relationship("UserModel", foreign_keys=[user_id])
+    job = relationship("JobModel", foreign_keys=[job_id])
+
+class CandidateActionType(str, enum.Enum):
+    pass_candidate = "pass"
+    shortlist = "shortlist"
+    interest = "interest"
+
+class RecruiterCandidateActionModel(Base):
+    __tablename__ = "recruiter_candidate_actions"
+    __table_args__ = (UniqueConstraint("recruiter_id", "candidate_id", name="uq_recruiter_candidate_action"),)
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    recruiter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
+    candidate_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=True)
+    action = Column(Enum(CandidateActionType), nullable=False)
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    recruiter = relationship("UserModel", foreign_keys=[recruiter_id])
+    candidate = relationship("UserModel", foreign_keys=[candidate_id])
+    job = relationship("JobModel", foreign_keys=[job_id])

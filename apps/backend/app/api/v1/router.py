@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, jobs, applications, companies, search, notifications, resumes, analytics
+from app.api.v1 import auth, users, jobs, applications, companies, search, notifications, resumes, analytics, admin
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
@@ -11,4 +11,5 @@ api_router.include_router(search.router, prefix="/search", tags=["Search"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(resumes.router, prefix="/resumes", tags=["Resumes"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
+api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 

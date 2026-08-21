@@ -3,8 +3,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.core.config import settings
 from app.models import Base
 # Import all models to ensure they are registered
-from app.models.user import UserModel, RoleEnum
+from app.models.user import UserModel, RoleEnum, ProfileModel
 from app.models.job import JobModel, CompanyModel
+from app.core.security import hash_password
 
 async def seed():
     engine = create_async_engine(settings.DATABASE_URL)
@@ -14,10 +15,11 @@ async def seed():
         await conn.run_sync(Base.metadata.create_all)
         
     async with async_session() as session:
-        # Seed 5 sample users
-        admin = UserModel(email="admin@swipex.com", hashed_password="hashed", role=RoleEnum.admin)
-        recruiter = UserModel(email="recruiter@swipex.com", hashed_password="hashed", role=RoleEnum.recruiter)
-        js1 = UserModel(email="seeker1@swipex.com", hashed_password="hashed", role=RoleEnum.job_seeker)
+        # Seed default sample users with secure hashed passwords
+        default_pw = hash_password("SwipeX@2026!")
+        admin = UserModel(email="admin@swipex.com", hashed_password=default_pw, role=RoleEnum.admin, is_verified=True)
+        recruiter = UserModel(email="recruiter@swipex.com", hashed_password=default_pw, role=RoleEnum.recruiter, is_verified=True)
+        js1 = UserModel(email="seeker1@swipex.com", hashed_password=default_pw, role=RoleEnum.job_seeker, is_verified=True)
         session.add_all([admin, recruiter, js1])
         await session.commit()
         

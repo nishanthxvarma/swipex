@@ -110,6 +110,61 @@ async def get_application(
             return format_application(a)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
+@router.get("/recruiter/pipeline")
+async def get_recruiter_pipeline(
+    current_user: dict = Depends(get_current_user),
+    app_repo: ApplicationRepository = Depends(get_application_repository)
+):
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter or Admin access required")
+
+    user_id = uuid.UUID(current_user["sub"])
+    apps = await app_repo.get_recruiter_pipeline_applications(recruiter_id=user_id)
+
+    def map_stage(status_val):
+        s = status_val.value if hasattr(status_val, "value") else str(status_val)
+        if s == "applied": return "new"
+        if s in ("reviewing", "shortlisted"): return "screening"
+        if s == "interview": return "interview"
+        if s == "offer": return "offer"
+        if s == "hired": return "hired"
+        return "new"
+
+    colors = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#EC4899"]
+
+    pipeline_list = []
+    for a in apps:
+        cand_user = a.user
+        cand_profile = cand_user.profile if cand_user else None
+        name = cand_profile.full_name if (cand_profile and cand_profile.full_name) else (cand_user.email.split("@")[0] if cand_user else "Candidate")
+        color_idx = sum(ord(c) for c in name) % len(colors)
+        
+        job = a.job
+        job_title = job.title if job else "General Applicant"
+        company_name = job.company.name if (job and job.company) else "SwipeX Partner"
+
+        pipeline_list.append({
+            "id": str(a.id),
+            "applicationId": str(a.id),
+            "name": name,
+            "roleApplied": job_title,
+            "jobTitle": job_title,
+            "jobId": str(job.id) if job else None,
+            "company": company_name,
+            "stage": map_stage(a.status),
+            "status": a.status.value if hasattr(a.status, "value") else str(a.status),
+            "matchScore": int(a.ats_score or 92),
+            "appliedDate": a.applied_at.strftime("%b %d, %Y") if a.applied_at else "Recent",
+            "email": cand_user.email if cand_user else "applicant@swipex.io",
+            "color": colors[color_idx],
+            "initials": "".join([n[0] for n in name.split() if n])[:2].upper(),
+            "resumeUrl": a.resume_url,
+            "coverLetter": a.cover_letter
+        })
+
+    return pipeline_list
+
 @router.put("/{app_id}/status")
 async def update_status(
     app_id: uuid.UUID,
@@ -119,7 +174,23 @@ async def update_status(
     job_repo: JobRepository = Depends(get_job_repository),
     notif_service: NotificationService = Depends(get_notification_service)
 ):
-    new_status = status_data.get("status")
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter or Admin access required")
+
+    raw_status = status_data.get("status") or status_data.get("stage")
+    # Map stage names if passed from frontend
+    stage_to_status = {
+        "new": "applied",
+        "screening": "reviewing",
+        "interview": "interview",
+        "interviewing": "interview",
+        "offer": "offer",
+        "hired": "hired",
+        "rejected": "rejected"
+    }
+    new_status = stage_to_status.get(raw_status, raw_status)
+
     updated_app = await app_repo.update_status(application_id=app_id, status=new_status)
     if not updated_app:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
@@ -128,19 +199,27 @@ async def update_status(
     job_title = job.title if job else "Position"
 
     # Trigger candidate notification based on status
-    if new_status == ApplicationStatus.reviewing.value:
+    if new_status in (ApplicationStatus.reviewing.value, "reviewing"):
         notif_type = "application_viewed"
         title = "Application Viewed by Recruiter"
         msg = f"The recruitment team viewed your application for {job_title}."
-    elif new_status == ApplicationStatus.interview.value:
+    elif new_status in (ApplicationStatus.shortlisted.value, "shortlisted"):
+        notif_type = "application_shortlisted"
+        title = "Application Shortlisted! 🌟"
+        msg = f"Your application for {job_title} was shortlisted."
+    elif new_status in (ApplicationStatus.interview.value, "interview"):
         notif_type = "interview_scheduled"
         title = "Interview Scheduled! 🎉"
         msg = f"Great news! You have been shortlisted for an interview for {job_title}."
-    elif new_status == ApplicationStatus.offer.value:
+    elif new_status in (ApplicationStatus.offer.value, "offer"):
         notif_type = "application_status_changed"
         title = "Job Offer Received! 🏆"
         msg = f"Congratulations! You received an official offer for {job_title}."
-    elif new_status == ApplicationStatus.rejected.value:
+    elif new_status in (ApplicationStatus.hired.value, "hired"):
+        notif_type = "application_status_changed"
+        title = "Application Hired! 🎊"
+        msg = f"Welcome aboard! You were officially hired for {job_title}."
+    elif new_status in (ApplicationStatus.rejected.value, "rejected"):
         notif_type = "application_status_changed"
         title = "Application Status Update"
         msg = f"Your application status for {job_title} has been updated."

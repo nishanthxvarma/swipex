@@ -1,25 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Activity, Shield, Filter, Search, Terminal, AlertTriangle, CheckCircle2, FileText
+  Activity, Shield, Filter, Search, Terminal, AlertTriangle, CheckCircle2, FileText, Loader2, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usersApi } from '@swipex/api';
+
+interface AuditLogEntry {
+  id: string;
+  type: string;
+  action: string;
+  message: string;
+  timestamp: string;
+  severity: 'HIGH' | 'INFO' | 'LOW';
+  metadata: Record<string, any>;
+}
 
 export default function AdminActivityPage() {
   const [filter, setFilter] = useState('ALL');
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const logs = [
-    { id: 1, type: 'SECURITY', message: 'Failed password attempt threshold reached for user@domain.com', timestamp: '2026-08-10 03:12:04', severity: 'HIGH' },
-    { id: 2, type: 'RESUME_AI', message: 'ATS Engine scored resume ID #res_88194 with 92% match score', timestamp: '2026-08-10 03:10:40', severity: 'INFO' },
-    { id: 3, type: 'AUTH', message: 'Admin user alex@swipex.io signed into Super Admin Portal', timestamp: '2026-08-10 03:05:12', severity: 'INFO' },
-    { id: 4, type: 'APPLICATION', message: 'Job Seeker applied to Senior React Engineer position at Vercel', timestamp: '2026-08-10 02:58:33', severity: 'INFO' },
-    { id: 5, type: 'SYSTEM', message: 'PostgreSQL database automated vacuum finished in 1.2s', timestamp: '2026-08-10 02:30:00', severity: 'LOW' },
-  ];
+  const fetchLogs = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await usersApi.getAdminActivity(filter);
+      setLogs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load activity logs:', err);
+      setError('Failed to fetch real-time system audit logs.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filter]);
 
-  const filteredLogs = filter === 'ALL' ? logs : logs.filter(l => l.type === filter);
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   return (
     <div className="space-y-6 pb-12">
@@ -27,13 +49,17 @@ export default function AdminActivityPage() {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Real-Time Activity & Audit Logs</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Monitor real-time system events, authentication attempts, and AI engine queries.
+            Monitor real-time system events, authentication attempts, recruiter verifications, and user actions.
           </p>
         </div>
+        <Button size="sm" variant="outline" onClick={fetchLogs} className="gap-2 rounded-xl text-xs font-bold">
+          <RefreshCw className="w-3.5 h-3.5" />
+          Refresh Feed
+        </Button>
       </div>
 
-      <div className="flex items-center gap-2 bg-card p-3 rounded-2xl border">
-        {['ALL', 'SECURITY', 'RESUME_AI', 'AUTH', 'APPLICATION', 'SYSTEM'].map((type) => (
+      <div className="flex flex-wrap items-center gap-2 bg-card p-3 rounded-2xl border">
+        {['ALL', 'RECRUITER', 'USER', 'AUTH', 'APPLICATION', 'SYSTEM'].map((type) => (
           <button
             key={type}
             onClick={() => setFilter(type)}
@@ -47,33 +73,47 @@ export default function AdminActivityPage() {
       </div>
 
       <div className="bg-card border rounded-3xl p-6 font-mono text-xs space-y-3 shadow-xs">
-        <div className="flex items-center gap-2 border-b pb-3 text-muted-foreground font-sans font-bold">
-          <Terminal className="w-4 h-4 text-primary" />
-          System Event Output Log Stream
+        <div className="flex items-center justify-between border-b pb-3 text-muted-foreground font-sans font-bold">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-primary" />
+            System Event Output Log Stream
+          </div>
+          {isLoading && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
         </div>
 
-        <div className="space-y-2">
-          {filteredLogs.map((log) => (
-            <div key={log.id} className="p-3 rounded-xl bg-muted/40 border flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 font-sans font-bold">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                    log.severity === 'HIGH' ? 'bg-rose-500/10 text-rose-600' : 'bg-blue-500/10 text-blue-600'
-                  }`}>
-                    [{log.type}]
-                  </span>
-                  <span className="text-foreground">{log.message}</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground font-mono">{log.timestamp}</p>
-              </div>
+        {error && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-sans font-semibold">
+            {error}
+          </div>
+        )}
 
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-sans ${
-                log.severity === 'HIGH' ? 'bg-rose-500/20 text-rose-600' : 'bg-secondary text-muted-foreground'
-              }`}>
-                {log.severity}
-              </span>
+        <div className="space-y-2">
+          {logs.length === 0 && !isLoading ? (
+            <div className="p-8 text-center text-muted-foreground font-sans text-xs">
+              No audit logs recorded for this category yet.
             </div>
-          ))}
+          ) : (
+            logs.map((log) => (
+              <div key={log.id} className="p-3 rounded-xl bg-muted/40 border flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 font-sans font-bold">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                      log.severity === 'HIGH' ? 'bg-rose-500/10 text-rose-600' :
+                      log.severity === 'INFO' ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600'
+                    }`}>
+                      {log.type}
+                    </span>
+                    <span className="text-muted-foreground text-[10px]">{log.timestamp}</span>
+                  </div>
+                  <p className="text-foreground text-xs">{log.message}</p>
+                </div>
+
+                <div className="text-[10px] text-muted-foreground whitespace-nowrap font-sans font-semibold">
+                  STATUS: 200 OK
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

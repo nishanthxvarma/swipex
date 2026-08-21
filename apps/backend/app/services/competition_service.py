@@ -40,7 +40,7 @@ class CompetitionService:
             rank_headline = "Very High competition. Exceptional skills & ATS score needed."
 
         # 4. Fetch candidate's latest resume and score
-        res_stmt = select(ResumeModel).where(ResumeModel.user_id == user_id).order_by(ResumeModel.uploaded_at.desc())
+        res_stmt = select(ResumeModel).where(ResumeModel.user_id == user_id).order_by(ResumeModel.created_at.desc())
         res_res = await self.db.execute(res_stmt)
         resume = res_res.scalars().first()
         
