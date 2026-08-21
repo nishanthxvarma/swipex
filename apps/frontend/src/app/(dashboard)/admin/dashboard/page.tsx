@@ -109,7 +109,7 @@ export default function AdminDashboardPage() {
             </Button>
           </Link>
           <Link href="/admin/settings">
-            <Button size="sm" className="rounded-xl gap-1.5 text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md">
+            <Button size="sm" variant="primary" className="rounded-xl gap-1.5 text-xs font-bold shadow-md">
               <Settings className="w-3.5 h-3.5" /> Config
             </Button>
           </Link>

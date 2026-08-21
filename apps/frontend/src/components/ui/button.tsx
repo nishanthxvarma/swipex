@@ -15,19 +15,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants: Record<string, string> = {
       default:
-        'bg-[#BFE8FF]/10 text-[#BFE8FF] border border-[#BFE8FF]/18 hover:bg-[#BFE8FF]/16 hover:border-[#BFE8FF]/30 hover:shadow-[0_0_20px_rgba(191,232,255,0.10)] active:scale-[0.98]',
+        'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/18 hover:border-primary/35 hover:shadow-[0_0_20px_var(--glow-color)] active:scale-[0.98]',
       primary:
-        'bg-[#BFE8FF] text-[#060B12] font-semibold hover:bg-[#E0F5FF] hover:shadow-[0_0_24px_rgba(191,232,255,0.28)] active:scale-[0.98]',
+        'bg-primary text-primary-foreground font-semibold hover:bg-primary-hover hover:shadow-[0_0_24px_var(--glow-color)] active:scale-[0.98]',
       ghost:
-        'text-[#9BAFC2] hover:bg-white/5 hover:text-[#F5FAFF] active:scale-[0.97]',
+        'text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-[0.97]',
       outline:
-        'border border-[rgba(190,225,255,0.14)] text-[#9BAFC2] bg-transparent hover:bg-white/5 hover:text-[#F5FAFF] hover:border-[rgba(190,225,255,0.22)] active:scale-[0.98]',
+        'border border-border text-foreground bg-transparent hover:bg-secondary hover:border-primary/40 active:scale-[0.98]',
       glass:
-        'bg-white/5 backdrop-blur-xl border border-[rgba(190,225,255,0.12)] text-[#F5FAFF] hover:bg-white/8 hover:border-[rgba(190,225,255,0.20)] active:scale-[0.98]',
+        'glass-2 text-foreground hover:border-primary/40 active:scale-[0.98]',
       secondary:
-        'bg-white/5 text-[#9BAFC2] border border-[rgba(190,225,255,0.08)] hover:bg-white/8 hover:text-[#F5FAFF] active:scale-[0.97]',
+        'bg-secondary text-secondary-foreground border border-border/40 hover:bg-secondary/80 hover:text-foreground active:scale-[0.97]',
       destructive:
-        'bg-[#FF7A90]/10 text-[#FF7A90] border border-[#FF7A90]/20 hover:bg-[#FF7A90]/18 active:scale-[0.98]',
+        'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 active:scale-[0.98]',
     };
 
     const sizes: Record<string, string> = {

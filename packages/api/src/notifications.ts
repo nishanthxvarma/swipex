@@ -50,3 +50,7 @@ export class NotificationsApi {
     return this.client.put<NotificationPreferences>('/notifications/preferences', prefs);
   }
 }
+
+import { api } from './client';
+export const notificationsApi = new NotificationsApi(api);
+

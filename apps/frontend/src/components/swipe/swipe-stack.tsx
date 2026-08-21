@@ -55,7 +55,7 @@ export function SwipeStack({ jobs, onShowDetails }: SwipeStackProps) {
             onClick={() => setMatchedJob(null)}
           >
             <div className="glass-1 border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-purple-600" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-primary" />
               <div className="w-20 h-20 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-extrabold text-2xl shadow-lg animate-pulse">
                 {matchedJob.matchPercentage || 96}%
               </div>

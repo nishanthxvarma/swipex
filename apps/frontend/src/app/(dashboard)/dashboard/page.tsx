@@ -1,15 +1,13 @@
 'use client';
-// @ts-nocheck
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowUpRight,
   Award,
   Building2,
   Calendar,
-  CheckCircle2,
   Clock,
   Eye,
   FileText,
@@ -22,124 +20,18 @@ import {
   X,
   Loader2,
   AlertTriangle,
+  Briefcase,
+  Layers,
+  ChevronRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
-import { jobsApi, usersApi } from '@swipex/api';
+import { jobsApi, usersApi, notificationsApi } from '@swipex/api';
 import { JobDetailModal } from '@/components/jobs/job-detail-modal';
 import { Job } from '@/components/swipe/swipe-card';
-
-const sampleJobs: Job[] = [
-  {
-    id: '1',
-    company: 'Vercel',
-    companyInitials: 'V',
-    color: '#000000',
-    verified: true,
-    title: 'Senior Frontend Engineer',
-    location: 'Remote (US/EU)',
-    type: 'Full-time',
-    jobType: 'Full-time',
-    salary: '$140K - $180K',
-    salaryMin: 140000,
-    salaryMax: 180000,
-    salaryCurrency: '$',
-    skills: ['Next.js', 'React', 'TypeScript', 'TailwindCSS', 'GraphQL'],
-    matchPercentage: 95,
-    atsScore: 95,
-    competition: 'Medium',
-    postedTime: '2 hours ago',
-    description: 'We are looking for a Senior Frontend Engineer to help us build the next generation of web development tools at Vercel.',
-    requirements: [
-      '5+ years of production frontend software engineering experience',
-      'Expert proficiency in React 19, Next.js App Router, and TypeScript',
-    ],
-    benefits: ['Full remote flexibility', 'Unlimited PTO', '$3,000 learning stipend'],
-  },
-  {
-    id: '2',
-    company: 'Stripe',
-    companyInitials: 'S',
-    color: '#635BFF',
-    verified: true,
-    title: 'Full Stack Developer',
-    location: 'San Francisco, CA (Hybrid)',
-    type: 'Full-time',
-    jobType: 'Full-time',
-    salary: '$150K - $200K',
-    salaryMin: 150000,
-    salaryMax: 200000,
-    salaryCurrency: '$',
-    skills: ['Node.js', 'React', 'TypeScript', 'PostgreSQL', 'Ruby'],
-    matchPercentage: 88,
-    atsScore: 88,
-    competition: 'High',
-    postedTime: '5 hours ago',
-    description: 'Stripe is building financial infrastructure for the internet.',
-    requirements: ['4+ years building distributed full stack web apps'],
-    benefits: ['Competitive equity package', 'Flexible hybrid office policy'],
-  },
-  {
-    id: '3',
-    company: 'Airbnb',
-    companyInitials: 'A',
-    color: '#FF5A5F',
-    verified: true,
-    title: 'React Native Engineer',
-    location: 'Remote',
-    type: 'Full-time',
-    jobType: 'Full-time',
-    salary: '$130K - $170K',
-    salaryMin: 130000,
-    salaryMax: 170000,
-    salaryCurrency: '$',
-    skills: ['React Native', 'TypeScript', 'iOS', 'Android', 'Redux'],
-    matchPercentage: 82,
-    atsScore: 82,
-    competition: 'Low',
-    postedTime: '1 day ago',
-    description: 'Help craft the mobile experience for millions of travelers around the world.',
-    requirements: ['3+ years React Native mobile development'],
-    benefits: ['$2,000 annual travel credit'],
-  },
-];
-
-const recruiterCandidates = [
-  {
-    id: 'c1',
-    name: 'Alex Rivers',
-    title: 'Senior React & Next.js Architect',
-    matchScore: 96,
-    experience: '6+ years',
-    location: 'San Francisco, CA',
-    skills: ['React 19', 'Next.js', 'TypeScript', 'TailwindCSS'],
-    avatarColor: '#3B82F6',
-    initials: 'AR',
-  },
-  {
-    id: 'c2',
-    name: 'Sarah Chen',
-    title: 'Full Stack Engineer (Node / Postgres)',
-    matchScore: 92,
-    experience: '5 years',
-    location: 'Remote (US)',
-    skills: ['Node.js', 'React', 'PostgreSQL', 'Docker'],
-    avatarColor: '#10B981',
-    initials: 'SC',
-  },
-  {
-    id: 'c3',
-    name: 'Michael Vance',
-    title: 'Mobile Developer (React Native / iOS)',
-    matchScore: 89,
-    experience: '4 years',
-    location: 'New York, NY',
-    skills: ['React Native', 'Swift', 'Redux', 'GraphQL'],
-    avatarColor: '#8B5CF6',
-    initials: 'MV',
-  },
-];
+import { useNotificationStore } from '@/stores/notification-store';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -149,82 +41,110 @@ export default function DashboardPage() {
   const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
 
   // Dynamic lists from DB
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   // New Job Form State
   const [newJobTitle, setNewJobTitle] = useState('');
   const [newJobLocation, setNewJobLocation] = useState('Remote');
-  const [newJobSalary, setNewJobSalary] = useState('$150,000 - $190,000');
+  const [newJobSalaryMin, setNewJobSalaryMin] = useState('140000');
+  const [newJobSalaryMax, setNewJobSalaryMax] = useState('180000');
+  const [newJobDescription, setNewJobDescription] = useState('');
+  const [newJobSkills, setNewJobSkills] = useState('React, TypeScript, Node.js');
+  const [isPostingJob, setIsPostingJob] = useState(false);
+  const [postJobError, setPostJobError] = useState<string | null>(null);
   const [jobPostedSuccess, setJobPostedSuccess] = useState(false);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      setIsLoading(true);
-      setDashboardError(null);
-      try {
-        if (user?.role === 'RECRUITER') {
-          const list = await usersApi.getCandidates();
-          setCandidates(list);
-        } else {
-          const feed = await jobsApi.getJobFeed(1, 10);
-          setJobs(feed);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+
+  const loadDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    setDashboardError(null);
+    try {
+      if (user?.role === 'RECRUITER') {
+        const [candidateList, feedJobs] = await Promise.allSettled([
+          usersApi.getCandidates(),
+          jobsApi.getJobFeed(1, 20),
+        ]);
+        if (candidateList.status === 'fulfilled') {
+          setCandidates(candidateList.value || []);
         }
-      } catch (err: any) {
-        console.error('Failed to load dashboard data:', err);
-        setDashboardError('Failed to retrieve live data from the database.');
-      } finally {
-        setIsLoading(false);
+        if (feedJobs.status === 'fulfilled') {
+          setJobs(feedJobs.value || []);
+        }
+      } else {
+        const [feed, userApps] = await Promise.allSettled([
+          jobsApi.getJobFeed(1, 10),
+          jobsApi.getApplications(1),
+        ]);
+        if (feed.status === 'fulfilled') {
+          setJobs(feed.value || []);
+        }
+        if (userApps.status === 'fulfilled') {
+          setApplications(userApps.value || []);
+        }
+        fetchNotifications();
       }
+    } catch (err: unknown) {
+      console.error('Failed to load dashboard data:', err);
+      setDashboardError('Failed to retrieve live data from the database.');
+    } finally {
+      setIsLoading(false);
     }
+  }, [user, fetchNotifications]);
+
+  useEffect(() => {
     if (user) {
       loadDashboardData();
     }
-  }, [user]);
+  }, [user, loadDashboardData]);
 
   const name = user?.fullName ? user.fullName.split(' ')[0] : 'User';
   const isRecruiter = user?.role === 'RECRUITER';
 
+  // Calculate live stats from backend state
+  const totalAppsCount = applications.length;
+  const interviewCount = applications.filter((a) => a.status === 'interview' || a.status === 'INTERVIEW').length;
+  const calculatedProfileStrength = user?.fullName && user?.email ? 85 : 40;
+
   const candidateStats = [
     {
       title: 'Total Applications',
-      value: '24',
-      trend: '+12% from last week',
-      trendUp: true,
+      value: String(totalAppsCount),
+      subtitle: totalAppsCount === 0 ? 'Start applying to roles' : `${totalAppsCount} active tracked`,
       icon: FileText,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
       href: '/applications',
     },
     {
       title: 'Interviews Scheduled',
-      value: '3',
-      trend: 'Next: Tomorrow 2PM',
-      trendUp: true,
+      value: String(interviewCount),
+      subtitle: interviewCount === 0 ? 'No interviews yet' : `${interviewCount} upcoming`,
       icon: Calendar,
-      color: 'text-[#BFE8FF]',
-      bgColor: 'bg-[#BFE8FF]/10',
+      color: 'text-accent',
+      bgColor: 'bg-accent/10',
       href: '/applications',
     },
     {
       title: 'Resume Score',
-      value: '87/100',
-      trend: '+5 pts since update',
-      trendUp: true,
+      value: '85',
+      subtitle: 'ATS optimized',
       icon: Award,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10',
-      href: '/profile',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
+      href: '/resume',
     },
     {
       title: 'Profile Strength',
-      value: '72%',
-      trend: 'Complete your profile',
-      trendUp: false,
+      value: `${calculatedProfileStrength}%`,
+      subtitle: calculatedProfileStrength >= 80 ? 'Ready for matching' : 'Complete your profile',
       icon: Shield,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
       href: '/profile',
     },
   ];
@@ -232,108 +152,98 @@ export default function DashboardPage() {
   const recruiterStats = [
     {
       title: 'Active Job Listings',
-      value: '6 Roles',
-      trend: '+2 posted this week',
-      trendUp: true,
+      value: String(jobs.length),
+      subtitle: jobs.length === 0 ? 'No active roles' : `${jobs.length} published`,
       icon: Building2,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-      href: '/jobs',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      href: '/recruiter/jobs',
     },
     {
       title: 'Matched Candidates',
-      value: '142',
-      trend: '92% high ATS match',
-      trendUp: true,
+      value: String(candidates.length),
+      subtitle: candidates.length === 0 ? 'No matches yet' : `${candidates.length} candidates`,
       icon: UserCheck,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
-      href: '/applications',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
+      href: '/recruiter/candidates',
     },
     {
       title: 'Pending Reviews',
-      value: '18',
-      trend: 'Requires decision',
-      trendUp: false,
+      value: '0',
+      subtitle: 'All caught up',
       icon: Clock,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10',
-      href: '/applications',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
+      href: '/recruiter/pipeline',
     },
     {
       title: 'Interviews Scheduled',
-      value: '5',
-      trend: 'Next today at 4 PM',
-      trendUp: true,
+      value: '0',
+      subtitle: 'Schedule with candidates',
       icon: Calendar,
-      color: 'text-[#BFE8FF]',
-      bgColor: 'bg-[#BFE8FF]/10',
-      href: '/applications',
+      color: 'text-accent',
+      bgColor: 'bg-accent/10',
+      href: '/recruiter/pipeline',
     },
   ];
 
-  const recentActivity = [
-    {
-      id: 1,
-      title: 'Application Viewed',
-      description: 'Google reviewed your application for Senior Frontend Engineer',
-      time: '2 hours ago',
-      icon: Eye,
-      iconBg: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-    },
-    {
-      id: 2,
-      title: 'Interview Scheduled',
-      description: 'Technical interview with Netflix on Thursday at 2:00 PM',
-      time: '5 hours ago',
-      icon: Calendar,
-      iconBg: 'bg-[#BFE8FF]/10 text-[#7DD3FC] dark:bg-purple-900/30 dark:text-[#BFE8FF]',
-    },
-    {
-      id: 3,
-      title: 'Job Match',
-      description: 'New 95% match: Full Stack Developer at Vercel',
-      time: '1 day ago',
-      icon: Sparkles,
-      iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-    },
-    {
-      id: 4,
-      title: 'Application Submitted',
-      description: 'You applied for Product Designer at Stripe',
-      time: '2 days ago',
-      icon: CheckCircle2,
-      iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
-    },
-  ];
-
-  const handlePostJobSubmit = (e: React.FormEvent) => {
+  const handlePostJobSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newJobTitle) return;
-    setJobPostedSuccess(true);
-    setTimeout(() => {
-      setJobPostedSuccess(false);
-      setIsPostJobModalOpen(false);
-      setNewJobTitle('');
-    }, 1200);
+    if (!newJobTitle.trim()) return;
+
+    setIsPostingJob(true);
+    setPostJobError(null);
+
+    try {
+      const skillsArray = newJobSkills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      await jobsApi.createJob({
+        title: newJobTitle.trim(),
+        location: newJobLocation.trim() || 'Remote',
+        salaryMin: parseInt(newJobSalaryMin, 10) || 100000,
+        salaryMax: parseInt(newJobSalaryMax, 10) || 150000,
+        description: newJobDescription.trim() || `Position for ${newJobTitle}`,
+        skillsRequired: skillsArray.length > 0 ? skillsArray : ['React', 'TypeScript'],
+        requirements: `Proficiency with ${skillsArray.join(', ')}`,
+      });
+
+      setJobPostedSuccess(true);
+      await loadDashboardData();
+
+      setTimeout(() => {
+        setJobPostedSuccess(false);
+        setIsPostJobModalOpen(false);
+        setNewJobTitle('');
+        setNewJobDescription('');
+      }, 1000);
+    } catch (err: unknown) {
+      console.error('Failed to create job:', err);
+      setPostJobError('Failed to publish job listing. Please check the backend connection.');
+    } finally {
+      setIsPostingJob(false);
+    }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading live workspace...</p>
+        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading live workspace...</p>
       </div>
     );
   }
 
   if (dashboardError) {
     return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-[#66788A] max-w-sm mb-4">{dashboardError}</p>
-        <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry Connection</Button>
+        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{dashboardError}</p>
+        <Button onClick={() => loadDashboardData()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
   }
@@ -346,18 +256,19 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Welcome back, {name} 👋</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Welcome back, {name} 👋</h1>
               <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full border border-primary/20">
                 Recruiter Portal
               </span>
             </div>
-            <p className="text-[#66788A] text-sm sm:text-base mt-1">
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
               Manage open job requisitions, candidate matches, and hiring pipelines.
             </p>
           </div>
           <Button
             onClick={() => setIsPostJobModalOpen(true)}
-            className="w-full md:w-auto h-11 px-6 font-bold shadow-md bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-all"
+            variant="primary"
+            className="w-full md:w-auto h-11 px-6 font-bold shadow-md hover:scale-105 transition-all"
           >
             <Plus className="mr-2 h-4 w-4" />
             Post New Job
@@ -370,21 +281,19 @@ export default function DashboardPage() {
             <div
               key={i}
               onClick={() => router.push(stat.href)}
-              className="group relative overflow-hidden rounded-2xl border glass-1 p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+              className="group relative overflow-hidden rounded-2xl border border-border glass-1 p-6 shadow-xs transition-all hover:shadow-md hover:border-primary/40 cursor-pointer"
             >
               <div className="relative flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-[#66788A]">{stat.title}</p>
-                  <p className="text-3xl font-black tracking-tight">{stat.value}</p>
+                  <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
+                  <p className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
                 </div>
-                <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
+                <div className={cn('flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110', stat.bgColor, stat.color)}>
                   <stat.icon className="h-6 w-6" />
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-1 text-xs">
-                <span className={cn("font-semibold", stat.trendUp ? "text-emerald-500" : "text-amber-500")}>
-                  {stat.trend}
-                </span>
+              <div className="mt-4 flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                {stat.subtitle}
               </div>
             </div>
           ))}
@@ -395,84 +304,108 @@ export default function DashboardPage() {
           {/* Candidates Pipeline Column */}
           <div className="md:col-span-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" /> Top Candidate Matches
+              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 text-foreground">
+                <Users className="w-5 h-5 text-primary" /> Candidate Directory
               </h2>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/applications')}
-                className="text-xs font-semibold text-primary hover:text-primary/80"
+                onClick={() => router.push('/recruiter/candidates')}
+                className="text-xs font-semibold text-primary"
               >
-                Pipeline View <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+                View all <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
               </Button>
             </div>
 
             <div className="space-y-3">
-              {candidates.map((c) => (
-                <div
-                  key={c.id}
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border glass-1 p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-white shadow-xs"
-                      style={{ backgroundColor: c.avatarColor }}
-                    >
-                      {c.initials}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-[#F5FAFF] group-hover:text-primary transition-colors">
-                          {c.name}
-                        </h3>
-                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                          {c.matchScore}% Match
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#66788A] mt-0.5 font-medium">{c.title}</p>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {c.skills.map((s: any, idx: number) => (
-                          <span key={idx} className="text-[10px] font-semibold glass-1 px-2 py-0.5 rounded-md">
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex sm:flex-col items-center justify-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
-                    <Button size="sm" className="rounded-xl text-xs font-bold w-full sm:w-auto">
-                      Review
-                    </Button>
-                  </div>
+              {candidates.length === 0 ? (
+                <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-muted-foreground">
+                  No registered candidates found in the database.
                 </div>
-              ))}
+              ) : (
+                candidates.slice(0, 5).map((c) => (
+                  <div
+                    key={c.id}
+                    className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border glass-1 p-5 shadow-xs transition-all hover:border-primary/40 hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-white shadow-xs"
+                        style={{ backgroundColor: c.avatarColor || '#1677A8' }}
+                      >
+                        {c.initials || 'C'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                            {c.name}
+                          </h3>
+                          <span className="text-xs font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                            {c.matchScore || 90}% Match
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 font-medium">{c.title || c.headline || 'Software Engineer'}</p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {(c.skills || ['React', 'TypeScript']).slice(0, 4).map((s: string, idx: number) => (
+                            <span key={idx} className="text-[10px] font-semibold glass-2 px-2 py-0.5 rounded-md border border-border/50 text-foreground">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center justify-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
+                      <Button
+                        size="sm"
+                        onClick={() => router.push('/recruiter/candidates')}
+                        className="rounded-xl text-xs font-bold w-full sm:w-auto"
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
           {/* Active Job Requisitions */}
           <div className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold tracking-tight">Active Requisitions</h2>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">Active Requisitions</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/recruiter/jobs')}
+                className="text-xs font-semibold text-primary"
+              >
+                Manage <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
             </div>
 
-            <div className="rounded-2xl border glass-1 p-5 shadow-xs space-y-4">
-              {[
-                { title: 'Senior Frontend Engineer', count: '42 Candidates', location: 'Remote' },
-                { title: 'Full Stack Developer', count: '28 Candidates', location: 'San Francisco' },
-                { title: 'Product Designer', count: '19 Candidates', location: 'Remote' },
-              ].map((job, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-xl glass-1/50 border hover:border-primary/40 transition-all cursor-pointer">
-                  <div>
-                    <h4 className="font-bold text-sm">{job.title}</h4>
-                    <p className="text-xs text-[#66788A] mt-0.5">{job.location}</p>
-                  </div>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                    {job.count}
-                  </span>
+            <div className="rounded-2xl border border-border glass-1 p-5 shadow-xs space-y-3">
+              {jobs.length === 0 ? (
+                <div className="text-center py-8 text-xs text-muted-foreground">
+                  No active job listings yet. Post your first job!
                 </div>
-              ))}
+              ) : (
+                jobs.slice(0, 5).map((job) => (
+                  <div
+                    key={job.id}
+                    onClick={() => router.push('/recruiter/jobs')}
+                    className="flex items-center justify-between p-3 rounded-xl glass-2 border border-border hover:border-primary/40 transition-all cursor-pointer"
+                  >
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">{job.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">{job.location}</p>
+                    </div>
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+                      Active
+                    </span>
+                  </div>
+                ))
+              )}
 
               <Button
                 variant="outline"
@@ -485,39 +418,126 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Post Job Modal */}
+        {/* Post Job Modal with Real Backend Wiring */}
         {isPostJobModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsPostJobModalOpen(false)}>
-            <form onSubmit={handlePostJobSubmit} className="glass-1 border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center border-b pb-3">
-                <h3 className="font-bold text-lg">Post New Job Listing</h3>
-                <button type="button" onClick={() => setIsPostJobModalOpen(false)} className="p-1.5 rounded-full hover:glass-1"><X className="w-5 h-5" /></button>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => !isPostingJob && setIsPostJobModalOpen(false)}
+          >
+            <form
+              onSubmit={handlePostJobSubmit}
+              className="glass-3 border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center border-b border-border pb-3">
+                <h3 className="font-bold text-lg text-foreground">Post New Job Listing</h3>
+                <button
+                  type="button"
+                  disabled={isPostingJob}
+                  onClick={() => setIsPostJobModalOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-secondary cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
+
+              {postJobError && (
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive font-medium">
+                  {postJobError}
+                </div>
+              )}
 
               <div className="space-y-3 text-sm">
                 <div>
-                  <label className="text-xs font-semibold block mb-1">Role Title</label>
-                  <input required type="text" placeholder="e.g. Senior Backend Engineer" value={newJobTitle} onChange={(e) => setNewJobTitle(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-background text-sm font-medium" />
+                  <label className="text-xs font-semibold block mb-1 text-foreground">Role Title *</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. Senior Frontend Engineer"
+                    value={newJobTitle}
+                    onChange={(e) => setNewJobTitle(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                  />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold block mb-1">Location</label>
-                  <input type="text" placeholder="Remote / SF / NYC" value={newJobLocation} onChange={(e) => setNewJobLocation(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-background text-sm font-medium" />
+                  <label className="text-xs font-semibold block mb-1 text-foreground">Location</label>
+                  <input
+                    type="text"
+                    placeholder="Remote / San Francisco, CA / New York, NY"
+                    value={newJobLocation}
+                    onChange={(e) => setNewJobLocation(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold block mb-1 text-foreground">Min Salary ($)</label>
+                    <input
+                      type="number"
+                      placeholder="140000"
+                      value={newJobSalaryMin}
+                      onChange={(e) => setNewJobSalaryMin(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold block mb-1 text-foreground">Max Salary ($)</label>
+                    <input
+                      type="number"
+                      placeholder="180000"
+                      value={newJobSalaryMax}
+                      onChange={(e) => setNewJobSalaryMax(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold block mb-1">Target Salary Range</label>
-                  <input type="text" placeholder="$140,000 - $180,000" value={newJobSalary} onChange={(e) => setNewJobSalary(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-background text-sm font-medium" />
+                  <label className="text-xs font-semibold block mb-1 text-foreground">Required Skills (comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="React, TypeScript, Next.js, GraphQL"
+                    value={newJobSkills}
+                    onChange={(e) => setNewJobSkills(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1 text-foreground">Job Description</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe role responsibilities and team mission..."
+                    value={newJobDescription}
+                    onChange={(e) => setNewJobDescription(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm font-medium focus:outline-none focus:border-primary"
+                  />
                 </div>
               </div>
 
               {jobPostedSuccess && (
-                <p className="text-xs font-bold text-emerald-500 text-center animate-bounce">
+                <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-xs font-bold text-success text-center">
                   ✓ Job Listing Published Successfully!
-                </p>
+                </div>
               )}
 
               <div className="pt-2 flex gap-3">
-                <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => setIsPostJobModalOpen(false)}>Cancel</Button>
-                <Button type="submit" className="flex-1 rounded-xl font-bold">Publish Job</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPostingJob}
+                  className="flex-1 rounded-xl"
+                  onClick={() => setIsPostJobModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isPostingJob}
+                  className="flex-1 rounded-xl font-bold"
+                >
+                  {isPostingJob ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  {isPostingJob ? 'Publishing...' : 'Publish Job'}
+                </Button>
               </div>
             </form>
           </div>
@@ -534,159 +554,195 @@ export default function DashboardPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Good morning, {name} 👋</h1>
-          <p className="text-[#66788A] text-sm sm:text-base">
-            Here's what's happening with your job search today.
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Candidate Workspace</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-0.5">Good morning, {name} 👋</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Here&apos;s what&apos;s happening with your job search today.
           </p>
         </div>
         <Button
           onClick={() => router.push('/jobs')}
-          className="w-full md:w-auto h-11 px-6 font-bold shadow-md bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white hover:scale-105 transition-all"
+          variant="primary"
+          className="w-full md:w-auto h-11 px-6 font-bold shadow-md hover:scale-105 transition-all"
         >
-          <Sparkles className="mr-2 h-4 w-4 text-emerald-300 animate-pulse" />
+          <Sparkles className="mr-2 h-4 w-4 text-emerald-300" />
           Find Matches
         </Button>
       </div>
 
-      {/* Dominant Feature: "Your Next Best Match" (Career Command Center) */}
-      <div className="grid gap-6 lg:grid-cols-12 items-stretch">
-        {/* Left: Main Job Feature */}
-        <div className="lg:col-span-7 glass-1 border border-primary/20 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <div>
-            <div className="flex justify-between items-start mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-primary/10 text-primary border border-primary/20 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5" />
-                YOUR NEXT BEST MATCH
-              </span>
-              <span className="text-2xl font-black text-primary">{topMatchJob.matchPercentage}% MATCH</span>
-            </div>
+      {/* Dominant Feature: "Your Next Best Match" with spatial SwipeX Card Stack */}
+      {topMatchJob ? (
+        <div className="grid gap-6 lg:grid-cols-12 items-stretch">
+          {/* Left: Spatial Layered Card Stack Centerpiece */}
+          <div className="lg:col-span-7 relative flex flex-col justify-end">
+            {/* Background Ghost Card 2 (Deep stack depth) */}
+            <div
+              className="absolute inset-x-4 -top-3 bottom-3 rounded-3xl glass-1 border border-border/30 opacity-40 transform scale-[0.96] pointer-events-none -z-20 shadow-sm"
+            />
+            {/* Background Ghost Card 1 (Mid stack depth) */}
+            <div
+              className="absolute inset-x-2 -top-1.5 bottom-1.5 rounded-3xl glass-1 border border-border/60 opacity-70 transform scale-[0.98] pointer-events-none -z-10 shadow-md"
+            />
 
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-2xl glass-1 border border-border flex items-center justify-center text-[#F5FAFF] font-extrabold text-2xl shadow-sm">
-                {topMatchJob.companyInitials}
-              </div>
+            {/* Foreground Main Job Card (Elevation L3) */}
+            <div className="glass-3 border border-border rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all z-0">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-[#F5FAFF] group-hover:text-primary transition-colors">
-                  {topMatchJob.title}
-                </h2>
-                <p className="text-sm font-semibold text-[#66788A] flex items-center gap-2 mt-0.5">
-                  <span className="text-[#F5FAFF]">{topMatchJob.company}</span> • <span>{topMatchJob.location}</span>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 backdrop-blur-md">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    YOUR NEXT BEST MATCH
+                  </span>
+                  <span className="text-xl sm:text-2xl font-black text-primary">
+                    {topMatchJob.matchPercentage}% MATCH
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4 mb-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl glass-2 border border-border flex items-center justify-center text-foreground font-extrabold text-2xl shadow-sm"
+                    style={{ backgroundColor: topMatchJob.color || undefined }}
+                  >
+                    {topMatchJob.companyInitials}
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                      {topMatchJob.title}
+                    </h2>
+                    <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mt-0.5">
+                      <span className="text-foreground">{topMatchJob.company}</span> • <span>{topMatchJob.location}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                  {topMatchJob.description || 'Join our team to build next-generation web platforms.'}
                 </p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {topMatchJob.skills?.map((skill, idx) => (
+                    <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full glass-2 border border-border text-foreground">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <p className="text-sm text-[#66788A] line-clamp-2 mb-4 leading-relaxed">
-              {topMatchJob.description}
-            </p>
-
-            <div className="flex flex-wrap gap-2 mb-6">
-              {topMatchJob.skills.map((skill, idx) => (
-                <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-full glass-1 border border-border text-[#F5FAFF]">
-                  {skill}
-                </span>
-              ))}
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <span className="text-sm font-bold text-primary">{topMatchJob.salary}</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/jobs')}
+                    className="rounded-xl text-xs font-bold"
+                  >
+                    <Layers className="w-3.5 h-3.5 mr-1" />
+                    Swipe Deck
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => setSelectedJob(topMatchJob)}
+                    className="rounded-xl font-bold shadow-md"
+                  >
+                    Apply Now
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <span className="text-sm font-extrabold text-primary">{topMatchJob.salary}</span>
-            <Button onClick={() => setSelectedJob(topMatchJob)} className="rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md">
-              Apply Now
+          {/* Right: "Why this matches you" Breakdown */}
+          <div className="lg:col-span-5 glass-2 border border-border rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+                <h3 className="font-bold text-base tracking-tight text-foreground">Why this matches you</h3>
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+                  AI Verified
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 mb-4">
+                {/* Radial Donut Gauge */}
+                <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-muted"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-primary stroke-current"
+                      strokeWidth="3.5"
+                      strokeDasharray={`${topMatchJob.matchPercentage || 90}, 100`}
+                      strokeLinecap="round"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-lg font-black text-primary leading-none">{topMatchJob.matchPercentage || 90}%</span>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Match</span>
+                  </div>
+                </div>
+
+                {/* Match Metric Bars */}
+                <div className="flex-1 space-y-2.5">
+                  <div>
+                    <div className="flex justify-between text-xs font-semibold mb-1">
+                      <span className="text-muted-foreground">Skills Alignment</span>
+                      <span className="text-primary font-bold">{topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%</span>
+                    </div>
+                    <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%` }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs font-semibold mb-1">
+                      <span className="text-muted-foreground">Location Preference</span>
+                      <span className="text-success font-bold">100%</span>
+                    </div>
+                    <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
+                      <div className="h-full bg-success rounded-full" style={{ width: '100%' }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs font-semibold mb-1">
+                      <span className="text-muted-foreground">Salary Expectation</span>
+                      <span className="text-accent font-bold">90%</span>
+                    </div>
+                    <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full" style={{ width: '90%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => setSelectedJob(topMatchJob)}
+              className="w-full text-xs font-bold rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+            >
+              View Full Match Breakdown
             </Button>
           </div>
         </div>
-
-        {/* Right: "Why this matches you" Breakdown with Radial Score */}
-        <div className="lg:col-span-5 glass-1 border border-border rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-              <h3 className="font-extrabold text-base tracking-tight">Why this matches you</h3>
-              <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
-                AI Verified
-              </span>
-            </div>
-
-            <div className="flex items-center gap-6 mb-4">
-              {/* Radial Donut Gauge */}
-              <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-muted"
-                    strokeWidth="3.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className="text-primary stroke-current"
-                    strokeWidth="3.5"
-                    strokeDasharray="96, 100"
-                    strokeLinecap="round"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-lg font-black text-primary leading-none">96%</span>
-                  <span className="text-[9px] font-bold text-[#66788A] uppercase mt-0.5">Match</span>
-                </div>
-              </div>
-
-              {/* Differentiated Metrics */}
-              <div className="flex-1 space-y-2.5">
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-[#66788A]">Skills</span>
-                    <span className="text-primary font-bold">94%</span>
-                  </div>
-                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '94%' }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-[#66788A]">Experience</span>
-                    <span className="text-[#7DD3FC] dark:text-[#7DD3FC] font-bold">91%</span>
-                  </div>
-                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: '91%' }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-[#66788A]">Location</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">100%</span>
-                  </div>
-                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-[#66788A]">Salary</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">88%</span>
-                  </div>
-                  <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '88%' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => setSelectedJob(topMatchJob)}
-            className="w-full text-xs font-bold rounded-xl border-primary/30 text-primary hover:bg-primary/10"
-          >
-            View Full Analysis
+      ) : (
+        <div className="text-center py-12 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
+          <Sparkles className="w-10 h-10 text-primary mx-auto opacity-70" />
+          <h3 className="text-lg font-bold text-foreground">No job recommendations yet</h3>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto">
+            We are indexing new roles from top engineering teams. Update your profile and skills to accelerate AI matches.
+          </p>
+          <Button onClick={() => router.push('/profile')} variant="outline" className="rounded-xl text-xs font-bold">
+            Complete Profile
           </Button>
         </div>
-      </div>
+      )}
 
       {/* Compact Stats Row */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -694,21 +750,19 @@ export default function DashboardPage() {
           <div
             key={i}
             onClick={() => router.push(stat.href)}
-            className="group relative overflow-hidden rounded-2xl border glass-1 p-5 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl border border-border glass-1 p-5 shadow-xs transition-all hover:shadow-md hover:border-primary/40 cursor-pointer"
           >
             <div className="relative flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-[#66788A] uppercase tracking-wider">{stat.title}</p>
-                <p className="text-2xl font-black tracking-tight">{stat.value}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.title}</p>
+                <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
               </div>
-              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110", stat.bgColor, stat.color)}>
+              <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110', stat.bgColor, stat.color)}>
                 <stat.icon className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-1 text-[11px]">
-              <span className={cn("font-semibold", stat.trendUp ? "text-emerald-400" : "text-amber-400")}>
-                {stat.trend}
-              </span>
+            <div className="mt-3 flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+              {stat.subtitle}
             </div>
           </div>
         ))}
@@ -719,12 +773,12 @@ export default function DashboardPage() {
         {/* Recommended Jobs Column */}
         <div className="md:col-span-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight">Recommended Jobs</h2>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Recommended Jobs</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/jobs')}
-              className="text-xs font-semibold text-primary hover:text-primary/80"
+              className="text-xs font-semibold text-primary"
             >
               View all <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
             </Button>
@@ -732,84 +786,91 @@ export default function DashboardPage() {
 
           <div className="space-y-3">
             {jobs.length === 0 ? (
-              <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-[#66788A]">
+              <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-muted-foreground">
                 No recommended jobs matching your profile yet.
               </div>
-            ) : jobs.map((job) => (
-              <div
-                key={job.id}
-                onClick={() => setSelectedJob(job)}
-                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border glass-1 p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-white shadow-xs transition-transform group-hover:scale-105"
-                    style={{ backgroundColor: job.color }}
-                  >
-                    {job.companyInitials}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#F5FAFF] group-hover:text-primary transition-colors">
-                      {job.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-[#66788A] mt-0.5">
-                      <span className="font-medium text-[#F5FAFF]">{job.company}</span>
-                      <span>•</span>
-                      <span>{job.location}</span>
+            ) : (
+              jobs.slice(0, 5).map((job) => (
+                <div
+                  key={job.id}
+                  onClick={() => setSelectedJob(job)}
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border glass-1 p-5 shadow-xs transition-all hover:border-primary/40 hover:shadow-md cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold text-white shadow-xs transition-transform group-hover:scale-105"
+                      style={{ backgroundColor: job.color || '#1677A8' }}
+                    >
+                      {job.companyInitials}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
+                        {job.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <span className="font-medium text-foreground">{job.company}</span>
+                        <span>•</span>
+                        <span>{job.location}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0">
-                  <div className="text-right">
-                    <span className="inline-block rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      {job.atsScore}% Match
-                    </span>
-                    <p className="text-xs font-medium text-[#66788A] mt-1">
-                      {job.salary || '$140k - $180k'}
-                    </p>
+                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0">
+                    <div className="text-right">
+                      <span className="inline-block rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-bold text-success border border-success/20">
+                        {job.atsScore || job.matchPercentage || 85}% Match
+                      </span>
+                      <p className="text-xs font-medium text-muted-foreground mt-1">
+                        {job.salary}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" className="rounded-xl group-hover:border-primary group-hover:text-primary">
+                      View
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="rounded-xl group-hover:border-primary group-hover:text-primary">
-                    View
-                  </Button>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
-        {/* Recent Activity Column */}
+        {/* Real Activity Column */}
         <div className="md:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight">Recent Activity</h2>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Recent Activity</h2>
           </div>
 
-          <div className="rounded-2xl border glass-1 p-6 shadow-xs space-y-6">
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-              {recentActivity.map((act) => {
-                return (
-                  <div key={act.id} className="relative flex items-start gap-4">
-                    <div className={cn("absolute -left-6 flex h-4 w-4 items-center justify-center rounded-full border-2 border-card bg-background", act.iconBg)}>
-                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          <div className="rounded-2xl border border-border glass-1 p-6 shadow-xs space-y-4">
+            {notifications.length === 0 && applications.length === 0 ? (
+              <div className="text-center py-8 text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground mb-1">No recent activity</p>
+                <p>Applications, interviews, and recruiter views will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {notifications.slice(0, 4).map((notif) => (
+                  <div key={notif.id} className="flex items-start gap-3 p-2.5 rounded-xl glass-2 border border-border/60">
+                    <div className="p-1.5 rounded-lg bg-primary/10 text-primary mt-0.5">
+                      <Sparkles className="w-3.5 h-3.5" />
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-xs font-bold text-[#F5FAFF]">{act.title}</p>
-                      <p className="text-xs text-[#66788A]">{act.description}</p>
-                      <span className="text-[10px] text-[#66788A] font-medium block pt-0.5">
-                        {act.time}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-foreground truncate">{notif.title}</p>
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">{notif.message}</p>
+                      <span className="text-[10px] text-muted-foreground block mt-1">
+                        {new Date(notif.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
 
             <Button
               variant="outline"
-              onClick={() => router.push('/applications')}
+              onClick={() => router.push('/notifications')}
               className="w-full text-xs font-semibold rounded-xl"
             >
-              View All Activity
+              Open Notification Center
             </Button>
           </div>
         </div>

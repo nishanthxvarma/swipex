@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, MapPin, DollarSign, Briefcase, Calendar, CheckCircle2, Bookmark } from "lucide-react";
+import { X, ExternalLink, MapPin, DollarSign, Briefcase, Calendar, CheckCircle2, Bookmark, Sparkles } from "lucide-react";
 import { Job } from "../swipe/swipe-card";
 
 interface JobDetailModalProps {
@@ -93,12 +93,12 @@ export function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
               </div>
 
               {/* Applicant Competition Indicator Section */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-transparent border border-[rgba(190,225,255,0.12)] space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#7DD3FC] dark:text-[#BFE8FF]">
-                    Applicant Competition Signal
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-transparent border border-border space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-primary" /> AI Match Insights
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#BFE8FF]/20 text-[#7DD3FC] dark:text-[#BFE8FF] border border-purple-500/30">
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-primary/20 text-primary border border-primary/30">
                     {job.competition || 'Moderate'} Competition
                   </span>
                 </div>

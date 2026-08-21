@@ -1,36 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { 
-  Sparkles, Sun, Moon, Menu, X, 
+import {
+  Sparkles, Sun, Moon, Menu, X,
   Layers, FileSearch, Brain, Zap, BarChart3, TrendingUp,
-  Globe, Send, ExternalLink, ChevronRight, Star,
-  MapPin, Briefcase, DollarSign
+  ChevronRight, MapPin, DollarSign, CheckCircle2, Shield, ArrowRight, Building2, UserCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-// --- Shared Animations ---
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-// --- Components ---
-
-function NavBar() {
+export default function LandingPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,675 +28,334 @@ function NavBar() {
   }, []);
 
   return (
-    <header className={cn(
-      "fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent",
-      isScrolled ? "bg-background/80 backdrop-blur-md border-border shadow-sm" : "bg-transparent"
-    )}>
-      <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="bg-primary/10 p-1.5 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-            <Sparkles className="w-5 h-5" />
+    <div className="min-h-screen bg-background text-foreground bg-atmospheric selection:bg-primary/20">
+      {/* Navigation */}
+      <header
+        className={cn(
+          'fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent',
+          isScrolled ? 'glass-1 border-border shadow-xs' : 'bg-transparent'
+        )}
+      >
+        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="bg-primary/10 border border-primary/20 p-1.5 rounded-lg text-primary group-hover:scale-105 transition-transform shadow-xs">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-foreground">SwipeX</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+            <Link href="#capabilities" className="hover:text-foreground transition-colors">Capabilities</Link>
+            <Link href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</Link>
+            <Link href="#workspaces" className="hover:text-foreground transition-colors">Workspaces</Link>
+          </nav>
+
+          <div className="hidden md:flex items-center gap-3">
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4 text-warning" /> : <Moon className="w-4 h-4 text-primary" />}
+              </Button>
+            )}
+            <Button asChild variant="ghost" size="sm" className="font-medium text-xs">
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild variant="primary" size="sm" className="font-bold text-xs rounded-xl shadow-md">
+              <Link href="/signup">Get Started</Link>
+            </Button>
           </div>
-          <span className="font-bold text-xl tracking-tight text-gradient">SwipeX</span>
-        </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">Features</Link>
-          <Link href="#how-it-works" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">How It Works</Link>
-          <Link href="#testimonials" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">Testimonials</Link>
-        </nav>
-
-        <div className="hidden md:flex items-center gap-4">
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-full text-[#66788A] hover:glass-1 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-          )}
-          <Link href="/login" className="text-sm font-medium text-[#66788A] hover:text-[#F5FAFF] transition-colors">
-            Sign In
-          </Link>
-          <Link href="/signup" className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:from-indigo-600 hover:to-purple-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-            Get Started Free
-          </Link>
+          {/* Mobile Toggle */}
+          <button
+            className="md:hidden p-2 text-foreground"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
 
-        {/* Mobile Toggle */}
-        <button 
-          className="md:hidden p-2 text-[#F5FAFF]"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-b border-border bg-background/95 backdrop-blur-md"
-          >
-            <div className="px-4 py-6 flex flex-col gap-4">
-              <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-2">Features</Link>
-              <Link href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-2">How It Works</Link>
-              <Link href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-2">Testimonials</Link>
-              <div className="h-px bg-border my-2" />
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm font-medium">Theme</span>
-                {mounted && (
-                  <button
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="p-2 rounded-full glass-1 text-[#F5FAFF]"
-                  >
-                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  </button>
-                )}
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-b border-border glass-3"
+            >
+              <div className="px-4 py-6 flex flex-col gap-4">
+                <Link href="#capabilities" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-1">Capabilities</Link>
+                <Link href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-1">How It Works</Link>
+                <Link href="#workspaces" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-1">Workspaces</Link>
+                <div className="h-px bg-border my-1" />
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm font-medium">Theme</span>
+                  {mounted && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      className="h-8 w-8"
+                    >
+                      {theme === 'dark' ? <Sun className="w-4 h-4 text-warning" /> : <Moon className="w-4 h-4 text-primary" />}
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button asChild variant="outline" className="flex-1 rounded-xl text-xs">
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+                  <Button asChild variant="primary" className="flex-1 rounded-xl font-bold text-xs">
+                    <Link href="/signup">Get Started</Link>
+                  </Button>
+                </div>
               </div>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium py-2">Sign In</Link>
-              <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow">
-                Get Started Free
-              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 md:pt-44 md:pb-28 overflow-hidden">
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 border border-primary/20 text-primary"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>AI-Powered Career Intelligence Platform</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]"
+            >
+              Find Your Next Role <br className="hidden sm:inline" />
+              With <span className="text-primary">AI Precision</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed"
+            >
+              SwipeX matches technical candidates with engineering teams using semantic resume analysis, interactive swipe discovery, and automated application tracking.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center gap-3 pt-4 w-full sm:w-auto"
+            >
+              <Button asChild variant="primary" size="lg" className="w-full sm:w-auto rounded-xl font-bold shadow-lg text-sm px-8">
+                <Link href="/signup">
+                  Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto rounded-xl font-semibold text-sm px-6">
+                <Link href="/login">
+                  Live Demo Login
+                </Link>
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Interactive Hero Showcase (Spatial Card Stack) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-16 max-w-md mx-auto relative"
+          >
+            {/* Ghost card 2 */}
+            <div className="absolute inset-x-4 -top-3 bottom-3 rounded-3xl glass-1 border border-border/40 opacity-40 transform scale-[0.96] pointer-events-none -z-20" />
+            {/* Ghost card 1 */}
+            <div className="absolute inset-x-2 -top-1.5 bottom-1.5 rounded-3xl glass-1 border border-border/60 opacity-70 transform scale-[0.98] pointer-events-none -z-10" />
+
+            {/* Showcase Card */}
+            <div className="glass-3 border border-border rounded-3xl p-6 shadow-2xl space-y-5">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary">
+                    SX
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-foreground">Senior Systems Architect</h3>
+                    <p className="text-xs text-muted-foreground">Engineering • Remote</p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-success/10 text-success border border-success/20">
+                  96% Match
+                </span>
+              </div>
+
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Design, build, and deploy distributed real-time platforms with modern TypeScript and container architectures.
+              </p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {['TypeScript', 'Distributed Systems', 'PostgreSQL', 'Docker'].map((tag) => (
+                  <span key={tag} className="text-[11px] font-semibold px-2.5 py-1 rounded-lg glass-2 border border-border text-foreground">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="pt-3 border-t border-border flex items-center justify-between">
+                <span className="text-xs font-bold text-primary">$160K - $200K / yr</span>
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" /> Instant One-Tap Apply
+                </span>
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
-  );
-}
-
-function HeroSection() {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 150]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -100]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-
-  return (
-    <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden min-h-screen flex items-center">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-dot-pattern opacity-50 dark:opacity-20 pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-        <motion.div 
-          animate={{ 
-            y: [0, -20, 0],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[10%] left-[10%] w-[40rem] h-[40rem] bg-[#7DD3FC]/20 rounded-full blur-[120px]"
-        />
-        <motion.div 
-          animate={{ 
-            y: [0, 30, 0],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[10%] right-[10%] w-[35rem] h-[35rem] bg-[#BFE8FF]/20 rounded-full blur-[100px]"
-        />
-      </div>
-
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-          
-          {/* Left Content */}
-          <motion.div 
-            initial="hidden" 
-            animate="visible" 
-            variants={staggerContainer}
-            className="flex flex-col items-start text-left"
-          >
-            <motion.div variants={fadeInUp} className="inline-flex items-center rounded-full border border-purple-500/30 bg-[#BFE8FF]/10 px-3.5 py-1 text-xs font-semibold text-[#BFE8FF] backdrop-blur-md mb-6 relative overflow-hidden group">
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              <Sparkles className="mr-2 h-3.5 w-3.5" />
-              AI-POWERED CAREER DISCOVERY
-            </motion.div>
-            
-            <motion.div variants={fadeInUp}>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-                Discover your next opportunity with a{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-emerald-400">
-                  single swipe.
-                </span>
-              </h1>
-            </motion.div>
-            
-            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-[#66788A] mb-8 max-w-xl leading-relaxed">
-              SwipeX matches you with intelligent job opportunities based on your real skills, experience, and goals. Fast, fluid, and addictive career discovery.
-            </motion.p>
-            
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link href="/signup" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-8 text-base font-bold text-white shadow-[0_0_40px_-10px_rgba(139,92,246,0.5)] transition-all hover:shadow-[0_0_60px_-15px_rgba(139,92,246,0.7)] hover:scale-[1.02]">
-                Start Swiping
-                <ChevronRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link href="/login" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-xl px-8 text-base font-semibold text-[#F5FAFF] hover:bg-white/10 transition-colors">
-                Explore Demo
-              </Link>
-            </motion.div>
-
-            <motion.div variants={fadeInUp} className="mt-12 pt-8 border-t border-border flex flex-wrap gap-x-8 gap-y-4">
-              <div>
-                <p className="text-2xl font-bold text-[#F5FAFF]">10K+</p>
-                <p className="text-sm text-[#66788A] font-medium">Jobs</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#F5FAFF]">95%</p>
-                <p className="text-sm text-[#66788A] font-medium">Match Rate</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#F5FAFF]">500+</p>
-                <p className="text-sm text-[#66788A] font-medium">Companies</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold flex items-center gap-1">
-                  4.9 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                </p>
-                <p className="text-sm text-[#66788A] font-medium">Rating</p>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Right Content - Swipe Card Demo */}
-          <motion.div 
-            style={{ y: y1, opacity }}
-            className="relative hidden lg:flex justify-center items-center h-[600px] perspective-1000"
-          >
-            {/* Card 3 (Bottom) */}
-            <motion.div 
-              className="absolute w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-xl z-10 glass"
-              style={{ top: 80, scale: 0.9, rotate: -4 }}
-            />
-            {/* Card 2 (Middle) */}
-            <motion.div 
-              className="absolute w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-xl z-20 glass"
-              style={{ top: 40, scale: 0.95, rotate: 2 }}
-            />
-            {/* Card 1 (Top) */}
-            <motion.div 
-              animate={{ 
-                rotate: [-2, 2, -2],
-                y: [0, -10, 0]
-              }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-0 w-[340px] h-[480px] glass-1 border border-border rounded-3xl shadow-2xl z-30 overflow-hidden flex flex-col"
-            >
-              <div className="p-6 pb-4 border-b border-border">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-[#7DD3FC]/10 rounded-xl flex items-center justify-center text-[#2563EB] font-bold text-xl">
-                    S
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="px-2 py-1 bg-green-500/10 text-green-600 text-xs font-semibold rounded-md">98% Match</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-[#F5FAFF] mb-1">Senior Frontend Engineer</h3>
-                <p className="text-[#66788A] font-medium flex items-center gap-1 text-sm">
-                  Stripe <MapPin className="w-3 h-3 ml-1" /> San Francisco, CA
-                </p>
-              </div>
-              <div className="p-6 flex-1 flex flex-col gap-4">
-                <div className="flex items-center gap-2 text-sm text-[#F5FAFF]">
-                  <Briefcase className="w-4 h-4 text-[#66788A]" /> Full-time • Remote Flexible
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#F5FAFF]">
-                  <DollarSign className="w-4 h-4 text-[#66788A]" /> $150k - $220k
-                </div>
-                <div className="mt-auto">
-                  <p className="text-xs font-semibold text-[#66788A] uppercase mb-2">Required Skills</p>
-                  <div className="flex flex-wrap gap-2">
-                    {['React', 'TypeScript', 'Next.js', 'Framer Motion'].map(skill => (
-                      <span key={skill} className="px-3 py-1 glass-1 text-secondary-foreground text-xs rounded-full font-medium">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 grid grid-cols-2 gap-3 glass-1 border-t border-border">
-                <div className="h-12 rounded-xl glass-1 border border-border shadow-sm flex items-center justify-center font-semibold text-[#66788A] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors cursor-pointer">
-                  Pass
-                </div>
-                <div className="h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md flex items-center justify-center font-semibold hover:opacity-90 transition-opacity cursor-pointer">
-                  Apply
-                </div>
-              </div>
-            </motion.div>
-            
-            {/* Swipe UI Indicators */}
-            <motion.div 
-               animate={{ x: [-10, -30, -10], opacity: [0.5, 1, 0.5] }}
-               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-               className="absolute left-[-2rem] top-1/2 -translate-y-1/2 hidden xl:block"
-            >
-              <div className="w-12 h-12 rounded-full glass-1 border border-border shadow-lg flex items-center justify-center text-[#66788A]">
-                <X className="w-5 h-5" />
-              </div>
-            </motion.div>
-            
-             <motion.div 
-               animate={{ x: [10, 30, 10], opacity: [0.5, 1, 0.5] }}
-               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-               className="absolute right-[-2rem] top-1/2 -translate-y-1/2 hidden xl:block"
-            >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center text-white">
-                <Zap className="w-5 h-5" />
-              </div>
-            </motion.div>
-          </motion.div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-const companies = ['Google', 'Meta', 'Apple', 'Amazon', 'Microsoft', 'Stripe', 'Netflix', 'Uber'];
+      {/* Capabilities Section */}
+      <section id="capabilities" className="py-20 md:py-28 border-t border-border/60 relative">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
+              Core Platform Capabilities
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Engineered for high-signal recruitment and intelligent candidate matching.
+            </p>
+          </div>
 
-function TrustSection() {
-  return (
-    <section className="py-10 border-y border-border glass-1/30 overflow-hidden">
-      <div className="container mx-auto px-4 text-center mb-6">
-        <p className="text-sm font-semibold text-[#66788A] uppercase tracking-wider">Trusted by teams at</p>
-      </div>
-      <div className="relative flex overflow-x-hidden">
-        <div className="animate-marquee whitespace-nowrap flex gap-16 px-8 items-center justify-center">
-          {[...companies, ...companies].map((company, i) => (
-            <span key={i} className="text-2xl font-bold text-[#66788A]/40 hover:text-[#66788A] transition-colors cursor-default">
-              {company}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const features = [
-  { icon: Layers, title: "Swipe to Discover", desc: "Browse jobs with an intuitive swipe interface. Fast, engaging, and addictive career discovery." },
-  { icon: FileSearch, title: "AI Resume Analysis", desc: "Get instant ATS compatibility scores and actionable feedback to improve your resume." },
-  { icon: Brain, title: "Smart Matching", desc: "Our AI learns from your preferences and skills to deliver highly relevant job matches." },
-  { icon: Zap, title: "One-Tap Apply", desc: "Apply to jobs instantly with your saved profile. No more filling out endless forms." },
-  { icon: BarChart3, title: "Real-Time Insights", desc: "Track your applications, interviews, and success rates with comprehensive analytics." },
-  { icon: TrendingUp, title: "Career Growth", desc: "Identify skill gaps and get personalized recommendations to advance your career." },
-];
-
-function FeaturesSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  return (
-    <section id="features" className="py-24 md:py-32 relative">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Everything you need to land your dream job</h2>
-          <p className="text-lg text-[#66788A]">Stop searching, start swiping. SwipeX provides a complete toolkit to supercharge your job hunt.</p>
-        </div>
-
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="p-6 md:p-8 rounded-3xl border border-border glass-1 shadow-sm hover-lift relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
-                <feature.icon className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-[#66788A] leading-relaxed">{feature.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const steps = [
-  { num: "01", title: "Upload Resume", desc: "Upload your resume and let our AI analyze your skills, experience, and career goals." },
-  { num: "02", title: "Swipe & Discover", desc: "Browse personalized job recommendations with our intuitive swipe interface." },
-  { num: "03", title: "Land Your Dream Job", desc: "Apply with one tap and track your progress with real-time analytics." },
-];
-
-function HowItWorksSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  return (
-    <section id="how-it-works" className="py-24 glass-1/30 relative">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">How SwipeX Works</h2>
-          <p className="text-lg text-[#66788A] max-w-2xl mx-auto">A seamless experience designed to get you hired faster.</p>
-        </div>
-
-        <div ref={ref} className="max-w-5xl mx-auto relative">
-          {/* Connecting Line */}
-          <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 -translate-y-1/2 z-0" />
-          
-          <div className="grid md:grid-cols-3 gap-10 md:gap-6 relative z-10">
-            {steps.map((step, idx) => (
-              <motion.div
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Layers,
+                title: 'Spatial Swipe Discovery',
+                desc: 'Browse tailored job opportunities with an intuitive directional interface that adapts to your skills and preferences.',
+              },
+              {
+                icon: FileSearch,
+                title: 'Resume & ATS Intelligence',
+                desc: 'Upload your resume for real-time ATS scoring, keyword gap analysis, and tailored recommendations to improve recruiter visibility.',
+              },
+              {
+                icon: BarChart3,
+                title: 'Full Pipeline Tracking',
+                desc: 'Monitor your application statuses across Kanban and table views with automated stage progression and response metrics.',
+              },
+              {
+                icon: Building2,
+                title: 'Recruiter Requisitions',
+                desc: 'Post job requirements, browse verified candidate matches, and manage candidate pipelines with integrated recruiter tooling.',
+              },
+              {
+                icon: Shield,
+                title: 'Role-Based Workspaces',
+                desc: 'Dedicated interfaces and authorization controls for Candidates, Recruiters, and Platform Administrators.',
+              },
+              {
+                icon: Zap,
+                title: 'Direct Status Updates',
+                desc: 'Real-time notifications for application views, interview requests, and new verified job matches.',
+              },
+            ].map((cap, idx) => (
+              <div
                 key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5, delay: idx * 0.2 }}
-                className="flex flex-col items-center text-center bg-background p-8 rounded-3xl border border-border shadow-sm hover:border-primary/50 transition-colors"
+                className="glass-1 border border-border rounded-2xl p-6 shadow-xs hover:border-primary/40 transition-all space-y-3"
               >
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-2xl font-bold mb-6 shadow-lg">
-                  {step.num}
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <cap.icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                <p className="text-[#66788A]">{step.desc}</p>
-              </motion.div>
+                <h3 className="font-bold text-base text-foreground">{cap.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{cap.desc}</p>
+              </div>
             ))}
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-function StatsSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 md:py-28 border-t border-border/60 glass-1/30 relative">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">How SwipeX Works</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">A clean, transparent three-step workflow.</p>
+          </div>
 
-  const stats = [
-    { label: "Active Users", value: "50K+" },
-    { label: "Jobs Posted", value: "10K+" },
-    { label: "Match Accuracy", value: "95%" },
-    { label: "Faster Hiring", value: "2.5x" },
-  ];
-
-  return (
-    <section className="py-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-primary text-primary-foreground" />
-      <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
-      
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div ref={ref} className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          {stats.map((stat, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="text-center"
-            >
-              <div className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 tracking-tighter">
-                {stat.value}
-              </div>
-              <div className="text-primary-foreground/80 font-medium text-sm md:text-base uppercase tracking-wider">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const testimonials = [
-  { 
-    quote: "SwipeX completely changed how I search for jobs. Found my dream role in 2 weeks!",
-    name: "Sarah Chen",
-    role: "Software Engineer",
-    company: "Google",
-    initials: "SC",
-    color: "bg-blue-500"
-  },
-  { 
-    quote: "The AI resume analysis helped me increase my ATS score from 45% to 92%. Game changer!",
-    name: "Marcus Williams",
-    role: "Data Scientist",
-    company: "Meta",
-    initials: "MW",
-    color: "bg-purple-500"
-  },
-  { 
-    quote: "As a recruiter, SwipeX saves me hours. The quality of applicants is significantly better.",
-    name: "Priya Sharma",
-    role: "Talent Lead",
-    company: "Stripe",
-    initials: "PS",
-    color: "bg-indigo-500"
-  }
-];
-
-function TestimonialsSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-
-  return (
-    <section id="testimonials" className="py-24 md:py-32">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Loved by job seekers worldwide</h2>
-          <p className="text-lg text-[#66788A]">Don't just take our word for it.</p>
-        </div>
-
-        <div ref={ref} className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {testimonials.map((t, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              className="glass-1 p-8 rounded-3xl border border-border shadow-sm flex flex-col h-full hover:shadow-md transition-shadow"
-            >
-              <div className="flex gap-1 mb-6">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-lg font-medium mb-8 flex-1 italic text-[#F5FAFF]">"{t.quote}"</p>
-              <div className="flex items-center gap-4 mt-auto">
-                <div className={`w-12 h-12 rounded-full ${t.color} text-white flex items-center justify-center font-bold text-lg`}>
-                  {t.initials}
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {[
+              {
+                step: '01',
+                title: 'Build Profile & Resume',
+                desc: 'Input your core engineering skills, experience, and target compensation to set your matching parameters.',
+              },
+              {
+                step: '02',
+                title: 'Swipe & Discover',
+                desc: 'Review curated job cards with AI match percentage breakdowns. Swipe right to apply, left to skip, or bookmark for later.',
+              },
+              {
+                step: '03',
+                title: 'Track & Advance',
+                desc: 'Manage scheduled interviews and offers in your candidate tracker as recruiters review your profile.',
+              },
+            ].map((item, idx) => (
+              <div key={idx} className="glass-2 border border-border rounded-2xl p-6 text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-sm mx-auto flex items-center justify-center shadow-md">
+                  {item.step}
                 </div>
-                <div>
-                  <p className="font-bold text-[#F5FAFF]">{t.name}</p>
-                  <p className="text-sm text-[#66788A]">{t.role} at {t.company}</p>
-                </div>
+                <h3 className="font-bold text-base text-foreground">{item.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-function CTASection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800" />
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div 
-          ref={ref}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto text-center"
-        >
-          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Ready to find your perfect role?</h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of professionals who are already discovering better opportunities with SwipeX.
+      {/* CTA Section */}
+      <section className="py-20 border-t border-border/60 relative">
+        <div className="container mx-auto px-4 md:px-6 text-center max-w-2xl space-y-6">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            Start Your Job Search Today
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Create an account in seconds and unlock AI-powered career discovery.
           </p>
-          
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              const form = e.currentTarget;
-              const input = form.querySelector('input') as HTMLInputElement;
-              const emailVal = input?.value || '';
-              window.location.href = `/signup${emailVal ? `?email=${encodeURIComponent(emailVal)}` : ''}`;
-            }}
-            className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto"
-          >
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="h-14 px-6 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1 backdrop-blur-sm"
-            />
-            <button type="submit" className="h-14 px-8 rounded-full bg-white text-[#2563EB] font-bold text-lg hover:bg-white/90 transition-all hover:scale-105 shadow-xl cursor-pointer">
-              Get Started Free
-            </button>
-          </form>
-          <p className="mt-6 text-sm text-white/60">No credit card required. Free forever for job seekers.</p>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="bg-background border-t border-border pt-16 pb-8">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
-          <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4 group inline-flex">
-              <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <span className="font-bold text-xl tracking-tight">SwipeX</span>
-            </Link>
-            <p className="text-[#66788A] mb-6 max-w-sm">
-              The AI-powered career discovery platform that helps you land your dream job with a single swipe.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><Send className="w-5 h-5" /></a>
-              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><Globe className="w-5 h-5" /></a>
-              <a href="#" className="text-[#66788A] hover:text-[#F5FAFF] transition-colors"><ExternalLink className="w-5 h-5" /></a>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Product</h4>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Features</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Pricing</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">API</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Integrations</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Company</h4>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">About</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Blog</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Press</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4 text-[#F5FAFF]">Legal</h4>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Privacy</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Terms</a></li>
-              <li><a href="#" className="text-sm text-[#66788A] hover:text-primary transition-colors">Cookies</a></li>
-            </ul>
+          <div className="flex justify-center gap-3 pt-2">
+            <Button asChild variant="primary" size="lg" className="rounded-xl font-bold px-8">
+              <Link href="/signup">
+                Sign Up Free <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-xl font-semibold px-6">
+              <Link href="/login">Log In</Link>
+            </Button>
           </div>
         </div>
-        
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[#66788A]">
-          <p>© 2024 SwipeX. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-[#F5FAFF] transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-[#F5FAFF] transition-colors">Terms of Service</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
+      </section>
 
-// --- Main Page Component ---
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen flex flex-col font-sans bg-background selection:bg-primary/20 selection:text-primary">
-      {/* Global CSS required for animations that cannot be done with inline Tailwind classes */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 20s linear infinite;
-        }
-        @keyframes shimmer {
-          100% { transform: translateX(100%); }
-        }
-        .hover-lift {
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hover-lift:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-        .text-gradient {
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-image: linear-gradient(to right, #6366f1, #a855f7, #06b6d4);
-        }
-        .bg-gradient-mesh {
-          background-color: #6366f1;
-          background-image: 
-            radial-gradient(at 40% 20%, hsla(280,100%,74%,1) 0px, transparent 50%),
-            radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),
-            radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
-            radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%),
-            radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%),
-            radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%),
-            radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%);
-        }
-        .bg-dot-pattern {
-          background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
-          background-size: 24px 24px;
-        }
-        .dark .bg-dot-pattern {
-          background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-        }
-        .glass {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-        }
-        .dark .glass {
-          background: rgba(0, 0, 0, 0.2);
-        }
-      `}} />
-      
-      <NavBar />
-      
-      <main className="flex-grow">
-        <HeroSection />
-        <TrustSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <StatsSection />
-        <TestimonialsSection />
-        <CTASection />
-      </main>
-      
-      <Footer />
+      {/* Footer */}
+      <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-bold text-foreground">SwipeX</span>
+            <span>— AI-Powered Job Discovery</span>
+          </div>
+          <p>© {new Date().getFullYear()} SwipeX. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

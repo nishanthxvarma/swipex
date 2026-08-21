@@ -49,7 +49,7 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
 
         {/* Tier Filter Tabs */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-[#7DD3FC] dark:text-[#BFE8FF] text-xs font-bold rounded-xl border border-[rgba(190,225,255,0.12)]">
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-xl border border-primary/20">
             <Sparkles className="w-3.5 h-3.5" />
             <span>AI Learning Enabled (Adapting to Swipe Preferences)</span>
           </div>

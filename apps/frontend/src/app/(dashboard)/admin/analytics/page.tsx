@@ -49,7 +49,7 @@ export default function AdminAnalyticsPage() {
             {[45, 62, 58, 74, 90, 85, 95, 110, 105, 120, 135, 140].map((h, idx) => (
               <div key={idx} className="flex-1 flex flex-col items-center gap-2">
                 <div 
-                  className="w-full bg-gradient-to-t from-primary to-purple-500 rounded-t-lg transition-all"
+                  className="w-full bg-gradient-to-t from-primary to-accent rounded-t-lg transition-all"
                   style={{ height: `${h * 1.5}px` }}
                 />
                 <span className="text-[10px] text-[#66788A]">W{idx + 1}</span>

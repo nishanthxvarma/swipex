@@ -1,300 +1,275 @@
-"use client";
-// @ts-nocheck
+'use client';
 
-import React, { useState } from "react";
-import { SlidersHorizontal, MapPin, DollarSign, Filter, RefreshCw } from "lucide-react";
-import { SwipeStack } from "@/components/swipe/swipe-stack";
+import React, { useState, useEffect, useCallback } from 'react';
+import { SlidersHorizontal, MapPin, Filter, RefreshCw, Sparkles, Layers, ArrowUpRight } from 'lucide-react';
+import { SwipeStack } from '@/components/swipe/swipe-stack';
 import { jobsApi } from '@swipex/api';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { JobDetailModal } from "@/components/jobs/job-detail-modal";
-import { Job } from "@/components/swipe/swipe-card";
-
-// MOCK DATA
-const MOCK_JOBS: Job[] = [
-  {
-    id: "j1",
-    title: "Senior Frontend Engineer",
-    company: "Vercel",
-    companyInitials: "V",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$140K - $180K",
-    postedTime: "2 hours ago",
-    skills: ["React", "Next.js", "TypeScript", "TailwindCSS"],
-    matchPercentage: 92,
-    competition: "High",
-    verified: true,
-    color: "#000000",
-    description: "Join Vercel to help build the future of the web. You will work on core features of our frontend platform, improving developer experience and performance globally.",
-    requirements: ["5+ years React experience", "Deep Next.js knowledge", "Experience with Edge computing"]
-  },
-  {
-    id: "j2",
-    title: "Product Designer",
-    company: "Linear",
-    companyInitials: "L",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$130K - $170K",
-    postedTime: "5 hours ago",
-    skills: ["Figma", "Prototyping", "UI/UX", "CSS"],
-    matchPercentage: 85,
-    competition: "High",
-    verified: true,
-    color: "#5E6AD2",
-    description: "Help us design the tool that software teams actually want to use. We are looking for a product designer who obsesses over details and interactions.",
-  },
-  {
-    id: "j3",
-    title: "Backend Engineer",
-    company: "Stripe",
-    companyInitials: "S",
-    location: "New York, NY",
-    type: "Full-time",
-    salary: "$160K - $200K",
-    postedTime: "1 day ago",
-    skills: ["Go", "Ruby", "PostgreSQL", "Kafka"],
-    matchPercentage: 78,
-    competition: "High",
-    verified: true,
-    color: "#635BFF",
-  },
-  {
-    id: "j4",
-    title: "Full Stack Developer",
-    company: "Notion",
-    companyInitials: "N",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$150K - $190K",
-    postedTime: "2 days ago",
-    skills: ["React", "Node.js", "PostgreSQL", "Redis"],
-    matchPercentage: 88,
-    competition: "Medium",
-    verified: true,
-    color: "#000000",
-  }
-];
+import { JobDetailModal } from '@/components/jobs/job-detail-modal';
+import { Job } from '@/components/swipe/swipe-card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function JobFeedPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchJobs = React.useCallback(async () => {
+  // Filters state
+  const [locationFilter, setLocationFilter] = useState('');
+  const [experienceFilter, setExperienceFilter] = useState<string | null>(null);
+
+  const fetchJobs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const feed = await jobsApi.getJobFeed(1, 20);
-      setJobs(feed);
-    } catch (err: any) {
-      console.error(err);
+      setJobs(feed || []);
+    } catch (err: unknown) {
+      console.error('Feed error:', err);
       setError('Failed to pull available matching jobs from database.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  const filteredJobs = jobs.filter((j) => {
+    if (locationFilter.trim() && !j.location?.toLowerCase().includes(locationFilter.toLowerCase().trim())) {
+      return false;
+    }
+    return true;
+  });
+
+  const activeJob = filteredJobs[0];
 
   if (isLoading) {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading live matching feed...</p>
+        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading live matching feed...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
-        <button onClick={() => fetchJobs()} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold">Retry</button>
+        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => fetchJobs()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] max-w-7xl mx-auto overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-6rem)] max-w-7xl mx-auto overflow-hidden rounded-3xl border border-border glass-1">
       {/* Left Panel: Filters (Desktop) */}
-      <div className="hidden lg:block w-72 border-r bg-background overflow-y-auto p-6 space-y-8">
+      <div className="hidden lg:block w-72 border-r border-border bg-card/40 overflow-y-auto p-6 space-y-6">
         <div>
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4" /> Filters
+          <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-foreground">
+            <SlidersHorizontal className="w-4 h-4 text-primary" /> Filter Preferences
           </h3>
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Location</label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-[#66788A]" />
-                <input type="text" placeholder="City or Remote" className="w-full pl-9 pr-3 py-2 glass-1 rounded-md text-sm border-none" />
+                <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Remote / City"
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 glass-2 rounded-xl text-xs border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                />
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">Salary Range</label>
-              <div className="flex items-center gap-2">
-                <input type="number" placeholder="Min" className="w-full px-3 py-2 glass-1 rounded-md text-sm border-none" />
-                <span>-</span>
-                <input type="number" placeholder="Max" className="w-full px-3 py-2 glass-1 rounded-md text-sm border-none" />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Experience Level</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Experience Level</label>
               <div className="flex flex-wrap gap-2">
-                {["Entry", "Mid", "Senior", "Lead"].map(level => (
-                  <button key={level} className="px-3 py-1.5 rounded-full text-xs glass-1 hover:glass-1/80 transition-colors">
-                    {level}
-                  </button>
-                ))}
+                {['Entry', 'Mid', 'Senior', 'Lead'].map((level) => {
+                  const isSelected = experienceFilter === level;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setExperienceFilter(isSelected ? null : level)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer',
+                        isSelected
+                          ? 'bg-primary/10 border-primary text-primary font-bold'
+                          : 'glass-2 border-border text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      {level}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            
-            <button className="w-full py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
-              Apply Filters
-            </button>
+
+            {locationFilter || experienceFilter ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setLocationFilter('');
+                  setExperienceFilter(null);
+                }}
+                className="w-full text-xs text-muted-foreground"
+              >
+                Reset Filters
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {/* Center: Swipe Stack */}
-      <div className="flex-1 flex flex-col relative overflow-hidden glass-1/20">
-        <div className="absolute top-0 inset-x-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-background to-transparent">
-          <div className="lg:hidden">
-            <button className="p-2 bg-background rounded-full shadow-sm" onClick={() => setIsMobileFiltersOpen(true)}>
-              <Filter className="w-5 h-5" />
-            </button>
-          </div>
-          <h2 className="font-bold text-xl hidden sm:block">Discover Jobs</h2>
-          <div className="flex items-center gap-4">
-            <div className="text-sm font-medium bg-background px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2 border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span className="font-bold text-emerald-400">92% Avg Match</span>
+      {/* Center: Swipe Deck */}
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-background/50">
+        <div className="p-4 flex justify-between items-center z-10 border-b border-border/40 glass-1">
+          <div className="flex items-center gap-2">
+            <div className="lg:hidden">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMobileFiltersOpen(true)}>
+                <Filter className="w-4 h-4" />
+              </Button>
             </div>
-            <button className="p-2 bg-background rounded-full shadow-sm hover:rotate-180 transition-transform duration-500">
-              <RefreshCw className="w-5 h-5" />
-            </button>
+            <h2 className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
+              <Layers className="w-4 h-4 text-primary" /> Swipe & Discover
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span>{filteredJobs.length} Available</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => fetchJobs()}
+              title="Refresh Deck"
+            >
+              <RefreshCw className="w-4 h-4 text-muted-foreground" />
+            </Button>
           </div>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-center p-4">
-          <SwipeStack jobs={jobs} onShowDetails={setSelectedJob} />
+          <SwipeStack jobs={filteredJobs} onShowDetails={setSelectedJob} />
         </div>
       </div>
 
       {/* Right Panel: AI Match Explanation (Desktop) */}
-      <div className="hidden xl:block w-80 border-l border-border bg-background overflow-y-auto p-6 space-y-6">
+      <div className="hidden xl:block w-80 border-l border-border bg-card/40 overflow-y-auto p-6 space-y-6">
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-base tracking-tight">AI Match Analysis</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-border/60 pb-3">
+            <h3 className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-primary" /> AI Match Analysis
+            </h3>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-primary/10 text-primary border border-primary/20">
-              96% MATCH
+              {activeJob?.matchPercentage || 92}% MATCH
             </span>
           </div>
 
-          <div className="space-y-4">
-            {/* Breakdown bars */}
-            <div className="space-y-3">
+          {activeJob ? (
+            <div className="space-y-5">
               <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-[#66788A]">Skills Alignment</span>
-                  <span className="text-primary font-bold">95%</span>
+                <p className="text-xs font-bold text-foreground">{activeJob.title}</p>
+                <p className="text-xs text-muted-foreground">{activeJob.company} • {activeJob.location}</p>
+              </div>
+
+              {/* Breakdown bars */}
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Skills Alignment</span>
+                    <span className="text-primary font-bold">{activeJob.matchPercentage || 92}%</span>
+                  </div>
+                  <div className="h-1.5 w-full glass-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${activeJob.matchPercentage || 92}%` }} />
+                  </div>
                 </div>
-                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full" style={{ width: '95%' }} />
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Location Alignment</span>
+                    <span className="text-success font-bold">100%</span>
+                  </div>
+                  <div className="h-1.5 w-full glass-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-success rounded-full" style={{ width: '100%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">Salary Alignment</span>
+                    <span className="text-accent font-bold">90%</span>
+                  </div>
+                  <div className="h-1.5 w-full glass-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent rounded-full" style={{ width: '90%' }} />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-[#66788A]">Experience Match</span>
-                  <span className="text-[#7DD3FC] dark:text-[#7DD3FC] font-bold">91%</span>
-                </div>
-                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: '91%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-[#66788A]">Location Preference</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">100%</span>
-                </div>
-                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
+              {/* Skills required */}
+              <div className="pt-3 border-t border-border/60 space-y-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Required Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {activeJob.skills?.map((skill, idx) => (
+                    <span key={idx} className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-[#66788A]">Salary Alignment</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-bold">88%</span>
-                </div>
-                <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '88%' }} />
-                </div>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedJob(activeJob)}
+                className="w-full text-xs font-bold rounded-xl"
+              >
+                Inspect Role Details <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
             </div>
-
-            {/* Skill Matches vs Gaps */}
-            <div className="pt-4 border-t border-border space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#66788A]">Strong Matches</h4>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  React ✓
-                </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  Next.js ✓
-                </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  TypeScript ✓
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#66788A]">Potential Skill Gaps</h4>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  AWS
-                </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  Docker
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => window.location.href = '/resume'}
-              className="w-full py-2.5 mt-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
-            >
-              Improve This Match
-            </button>
-          </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No active card selected.</p>
+          )}
         </div>
       </div>
 
       {/* Mobile Filters Overlay */}
       {isMobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 bg-background lg:hidden p-6 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md lg:hidden p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-lg">Filters</h3>
-            <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 glass-1 rounded-full">
+            <h3 className="font-bold text-lg text-foreground">Filter Preferences</h3>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileFiltersOpen(false)}>
               <Filter className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
-          {/* Filter content here for mobile */}
-          <button onClick={() => setIsMobileFiltersOpen(false)} className="mt-auto py-3 bg-primary text-primary-foreground rounded-xl font-medium">
-            Show Results
-          </button>
+          <div className="space-y-4 flex-1">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1">Location</label>
+              <input
+                type="text"
+                placeholder="Remote / City"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+                className="w-full p-2.5 glass-2 rounded-xl border border-border text-foreground text-sm"
+              />
+            </div>
+          </div>
+          <Button variant="primary" onClick={() => setIsMobileFiltersOpen(false)} className="w-full rounded-xl font-bold py-3">
+            Apply Filters
+          </Button>
         </div>
       )}
 

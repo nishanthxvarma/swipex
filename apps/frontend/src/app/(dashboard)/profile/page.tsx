@@ -209,7 +209,7 @@ export default function ProfilePage() {
         
         <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start relative z-10">
           <div className="relative">
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white text-4xl font-bold shadow-xl border-4 border-background">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl border-4 border-background">
               {getUserInitials(fullName)}
             </div>
             <button

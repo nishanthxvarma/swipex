@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Bookmark, Search, MapPin, DollarSign, Calendar, ChevronDown, Trash2, CheckCircle2, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Bookmark, Search, MapPin, DollarSign, Calendar, Trash2, ArrowRight, Loader2, AlertTriangle, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { jobsApi } from '@swipex/api';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
 interface SavedJobItem {
   id: string;
@@ -20,234 +20,195 @@ interface SavedJobItem {
   match: number;
 }
 
-const INITIAL_SAVED: SavedJobItem[] = [
-  {
-    id: "s1",
-    title: "Senior React Developer",
-    company: "Airbnb",
-    initials: "A",
-    color: "#FF5A5F",
-    location: "Remote",
-    salary: "$150K - $190K",
-    savedDate: "2 days ago",
-    match: 94
-  },
-  {
-    id: "s2",
-    title: "Machine Learning Engineer",
-    company: "Spotify",
-    initials: "S",
-    color: "#1DB954",
-    location: "New York, NY",
-    salary: "$170K - $210K",
-    savedDate: "3 days ago",
-    match: 82
-  },
-  {
-    id: "s3",
-    title: "Frontend Architect",
-    company: "Figma",
-    initials: "F",
-    color: "#F24E1E",
-    location: "San Francisco, CA",
-    salary: "$180K - $220K",
-    savedDate: "1 week ago",
-    match: 96
-  }
-];
-
 export default function SavedJobsPage() {
   const router = useRouter();
   const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'match' | 'date'>('match');
+  const [appliedId, setAppliedId] = useState<string | null>(null);
 
-  const loadSavedJobs = React.useCallback(async () => {
+  const loadSavedJobs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const list = await jobsApi.getSavedJobs(1);
-      const mapped = list.map((s: any) => {
-        const j = s.job;
+      const mapped = (list || []).map((s: any) => {
+        const j = s.job || s;
         return {
-          id: s.jobId,
-          title: j?.title || "Position",
-          company: j?.company || "SwipeX Partner",
-          initials: j?.companyInitials || "S",
-          color: j?.color || "#635BFF",
-          location: j?.location || "Remote",
-          salary: j?.salary || "$120K - $160K",
-          savedDate: s.savedAt ? new Date(s.savedAt).toLocaleDateString("en-US") : "Recent",
-          match: j?.matchPercentage || 85
+          id: String(s.jobId || s.id),
+          title: j?.title || 'Position',
+          company: j?.company || 'SwipeX Partner',
+          initials: (j?.company || 'S').substring(0, 2).toUpperCase(),
+          color: j?.color || '#1677A8',
+          location: j?.location || 'Remote',
+          salary: j?.salary || '$120K - $160K',
+          savedDate: s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-US') : 'Recent',
+          match: j?.matchPercentage || 85,
         };
       });
       setSavedJobs(mapped);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.error('Saved jobs load error:', err);
       setError('Failed to load saved jobs from database.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadSavedJobs();
   }, [loadSavedJobs]);
-  const [sortBy, setSortBy] = useState<"match" | "date">("match");
-  const [appliedId, setAppliedId] = useState<string | null>(null);
 
   const handleRemove = async (id: string) => {
     try {
       await jobsApi.unsaveJob(id);
-      setSavedJobs(prev => prev.filter(j => j.id !== id));
+      setSavedJobs((prev) => prev.filter((j) => j.id !== id));
     } catch (err) {
-      console.error(err);
+      console.error('Failed to unsave job:', err);
     }
   };
 
   const handleApply = async (id: string) => {
     setAppliedId(id);
     try {
-      await jobsApi.createApplication(id, { coverLetter: "Applied from saved jobs." });
-      await jobsApi.unsaveJob(id);
-      router.push("/applications");
+      await jobsApi.applyToJob(id);
     } catch (err) {
-      console.error(err);
-      setAppliedId(null);
+      console.error('Failed to apply:', err);
     }
   };
+
+  const filtered = savedJobs
+    .filter((j) =>
+      j.title.toLowerCase().includes(search.toLowerCase()) ||
+      j.company.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => (sortBy === 'match' ? b.match - a.match : 0));
 
   if (isLoading) {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading bookmarked listings...</p>
+        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading saved positions...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
         <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg">Connection Failure</h3>
-        <p className="text-xs text-[#66788A] max-w-sm mb-4">{error}</p>
-        <Button onClick={() => loadSavedJobs()} className="rounded-xl font-bold">Retry</Button>
+        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadSavedJobs()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
   }
 
-  const filteredJobs = savedJobs
-    .filter(
-      j =>
-        j.title.toLowerCase().includes(search.toLowerCase()) ||
-        j.company.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortBy === "match") return b.match - a.match;
-      return 0;
-    });
-
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3 tracking-tight">
-            <Bookmark className="w-8 h-8 text-primary fill-primary/20" />
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 tracking-tight text-foreground">
+            <Bookmark className="w-7 h-7 text-primary" />
             Saved Jobs
           </h1>
-          <p className="text-[#66788A] mt-1">You have {savedJobs.length} bookmarked opportunities saved for review.</p>
+          <p className="text-muted-foreground text-sm mt-1">Review and apply to positions you&apos;ve bookmarked.</p>
         </div>
-        
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#66788A]" />
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search saved jobs..."
+              placeholder="Search saved..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 glass-1 border rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+              className="pl-9 pr-3 py-1.5 glass-1 border border-border rounded-xl text-xs w-48 focus:outline-none focus:border-primary text-foreground"
             />
           </div>
-          <button
-            onClick={() => setSortBy(sortBy === "match" ? "date" : "match")}
-            className="px-4 py-2 glass-1 border rounded-xl flex items-center gap-2 hover:glass-1 transition-colors text-xs font-bold"
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="glass-1 border border-border rounded-xl text-xs px-3 py-2 text-foreground font-medium"
           >
-            Sort by: {sortBy === "match" ? "Highest Match" : "Date Saved"} <ChevronDown className="w-3.5 h-3.5" />
-          </button>
+            <option value="match">Sort by Match</option>
+            <option value="date">Sort by Date</option>
+          </select>
         </div>
       </div>
 
-      {filteredJobs.length === 0 ? (
-        <div className="text-center py-16 glass-1 border rounded-2xl p-8 space-y-4">
-          <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto text-2xl">
-            🔖
-          </div>
-          <h3 className="text-xl font-bold">No saved jobs found</h3>
-          <p className="text-[#66788A] text-sm max-w-md mx-auto">
-            {search ? "No saved jobs match your search criteria." : "Start swiping right on job cards to bookmark roles you love!"}
+      {/* Content */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
+          <Bookmark className="w-12 h-12 text-primary mx-auto opacity-60" />
+          <h3 className="text-lg font-bold text-foreground">Nothing saved yet</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            When you find roles you want to reconsider or prepare for, save them to access them here.
           </p>
-          <Button onClick={() => router.push("/jobs")} className="rounded-xl px-6 font-semibold">
-            Discover Jobs <ArrowRight className="ml-2 w-4 h-4" />
+          <Button asChild variant="primary" className="rounded-xl font-bold text-xs">
+            <Link href="/jobs">
+              Discover Jobs <ArrowRight className="w-4 h-4 ml-1.5" />
+            </Link>
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs.map(job => (
-            <div key={job.id} className="glass-1 border rounded-2xl p-5 hover:shadow-xl transition-all group flex flex-col h-full hover:border-primary/50 relative overflow-hidden">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex gap-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((job) => (
+            <div
+              key={job.id}
+              className="glass-1 border border-border rounded-2xl p-5 shadow-xs hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-3">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-xs shrink-0 group-hover:scale-105 transition-transform"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-xs"
                     style={{ backgroundColor: job.color }}
                   >
                     {job.initials}
                   </div>
-                  <div>
-                    <h3 className="font-bold line-clamp-1 group-hover:text-primary transition-colors">{job.title}</h3>
-                    <div className="text-sm font-semibold text-[#66788A]">{job.company}</div>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    {job.match}% Match
+                  </span>
+                </div>
+
+                <h3 className="font-bold text-base text-foreground line-clamp-1">{job.title}</h3>
+                <p className="text-xs font-medium text-muted-foreground mt-0.5">{job.company}</p>
+
+                <div className="space-y-1.5 mt-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>{job.location}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="font-semibold text-foreground">{job.salary}</span>
                   </div>
                 </div>
-                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-                  {job.match}% Match
-                </div>
               </div>
-              
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-xs text-[#66788A] font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-primary" /> {job.location}
-                </div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  <DollarSign className="w-3.5 h-3.5" /> {job.salary}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#66788A] font-medium">
-                  <Calendar className="w-3.5 h-3.5" /> Saved {job.savedDate}
-                </div>
-              </div>
-              
-              <div className="mt-auto pt-4 border-t flex gap-2">
+
+              <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between gap-2">
                 <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemove(job.id)}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                </Button>
+
+                <Button
+                  variant={appliedId === job.id ? 'outline' : 'primary'}
+                  size="sm"
                   onClick={() => handleApply(job.id)}
                   disabled={appliedId === job.id}
-                  className="flex-1 rounded-xl font-semibold shadow-xs"
+                  className="rounded-xl text-xs font-bold"
                 >
-                  {appliedId === job.id ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-300 animate-bounce" /> Applied!
-                    </>
-                  ) : (
-                    "Apply Now"
-                  )}
+                  {appliedId === job.id ? 'Applied ✓' : 'Apply Now'}
                 </Button>
-                <button
-                  onClick={() => handleRemove(job.id)}
-                  className="p-2.5 glass-1 text-[#66788A] hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
-                  title="Remove from Saved"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
             </div>
           ))}

@@ -21,7 +21,7 @@ export default function NotFound() {
         
         {/* Floating elements */}
         <div className="absolute top-10 left-10 h-16 w-16 animate-bounce rounded-2xl bg-blue-500/20 backdrop-blur-xl border border-blue-500/30" style={{ animationDuration: '3s' }} />
-        <div className="absolute bottom-10 right-10 h-20 w-20 rounded-full bg-[#BFE8FF]/20 backdrop-blur-xl border border-purple-500/30 animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-10 right-10 h-20 w-20 rounded-full bg-primary/20 backdrop-blur-xl border border-primary/30 animate-pulse" style={{ animationDuration: '4s' }} />
         <div className="absolute top-20 right-20 h-12 w-12 rounded-lg bg-amber-500/20 backdrop-blur-xl border border-amber-500/30 animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
       </div>
 

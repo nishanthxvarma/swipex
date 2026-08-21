@@ -26,6 +26,7 @@ import {
   Shield,
   Sun,
   Moon,
+  Laptop,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -73,11 +74,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const { isSidebarOpen, toggleSidebar, isSearchOpen, setSearchOpen, toggleSearch } = useUIStore();
   const { user, logout } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,29 +112,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const userEmail = user?.email || '';
   const userInitials = getUserInitials(userName);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const notifications = useNotificationStore((s) => s.notifications);
 
   const sidebarW = isSidebarOpen ? 240 : 68;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#060B12' }}>
-      {/* Atmospheric background */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div
-          className="absolute"
-          style={{
-            top: '-15%', left: '15%', width: '55%', height: '55%',
-            background: 'radial-gradient(ellipse at center, rgba(37,99,235,0.05) 0%, transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute"
-          style={{
-            bottom: '-5%', right: '-5%', width: '35%', height: '45%',
-            background: 'radial-gradient(ellipse at center, rgba(125,211,252,0.03) 0%, transparent 70%)',
-          }}
-        />
-      </div>
-
+    <div className="flex h-screen overflow-hidden bg-background text-foreground bg-atmospheric">
       {/* Mobile overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -149,35 +138,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex flex-col',
-          'backdrop-blur-2xl',
-          'border-r border-[rgba(190,225,255,0.08)]',
+          'backdrop-blur-2xl glass-1 border-r border-border',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
           'md:static md:translate-x-0',
         )}
-        style={{
-          background: 'rgba(6, 11, 18, 0.85)',
-          boxShadow: '1px 0 0 rgba(190,225,255,0.06), inset -1px 0 0 rgba(255,255,255,0.02)',
-        }}
       >
         {/* Logo */}
-        <div className="flex h-14 shrink-0 items-center justify-between px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40">
           <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
             <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-              style={{
-                background: 'rgba(191,232,255,0.10)',
-                border: '1px solid rgba(191,232,255,0.20)',
-                boxShadow: '0 0 16px rgba(191,232,255,0.12)',
-              }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary shadow-xs"
             >
-              <Sparkles className="h-4 w-4 text-[#BFE8FF]" />
+              <Sparkles className="h-4 w-4" />
             </div>
             {isSidebarOpen && (
               <motion.span
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
-                className="text-[15px] font-bold tracking-tight text-[#F5FAFF]"
+                className="text-[15px] font-bold tracking-tight text-foreground"
               >
                 SwipeX
               </motion.span>
@@ -197,7 +176,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex flex-1 flex-col overflow-y-auto px-2.5 py-3 gap-0.5">
           <nav className="flex flex-col gap-0.5">
             {getNavItems(user?.role).map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
@@ -206,23 +185,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-all duration-150 relative group',
                     isActive
-                      ? 'text-[#BFE8FF]'
-                      : 'text-[#66788A] hover:text-[#9BAFC2] hover:bg-white/4'
+                      ? 'bg-primary/10 text-primary font-semibold border border-primary/20 shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   )}
-                  style={isActive ? {
-                    background: 'rgba(191,232,255,0.07)',
-                    border: '1px solid rgba(191,232,255,0.14)',
-                    boxShadow: 'inset 0 0 12px rgba(191,232,255,0.04)',
-                  } : {}}
                 >
-                  {/* Active indicator */}
                   {isActive && (
                     <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full"
-                      style={{ background: 'linear-gradient(to bottom, #BFE8FF, #7DD3FC)', boxShadow: '0 0 8px rgba(191,232,255,0.5)' }}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 rounded-r-full bg-primary"
                     />
                   )}
-                  <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A] group-hover:text-[#9BAFC2]')} />
+                  <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} />
                   {isSidebarOpen && (
                     <span className="font-medium text-[13px]">{item.name}</span>
                   )}
@@ -233,18 +205,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* User footer */}
-        <div
-          className="border-t border-[rgba(190,225,255,0.07)] p-3"
-        >
+        <div className="border-t border-border/60 p-3">
           <div className={cn('flex items-center gap-2.5', !isSidebarOpen && 'justify-center')}>
             <button
               onClick={() => router.push('/profile')}
-              className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center font-bold text-xs text-[#BFE8FF] transition-all hover:scale-105"
-              style={{
-                background: 'rgba(191,232,255,0.08)',
-                border: '1px solid rgba(191,232,255,0.20)',
-                boxShadow: '0 0 12px rgba(191,232,255,0.08)',
-              }}
+              className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center font-bold text-xs bg-primary/10 border border-primary/25 text-primary transition-all hover:scale-105"
               title="View Profile"
             >
               {userInitials}
@@ -252,8 +217,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {isSidebarOpen && (
               <>
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push('/profile')}>
-                  <p className="truncate text-[13px] font-semibold text-[#F5FAFF] leading-none">{userName}</p>
-                  <p className="truncate text-[11px] text-[#66788A] mt-0.5">
+                  <p className="truncate text-[13px] font-semibold text-foreground leading-none">{userName}</p>
+                  <p className="truncate text-[11px] text-muted-foreground mt-0.5">
                     {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}
                   </p>
                 </div>
@@ -262,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   size="icon"
                   onClick={handleLogout}
                   title="Log Out"
-                  className="h-7 w-7 shrink-0 text-[#66788A] hover:text-[#FF7A90] hover:bg-[#FF7A90]/8"
+                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                 </Button>
@@ -273,13 +238,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Collapse toggle */}
         <button
-          className="absolute -right-3 top-16 hidden h-6 w-6 rounded-full md:flex items-center justify-center transition-all hover:scale-110"
-          style={{
-            background: 'rgba(8, 17, 28, 0.95)',
-            border: '1px solid rgba(190,225,255,0.15)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-            color: '#9BAFC2',
-          }}
+          className="absolute -right-3 top-16 hidden h-6 w-6 rounded-full md:flex items-center justify-center transition-all hover:scale-110 glass-2 border border-border shadow-md text-muted-foreground hover:text-foreground cursor-pointer"
           onClick={toggleSidebar}
         >
           {isSidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
@@ -290,12 +249,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="relative z-10 flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top bar */}
         <header
-          className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-[rgba(190,225,255,0.07)]"
-          style={{
-            background: 'rgba(6,11,18,0.75)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-          }}
+          className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-border/60 glass-1"
         >
           <div className="flex items-center gap-3">
             <Button
@@ -307,10 +261,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="h-4 w-4" />
             </Button>
             {/* Breadcrumb */}
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#66788A]">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>SwipeX</span>
               <span>/</span>
-              <span className="text-[#9BAFC2] capitalize font-medium">
+              <span className="text-foreground capitalize font-medium">
                 {pathname.split('/').filter(Boolean).pop() || 'Dashboard'}
               </span>
             </div>
@@ -320,35 +274,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Role badge */}
             {user && (
               <div
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
-                style={{
-                  background: 'rgba(191,232,255,0.06)',
-                  border: '1px solid rgba(191,232,255,0.12)',
-                  color: '#9BAFC2',
-                }}
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-primary/10 border border-primary/20 text-primary"
               >
-                {user.role === 'ADMIN' ? '⬡ Admin' : user.role === 'RECRUITER' ? '⬡ Recruiter' : '⬡ Candidate'}
+                {user.role === 'ADMIN' ? '🛡️ Admin' : user.role === 'RECRUITER' ? '🏢 Recruiter' : '👤 Candidate'}
               </div>
             )}
 
             {/* Search */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] text-[#66788A] hover:text-[#9BAFC2] transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(190,225,255,0.10)',
-              }}
+              className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] text-muted-foreground hover:text-foreground glass-1 transition-all cursor-pointer"
             >
               <Search className="h-3.5 w-3.5" />
               <span>Search</span>
               <kbd
-                className="ml-2 rounded px-1 text-[10px] font-mono"
-                style={{ background: 'rgba(255,255,255,0.06)', color: '#66788A', border: '1px solid rgba(190,225,255,0.10)' }}
+                className="ml-2 rounded px-1 text-[10px] font-mono bg-secondary border border-border"
               >⌘K</kbd>
             </button>
             <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setSearchOpen(true)}>
-              <Search className="h-4 w-4 text-[#66788A]" />
+              <Search className="h-4 w-4 text-muted-foreground" />
             </Button>
 
             {/* Notifications */}
@@ -356,14 +300,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-8 w-8 text-[#66788A] hover:text-[#F5FAFF]"
+                className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               >
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
                   <span
-                    className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full"
-                    style={{ background: '#FF7A90', boxShadow: '0 0 6px rgba(255,122,144,0.7)' }}
+                    className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive"
                   />
                 )}
               </Button>
@@ -377,56 +320,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 mt-2 z-50 w-80 rounded-xl p-4 space-y-3"
-                      style={{
-                        background: 'rgba(8,17,28,0.96)',
-                        border: '1px solid rgba(190,225,255,0.12)',
-                        backdropFilter: 'blur(32px)',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-                      }}
+                      className="absolute right-0 mt-2 z-50 w-80 rounded-xl p-4 space-y-3 glass-3 border border-border shadow-2xl"
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="text-[13px] font-semibold text-[#F5FAFF]">Notifications</h4>
+                        <h4 className="text-[13px] font-semibold text-foreground">Notifications</h4>
                         {unreadCount > 0 && (
                           <button
                             onClick={() => useNotificationStore.getState().markAllAsRead()}
-                            className="text-[11px] text-[#BFE8FF] hover:text-[#E0F5FF] transition-colors"
+                            className="text-[11px] text-primary hover:underline transition-colors cursor-pointer"
                           >
                             Mark all read
                           </button>
                         )}
                       </div>
                       <div className="space-y-1 max-h-64 overflow-y-auto">
-                        {useNotificationStore.getState().notifications.slice(0, 5).map((n) => (
-                          <div
-                            key={n.id}
-                            onClick={() => {
-                              useNotificationStore.getState().markAsRead(n.id);
-                              setIsNotificationsOpen(false);
-                              router.push('/notifications');
-                            }}
-                            className="flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors hover:bg-white/4"
-                          >
+                        {notifications.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-6">You&apos;re all caught up.</p>
+                        ) : (
+                          notifications.slice(0, 5).map((n) => (
                             <div
-                              className="h-7 w-7 shrink-0 rounded-md flex items-center justify-center mt-0.5"
-                              style={{ background: 'rgba(191,232,255,0.07)', border: '1px solid rgba(191,232,255,0.12)' }}
+                              key={n.id}
+                              onClick={() => {
+                                useNotificationStore.getState().markAsRead(n.id);
+                                setIsNotificationsOpen(false);
+                                router.push('/notifications');
+                              }}
+                              className="flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors hover:bg-secondary"
                             >
-                              <Bell className="h-3.5 w-3.5 text-[#BFE8FF]" />
+                              <div
+                                className="h-7 w-7 shrink-0 rounded-md flex items-center justify-center mt-0.5 bg-primary/10 text-primary border border-primary/20"
+                              >
+                                <Bell className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[12px] font-medium text-foreground truncate">{n.title}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{n.message}</p>
+                              </div>
+                              {!n.isRead && (
+                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                              )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[12px] font-medium text-[#F5FAFF] truncate">{n.title}</p>
-                              <p className="text-[11px] text-[#66788A] mt-0.5 line-clamp-1">{n.message}</p>
-                            </div>
-                            {!n.isRead && (
-                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: '#BFE8FF', boxShadow: '0 0 6px rgba(191,232,255,0.5)' }} />
-                            )}
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                       <button
                         onClick={() => { setIsNotificationsOpen(false); router.push('/notifications'); }}
-                        className="w-full py-2 rounded-lg text-[12px] font-medium text-[#9BAFC2] hover:text-[#F5FAFF] transition-colors text-center"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(190,225,255,0.08)' }}
+                        className="w-full py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors text-center glass-1 border border-border cursor-pointer"
                       >
                         View all notifications
                       </button>
@@ -436,37 +375,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </AnimatePresence>
             </div>
 
-            {/* Theme toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-[#66788A] hover:text-[#F5FAFF]"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              title="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4 text-[#F6C85F]" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            {/* Theme Toggle (Light / Dark / System) */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                title={`Current: ${theme} theme. Click to toggle.`}
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4 text-warning" /> : <Moon className="h-4 w-4 text-primary" />}
+              </Button>
+            )}
 
             {/* Profile menu */}
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-lg transition-all hover:bg-white/5"
-                style={{ border: '1px solid transparent' }}
+                className="flex items-center gap-2 p-1.5 rounded-lg transition-all hover:bg-secondary cursor-pointer"
               >
                 <div
-                  className="h-7 w-7 rounded-full flex items-center justify-center font-bold text-[11px] text-[#BFE8FF]"
-                  style={{
-                    background: 'rgba(191,232,255,0.08)',
-                    border: '1px solid rgba(191,232,255,0.20)',
-                  }}
+                  className="h-7 w-7 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary/10 border border-primary/25 text-primary"
                 >
                   {userInitials}
                 </div>
                 <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-[12px] font-semibold text-[#F5FAFF] leading-none">{userName}</span>
+                  <span className="text-[12px] font-semibold text-foreground leading-none">{userName}</span>
                 </div>
-                <ChevronRight className={cn('w-3 h-3 text-[#66788A] hidden sm:block transition-transform', isProfileMenuOpen && 'rotate-90')} />
+                <ChevronRight className={cn('w-3 h-3 text-muted-foreground hidden sm:block transition-transform', isProfileMenuOpen && 'rotate-90')} />
               </button>
 
               <AnimatePresence>
@@ -478,17 +414,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 mt-2 z-50 w-52 rounded-xl p-1.5 space-y-0.5"
-                      style={{
-                        background: 'rgba(8,17,28,0.96)',
-                        border: '1px solid rgba(190,225,255,0.12)',
-                        backdropFilter: 'blur(32px)',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-                      }}
+                      className="absolute right-0 mt-2 z-50 w-52 rounded-xl p-1.5 space-y-0.5 glass-3 border border-border shadow-2xl"
                     >
-                      <div className="px-3 py-2 border-b border-[rgba(190,225,255,0.07)] mb-1">
-                        <p className="text-[12px] font-semibold text-[#F5FAFF] truncate">{userName}</p>
-                        <p className="text-[11px] text-[#66788A] truncate mt-0.5">{userEmail}</p>
+                      <div className="px-3 py-2 border-b border-border mb-1">
+                        <p className="text-[12px] font-semibold text-foreground truncate">{userName}</p>
+                        <p className="text-[11px] text-muted-foreground truncate mt-0.5">{userEmail}</p>
                       </div>
                       {[
                         { label: 'My Profile', href: '/profile', icon: User },
@@ -498,16 +428,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           key={item.label}
                           href={item.href}
                           onClick={() => setIsProfileMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-[#9BAFC2] hover:text-[#F5FAFF] hover:bg-white/5 transition-all"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
                         >
-                          <item.icon className="h-3.5 w-3.5 text-[#66788A]" />
+                          <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
                           {item.label}
                         </Link>
                       ))}
-                      <div className="h-px bg-[rgba(190,225,255,0.07)] my-1" />
+                      <div className="h-px bg-border my-1" />
                       <button
                         onClick={() => { setIsProfileMenuOpen(false); handleLogout(); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-[#FF7A90] hover:bg-[#FF7A90]/8 transition-all cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-destructive hover:bg-destructive/10 transition-all cursor-pointer"
                       >
                         <LogOut className="h-3.5 w-3.5" />
                         Log Out
@@ -521,12 +451,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-5">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-7xl"
           >
@@ -540,27 +470,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile bottom nav */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around px-2 py-2 z-40"
-        style={{
-          background: 'rgba(6,11,18,0.92)',
-          backdropFilter: 'blur(24px)',
-          borderTop: '1px solid rgba(190,225,255,0.08)',
-        }}
+        className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around px-2 py-2 z-40 glass-3 border-t border-border"
       >
         {getNavItems(user?.role).slice(0, 4).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 px-3 py-1.5">
-              <item.icon className={cn('h-5 w-5', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A]')} />
-              <span className={cn('text-[9px] font-medium', isActive ? 'text-[#BFE8FF]' : 'text-[#66788A]')}>
+              <item.icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+              <span className={cn('text-[9px] font-medium', isActive ? 'text-primary font-bold' : 'text-muted-foreground')}>
                 {item.name}
               </span>
             </Link>
           );
         })}
         <button onClick={() => setIsMobileMenuOpen(true)} className="flex flex-col items-center gap-1 px-3 py-1.5">
-          <Menu className="h-5 w-5 text-[#66788A]" />
-          <span className="text-[9px] font-medium text-[#66788A]">More</span>
+          <Menu className="h-5 w-5 text-muted-foreground" />
+          <span className="text-[9px] font-medium text-muted-foreground">More</span>
         </button>
       </div>
     </div>

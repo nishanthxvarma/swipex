@@ -143,7 +143,7 @@ async def get_job(
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
         
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     user_skills = []
     profile = await user_service.get_profile(user_id)
     if profile and profile.skills:
@@ -165,7 +165,7 @@ async def create_job(
     description = job_data.get("description")
     company_id = job_data.get("companyId")
     if company_id:
-        company_id = uuid.UUID(company_id)
+        company_id = parse_id(company_id)
     else:
         # Fetch the first company in database as default
         from sqlalchemy import select

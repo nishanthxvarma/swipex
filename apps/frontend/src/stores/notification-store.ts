@@ -3,48 +3,7 @@ import {
   Notification,
   NotificationPreferences,
 } from '@swipex/types';
-
-const MOCK_INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'n_1',
-    userId: 'usr_1',
-    type: 'job_matched',
-    title: 'New 95% Job Match!',
-    message: 'Vercel posted Senior Frontend Engineer in Remote.',
-    isRead: false,
-    createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    metadata: { jobId: 'job_101' },
-  },
-  {
-    id: 'n_2',
-    userId: 'usr_1',
-    type: 'interview_scheduled',
-    title: 'Interview Confirmed 🎉',
-    message: 'Google technical interview scheduled for Thursday 2:00 PM.',
-    isRead: false,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    metadata: { applicationId: 'app_202' },
-  },
-  {
-    id: 'n_3',
-    userId: 'usr_1',
-    type: 'application_viewed',
-    title: 'Application Viewed by Recruiter',
-    message: 'Stripe talent acquisition team viewed your resume.',
-    isRead: true,
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    metadata: { applicationId: 'app_303' },
-  },
-  {
-    id: 'n_4',
-    userId: 'usr_1',
-    type: 'ats_analysis_completed',
-    title: 'ATS Resume Analysis Completed',
-    message: 'Your resume received an 88.5 ATS Compatibility Score.',
-    isRead: true,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+import { notificationsApi } from '@swipex/api';
 
 interface NotificationState {
   notifications: Notification[];
@@ -59,8 +18,8 @@ interface NotificationState {
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
-  notifications: MOCK_INITIAL_NOTIFICATIONS,
-  unreadCount: MOCK_INITIAL_NOTIFICATIONS.filter((n) => !n.isRead).length,
+  notifications: [],
+  unreadCount: 0,
   isLoading: false,
   preferences: {
     jobRecommendations: true,
@@ -74,19 +33,23 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   fetchNotifications: async () => {
     set({ isLoading: true });
     try {
-      // If backend API token available, call backend
-      const token = typeof window !== 'undefined' ? localStorage.getItem('swipex-auth-storage') : null;
-      if (token && token.includes('accessToken')) {
-        // Attempt backend fetch or fallback gracefully to current state
+      const res = await notificationsApi.getNotifications({ page: 1, perPage: 20 });
+      if (res && Array.isArray(res.notifications)) {
+        const unread = res.notifications.filter((n) => !n.isRead).length;
+        set({ notifications: res.notifications, unreadCount: unread });
+      } else {
+        set({ notifications: [], unreadCount: 0 });
       }
-      const unread = get().notifications.filter((n) => !n.isRead).length;
-      set({ unreadCount: unread });
+    } catch {
+      // Clean fallback with zero invented data
+      set({ notifications: [], unreadCount: 0 });
     } finally {
       set({ isLoading: false });
     }
   },
 
   markAsRead: async (id: string) => {
+    // Optimistic update
     set((state) => {
       const updated = state.notifications.map((n) =>
         n.id === id ? { ...n, isRead: true } : n
@@ -94,6 +57,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const unread = updated.filter((n) => !n.isRead).length;
       return { notifications: updated, unreadCount: unread };
     });
+    try {
+      await notificationsApi.markAsRead(id);
+    } catch {
+      // Ignore network errors on background mark-as-read
+    }
   },
 
   markAllAsRead: async () => {
@@ -101,6 +69,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const updated = state.notifications.map((n) => ({ ...n, isRead: true }));
       return { notifications: updated, unreadCount: 0 };
     });
+    try {
+      await notificationsApi.markAllAsRead();
+    } catch {
+      // Ignore network errors on background mark-all-read
+    }
   },
 
   dismissNotification: async (id: string) => {
@@ -109,11 +82,21 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const unread = updated.filter((n) => !n.isRead).length;
       return { notifications: updated, unreadCount: unread };
     });
+    try {
+      await notificationsApi.dismissNotification(id);
+    } catch {
+      // Ignore network errors on dismiss
+    }
   },
 
   updatePreferences: async (prefs: Partial<NotificationPreferences>) => {
     set((state) => ({
       preferences: { ...state.preferences, ...prefs },
     }));
+    try {
+      await notificationsApi.updatePreferences(prefs);
+    } catch {
+      // Ignore
+    }
   },
 }));
