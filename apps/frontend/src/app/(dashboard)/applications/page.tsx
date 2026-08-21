@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Briefcase, Clock, Calendar, CheckCircle, XCircle, Plus, LayoutGrid, List, ChevronRight, X, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { jobsApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 const COLUMNS = [
   { id: "applied", title: "Applied", color: "bg-blue-500", badgeColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
@@ -90,8 +92,28 @@ const INITIAL_APPLICATIONS: Application[] = [
 ];
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<Application[]>(INITIAL_APPLICATIONS);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadApplications = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const list = await jobsApi.getApplications(1);
+      setApplications(list);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to fetch applications pipeline from database.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -128,18 +150,43 @@ export default function ApplicationsPage() {
     setIsAddModalOpen(false);
   };
 
-  const moveStatus = (appId: string, nextStatus: Application["status"]) => {
-    setApplications(prev =>
-      prev.map(a => (a.id === appId ? { ...a, status: nextStatus } : a))
-    );
-    if (selectedApp && selectedApp.id === appId) {
-      setSelectedApp(prev => (prev ? { ...prev, status: nextStatus } : null));
+  const moveStatus = async (appId: string, nextStatus: Application["status"]) => {
+    try {
+      await jobsApi.updateApplicationStatus(appId, nextStatus);
+      setApplications(prev =>
+        prev.map(a => (a.id === appId ? { ...a, status: nextStatus } : a))
+      );
+      if (selectedApp && selectedApp.id === appId) {
+        setSelectedApp(prev => (prev ? { ...prev, status: nextStatus } : null));
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
     }
   };
 
   const responseRate = Math.round(
     (applications.filter(a => a.status !== "applied").length / (applications.length || 1)) * 100
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading tracker pipeline...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadApplications()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 pb-20 space-y-6">

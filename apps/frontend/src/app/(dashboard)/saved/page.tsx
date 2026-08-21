@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Bookmark, Search, MapPin, DollarSign, Calendar, ChevronDown, Trash2, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { jobsApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface SavedJobItem {
   id: string;
@@ -56,23 +58,85 @@ const INITIAL_SAVED: SavedJobItem[] = [
 
 export default function SavedJobsPage() {
   const router = useRouter();
-  const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>(INITIAL_SAVED);
+  const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadSavedJobs = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const list = await jobsApi.getSavedJobs(1);
+      const mapped = list.map((s: any) => {
+        const j = s.job;
+        return {
+          id: s.jobId,
+          title: j?.title || "Position",
+          company: j?.company || "SwipeX Partner",
+          initials: j?.companyInitials || "S",
+          color: j?.color || "#635BFF",
+          location: j?.location || "Remote",
+          salary: j?.salary || "$120K - $160K",
+          savedDate: s.savedAt ? new Date(s.savedAt).toLocaleDateString("en-US") : "Recent",
+          match: j?.matchPercentage || 85
+        };
+      });
+      setSavedJobs(mapped);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to load saved jobs from database.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadSavedJobs();
+  }, [loadSavedJobs]);
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [appliedId, setAppliedId] = useState<string | null>(null);
 
-  const handleRemove = (id: string) => {
-    setSavedJobs(prev => prev.filter(j => j.id !== id));
+  const handleRemove = async (id: string) => {
+    try {
+      await jobsApi.unsaveJob(id);
+      setSavedJobs(prev => prev.filter(j => j.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleApply = (id: string) => {
+  const handleApply = async (id: string) => {
     setAppliedId(id);
-    setTimeout(() => {
-      setAppliedId(null);
-      setSavedJobs(prev => prev.filter(j => j.id !== id));
+    try {
+      await jobsApi.createApplication(id, { coverLetter: "Applied from saved jobs." });
+      await jobsApi.unsaveJob(id);
       router.push("/applications");
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      setAppliedId(null);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading bookmarked listings...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadSavedJobs()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
 
   const filteredJobs = savedJobs
     .filter(

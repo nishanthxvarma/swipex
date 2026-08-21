@@ -22,4 +22,8 @@ export class AnalyticsApi {
       `/analytics/recruiter?timeRange=${timeRange}`
     );
   }
+
+  public async getAdminAnalytics(): Promise<any> {
+    return this.client.get<any>('/analytics/admin');
+  }
 }

@@ -17,3 +17,6 @@ class UserService:
     
     async def get_dashboard_stats(self, user_id: uuid.UUID):
         return {"stats": {}}
+
+    async def get_candidates(self):
+        return await self.user_repo.get_candidates()

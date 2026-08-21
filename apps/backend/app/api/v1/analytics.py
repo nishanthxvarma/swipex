@@ -33,3 +33,16 @@ async def get_recruiter_analytics(
     user_id = uuid.UUID(current_user["sub"])
     data = await service.get_recruiter_analytics(user_id=user_id, time_range=timeRange)
     return data
+
+@router.get("/admin")
+async def get_admin_analytics(
+    current_user: dict = Depends(get_current_user),
+    service: AnalyticsService = Depends(get_analytics_service)
+):
+    role = current_user.get("role", "job_seeker")
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required for global system analytics"
+        )
+    return await service.get_admin_analytics()

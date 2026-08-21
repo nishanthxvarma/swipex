@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { SlidersHorizontal, MapPin, DollarSign, Filter, RefreshCw } from "lucide-react";
 import { SwipeStack } from "@/components/swipe/swipe-stack";
+import { jobsApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { Job } from "@/components/swipe/swipe-card";
 
@@ -76,6 +78,47 @@ const MOCK_JOBS: Job[] = [
 export default function JobFeedPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchJobs = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const feed = await jobsApi.getJobFeed(1, 20);
+      setJobs(feed);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to pull available matching jobs from database.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live matching feed...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <button onClick={() => fetchJobs()} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold">Retry</button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] max-w-7xl mx-auto overflow-hidden">
@@ -142,7 +185,7 @@ export default function JobFeedPage() {
         </div>
         
         <div className="flex-1 flex items-center justify-center p-4">
-          <SwipeStack jobs={MOCK_JOBS} onShowDetails={setSelectedJob} />
+          <SwipeStack jobs={jobs} onShowDetails={setSelectedJob} />
         </div>
       </div>
 

@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Sparkles, MapPin, Briefcase, Award, Check, X, RotateCcw, FileText, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usersApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CandidateProfile {
@@ -58,9 +60,28 @@ const CANDIDATES: CandidateProfile[] = [
 ];
 
 export default function RecruiterCandidatesPage() {
-  const [candidates, setCandidates] = useState<CandidateProfile[]>(CANDIDATES);
+  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
   const [shortlisted, setShortlisted] = useState<CandidateProfile[]>([]);
   const [history, setHistory] = useState<CandidateProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function loadCandidates() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const list = await usersApi.getCandidates();
+        setCandidates(list);
+      } catch (err: any) {
+        console.error(err);
+        setError('Failed to load candidate directory.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadCandidates();
+  }, []);
 
   const handleAction = (direction: 'left' | 'right') => {
     if (candidates.length === 0) return;
@@ -71,6 +92,26 @@ export default function RecruiterCandidatesPage() {
     setHistory([...history, current]);
     setCandidates(candidates.slice(1));
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading candidates feed...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
 
   const handleUndo = () => {
     if (history.length === 0) return;

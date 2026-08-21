@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '@/stores/auth-store';
+import { ApiClient, AnalyticsApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
   Users, Building2, Shield, Activity, TrendingUp, AlertTriangle, 
@@ -12,12 +15,61 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function AdminDashboardPage() {
-  const stats = [
-    { name: 'Total Job Seekers', value: '24,580', change: '+12.4%', icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-    { name: 'Verified Recruiters', value: '1,420', change: '+8.1%', icon: Building2, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
-    { name: 'Active Job Listings', value: '5,890', change: '+15.3%', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-    { name: 'Platform Applications', value: '184,200', change: '+24.6%', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-  ];
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.tokens?.accessToken);
+  const [stats, setStats] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadAdminStats = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const client = new ApiClient(
+        process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend.onrender.com/api/v1',
+        () => token || null,
+        () => {}
+      );
+      const api = new AnalyticsApi(client);
+      const res = await api.getAdminAnalytics();
+      
+      setStats([
+        { name: 'Total Job Seekers', value: res.totalJobSeekers.toLocaleString(), change: '+12.4%', icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
+        { name: 'Verified Recruiters', value: res.verifiedRecruiters.toLocaleString(), change: '+8.1%', icon: Building2, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+        { name: 'Active Job Listings', value: res.activeJobListings.toLocaleString(), change: '+15.3%', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+        { name: 'Platform Applications', value: res.platformApplications.toLocaleString(), change: '+24.6%', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+      ]);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to retrieve system operations telemetry.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    loadAdminStats();
+  }, [loadAdminStats]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading system telemetry...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Telemetry offline</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadAdminStats()} className="rounded-xl font-bold">Reconnect</Button>
+      </div>
+    );
+  }
 
   const pendingApprovals = [
     { id: 'rec_1', name: 'Apex AI Systems', contact: 'recruiter@apexai.io', type: 'Enterprise Recruiter', submitted: '2 hours ago', status: 'PENDING' },

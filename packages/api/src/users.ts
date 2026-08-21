@@ -21,5 +21,11 @@ export const usersApi = {
       API_ENDPOINTS.USERS.UPLOAD_RESUME, 
       formData
     );
-  }
+  },
+
+  getCandidates: () =>
+    api.get<any[]>('/users/candidates'),
+
+  listAllUsers: () =>
+    api.get<any[]>('/users/')
 };

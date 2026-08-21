@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from app.models.application import ApplicationModel, SwipeModel, SavedJobModel
+from sqlalchemy.orm import joinedload
+from app.models.job import JobModel
 import uuid
 
 class ApplicationRepository:
@@ -14,7 +16,9 @@ class ApplicationRepository:
         return application
 
     async def get_user_applications(self, user_id: uuid.UUID, page=1, per_page=10):
-        query = select(ApplicationModel).where(ApplicationModel.user_id == user_id).limit(per_page).offset((page - 1) * per_page)
+        query = select(ApplicationModel).options(
+            joinedload(ApplicationModel.job).joinedload(JobModel.company)
+        ).where(ApplicationModel.user_id == user_id).limit(per_page).offset((page - 1) * per_page)
         result = await self.db.execute(query)
         return result.scalars().all()
 

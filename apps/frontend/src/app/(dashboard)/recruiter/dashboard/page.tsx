@@ -21,6 +21,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
+import { usersApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 const recruiterCandidates = [
   {
@@ -62,6 +64,26 @@ export default function RecruiterDashboardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function loadCandidates() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const list = await usersApi.getCandidates();
+        setCandidates(list);
+      } catch (err: any) {
+        console.error(err);
+        setError('Failed to load candidate list from database.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadCandidates();
+  }, []);
 
   // New Job Form State
   const [newJobTitle, setNewJobTitle] = useState('');
@@ -70,6 +92,26 @@ export default function RecruiterDashboardPage() {
   const [jobPostedSuccess, setJobPostedSuccess] = useState(false);
 
   const name = user?.fullName ? user.fullName.split(' ')[0] : 'Recruiter';
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry Connection</Button>
+      </div>
+    );
+  }
 
   const recruiterStats = [
     {
@@ -204,7 +246,7 @@ export default function RecruiterDashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {recruiterCandidates.map((c) => (
+            {candidates.map((c) => (
               <div
                 key={c.id}
                 className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"

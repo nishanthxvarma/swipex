@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuthStore } from '@/stores/auth-store';
+import { authApi } from '@swipex/api';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const loginStore = useAuthStore((state) => state.login);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const {
     register,
@@ -51,70 +53,46 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
+    setLoginError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const res = await authApi.login({
+        email: data.email,
+        password: data.password,
+      });
 
-      const rolePrefix = data.role === 'ADMIN' ? 'adm_' : data.role === 'RECRUITER' ? 'rec_' : 'usr_';
-      const roleName = data.role === 'ADMIN' ? 'Admin' : data.role === 'RECRUITER' ? 'Recruiter' : 'Candidate';
-      
-      loginStore(
-        {
-          id: rolePrefix + Date.now(),
-          email: data.email,
-          fullName: data.email.split('@')[0] || roleName,
-          role: data.role,
-        },
-        {
-          accessToken: 'mock_jwt_access_token',
-          refreshToken: 'mock_jwt_refresh_token',
-        }
-      );
+      const backendRoleMap: Record<string, string> = {
+        job_seeker: 'JOB_SEEKER',
+        recruiter: 'RECRUITER',
+        admin: 'ADMIN'
+      };
 
-      if (data.role === 'ADMIN') {
+      const mappedUser = {
+        id: res.user.id,
+        email: res.user.email,
+        fullName: res.user.fullName || res.user.email.split('@')[0],
+        role: (backendRoleMap[res.user.role] || res.user.role) as any,
+      };
+
+      const mappedTokens = {
+        accessToken: res.access_token,
+        refreshToken: res.refresh_token,
+      };
+
+      loginStore(mappedUser, mappedTokens);
+
+      if (mappedUser.role === 'ADMIN') {
         router.push('/admin/dashboard');
-      } else if (data.role === 'RECRUITER') {
+      } else if (mappedUser.role === 'RECRUITER') {
         router.push('/recruiter/dashboard');
       } else {
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setLoginError(error.message || 'Invalid credentials or database connection failure.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickDemoLogin = (role: 'JOB_SEEKER' | 'RECRUITER' | 'ADMIN') => {
-    setIsLoading(true);
-    setTimeout(() => {
-      let email = 'candidate@swipex.io';
-      let fullName = 'Nishanth Varma (Job Seeker)';
-      let targetPath = '/dashboard';
-
-      if (role === 'RECRUITER') {
-        email = 'recruiter@techcorp.com';
-        fullName = 'Sarah Jenkins (Recruiter)';
-        targetPath = '/recruiter/dashboard';
-      } else if (role === 'ADMIN') {
-        email = 'admin@swipex.io';
-        fullName = 'Alex Morgan (Super Admin)';
-        targetPath = '/admin/dashboard';
-      }
-
-      loginStore(
-        {
-          id: 'demo_' + role.toLowerCase() + '_101',
-          email,
-          fullName,
-          role,
-        },
-        {
-          accessToken: 'mock_jwt_access_token',
-          refreshToken: 'mock_jwt_refresh_token',
-        }
-      );
-      router.push(targetPath);
-    }, 600);
   };
 
   return (
@@ -174,44 +152,11 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* Collapsible Quick Demo Login (Subtly demoted) */}
-      <div className="pt-1">
-        <details className="group rounded-xl border border-border bg-secondary/60 text-xs transition-all">
-          <summary className="flex items-center justify-between p-2.5 cursor-pointer font-medium text-muted-foreground hover:text-foreground select-none">
-            <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              Try a quick demo account
-            </span>
-            <span className="text-[10px] text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <div className="p-2.5 pt-0 grid grid-cols-3 gap-2 border-t border-border mt-1">
-            <button
-              type="button"
-              onClick={() => handleQuickDemoLogin('JOB_SEEKER')}
-              disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-card hover:bg-muted text-[11px] font-semibold text-foreground border border-border transition-colors"
-            >
-              Candidate
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemoLogin('RECRUITER')}
-              disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-[11px] font-semibold text-primary border border-primary/20 transition-colors"
-            >
-              Recruiter
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemoLogin('ADMIN')}
-              disabled={isLoading}
-              className="py-1.5 px-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-colors"
-            >
-              Admin
-            </button>
-          </div>
-        </details>
-      </div>
+{loginError && (
+        <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold animate-pulse">
+          {loginError}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">

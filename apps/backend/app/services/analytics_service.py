@@ -161,3 +161,27 @@ class AnalyticsService:
             "pipelineDistribution": pipeline_dist,
             "timeRange": time_range
         }
+
+    async def get_admin_analytics(self) -> dict:
+        js_stmt = select(func.count(UserModel.id)).where(UserModel.role == "job_seeker")
+        js_res = await self.db.execute(js_stmt)
+        total_job_seekers = js_res.scalar_one()
+
+        rec_stmt = select(func.count(UserModel.id)).where(UserModel.role == "recruiter")
+        rec_res = await self.db.execute(rec_stmt)
+        verified_recruiters = rec_res.scalar_one()
+
+        jobs_stmt = select(func.count(JobModel.id)).where(JobModel.is_active == True)
+        jobs_res = await self.db.execute(jobs_stmt)
+        active_listings = jobs_res.scalar_one()
+
+        apps_stmt = select(func.count(ApplicationModel.id))
+        apps_res = await self.db.execute(apps_stmt)
+        total_applications = apps_res.scalar_one()
+
+        return {
+            "totalJobSeekers": total_job_seekers,
+            "verifiedRecruiters": verified_recruiters,
+            "activeJobListings": active_listings,
+            "platformApplications": total_applications
+        }

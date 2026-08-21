@@ -12,20 +12,40 @@ class AuthService:
             raise HTTPException(status_code=400, detail="Email already registered")
         user = UserModel(email=data.email, hashed_password=hash_password(data.password), role=data.role)
         created_user = await self.user_repo.create(user)
+        
+        # Create default profile with full_name
+        from app.models.user import ProfileModel
+        profile = ProfileModel(user_id=created_user.id, full_name=data.full_name, profile_completion="10%")
+        await self.user_repo.update_profile(profile)
+
         return {
             "access_token": create_access_token(created_user.id, created_user.role),
             "refresh_token": create_refresh_token(created_user.id),
-            "user": {"id": str(created_user.id), "email": created_user.email, "role": created_user.role}
+            "user": {
+                "id": str(created_user.id),
+                "email": created_user.email,
+                "role": created_user.role,
+                "fullName": data.full_name
+            }
         }
     
     async def login(self, email, password):
         user = await self.user_repo.get_by_email(email)
         if not user or not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        profile = await self.user_repo.get_profile(user.id)
+        fullName = profile.full_name if profile else email.split("@")[0]
+        
         return {
             "access_token": create_access_token(user.id, user.role),
             "refresh_token": create_refresh_token(user.id),
-            "user": {"id": str(user.id), "email": user.email, "role": user.role}
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+                "fullName": fullName
+            }
         }
     
     async def refresh_token(self, refresh_token):

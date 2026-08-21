@@ -9,6 +9,38 @@ import uuid
 
 router = APIRouter()
 
+def format_application(app) -> dict:
+    job = app.job
+    company_name = job.company.name if job and job.company else "Tech Corp"
+    title = job.title if job else "Software Engineer"
+    location = job.location if job else "Remote"
+    
+    # logo color mapping
+    colors = ["#4285F4", "#E50914", "#0668E1", "#FF9900", "#635BFF"]
+    color_idx = sum(ord(c) for c in company_name) % len(colors)
+    logo_color = colors[color_idx]
+    
+    salary_str = ""
+    if job and job.salary_min and job.salary_max:
+        salary_str = f"${int(job.salary_min/1000)}K - ${int(job.salary_max/1000)}K"
+    elif job and job.salary_min:
+        salary_str = f"${int(job.salary_min/1000)}K+"
+    else:
+        salary_str = "$140,000 / yr"
+        
+    return {
+        "id": str(app.id),
+        "company": company_name,
+        "title": title,
+        "status": app.status.value if isinstance(app.status, ApplicationStatus) else app.status,
+        "date": app.applied_at.strftime("%b %d, %Y") if app.applied_at else "Today",
+        "color": logo_color,
+        "initials": company_name[0].upper() if company_name else "T",
+        "location": location,
+        "salary": salary_str,
+        "notes": app.cover_letter or "Applied via SwipeX one-tap apply."
+    }
+
 @router.post("/")
 async def create_application(
     app_data: dict,
@@ -50,7 +82,9 @@ async def create_application(
         metadata={"applicationId": str(created_app.id), "jobId": str(job_id)}
     )
 
-    return created_app
+    # Load relationship for formatting
+    created_app.job = job
+    return format_application(created_app)
 
 @router.get("/")
 async def get_applications(
@@ -60,7 +94,8 @@ async def get_applications(
     app_repo: ApplicationRepository = Depends(get_application_repository)
 ):
     user_id = uuid.UUID(current_user["sub"])
-    return await app_repo.get_user_applications(user_id=user_id, page=page, per_page=perPage)
+    apps = await app_repo.get_user_applications(user_id=user_id, page=page, per_page=perPage)
+    return [format_application(a) for a in apps]
 
 @router.get("/{app_id}")
 async def get_application(
@@ -72,7 +107,7 @@ async def get_application(
     apps = await app_repo.get_user_applications(user_id=user_id, page=1, per_page=100)
     for a in apps:
         if a.id == app_id:
-            return a
+            return format_application(a)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
 @router.put("/{app_id}/status")
@@ -93,19 +128,19 @@ async def update_status(
     job_title = job.title if job else "Position"
 
     # Trigger candidate notification based on status
-    if new_status == ApplicationStatus.reviewing:
+    if new_status == ApplicationStatus.reviewing.value:
         notif_type = "application_viewed"
         title = "Application Viewed by Recruiter"
         msg = f"The recruitment team viewed your application for {job_title}."
-    elif new_status == ApplicationStatus.interview:
+    elif new_status == ApplicationStatus.interview.value:
         notif_type = "interview_scheduled"
         title = "Interview Scheduled! 🎉"
         msg = f"Great news! You have been shortlisted for an interview for {job_title}."
-    elif new_status == ApplicationStatus.offer:
+    elif new_status == ApplicationStatus.offer.value:
         notif_type = "application_status_changed"
         title = "Job Offer Received! 🏆"
         msg = f"Congratulations! You received an official offer for {job_title}."
-    elif new_status == ApplicationStatus.rejected:
+    elif new_status == ApplicationStatus.rejected.value:
         notif_type = "application_status_changed"
         title = "Application Status Update"
         msg = f"Your application status for {job_title} has been updated."
@@ -122,4 +157,5 @@ async def update_status(
         metadata={"applicationId": str(app_id), "newStatus": new_status}
     )
 
-    return updated_app
+    updated_app.job = job
+    return format_application(updated_app)

@@ -7,6 +7,8 @@ import {
   CheckCircle2, AlertOctagon, UserX, UserCheck, Trash2, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usersApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function AdminUsersPage() {
@@ -20,6 +22,26 @@ export default function AdminUsersPage() {
     { id: '4', name: 'David Chen', email: 'david.chen@gmail.com', role: 'JOB_SEEKER', status: 'SUSPENDED', joined: '2026-03-12', applications: 3 },
     { id: '5', name: 'Elena Rostova', email: 'elena@innovate.dev', role: 'RECRUITER', status: 'ACTIVE', joined: '2026-04-05', applications: 89 },
   ]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading users telemetry...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadUsers()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
 
   const toggleUserStatus = (id: string) => {
     setUsers(prev => prev.map(u => {

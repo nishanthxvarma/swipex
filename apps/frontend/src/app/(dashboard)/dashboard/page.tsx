@@ -19,10 +19,13 @@ import {
   UserCheck,
   Users,
   X,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
+import { jobsApi, usersApi } from '@swipex/api';
 import { JobDetailModal } from '@/components/jobs/job-detail-modal';
 import { Job } from '@/components/swipe/swipe-card';
 
@@ -144,6 +147,11 @@ export default function DashboardPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
 
+  // Dynamic lists from DB
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+
   // New Job Form State
   const [newJobTitle, setNewJobTitle] = useState('');
   const [newJobLocation, setNewJobLocation] = useState('Remote');
@@ -151,9 +159,28 @@ export default function DashboardPage() {
   const [jobPostedSuccess, setJobPostedSuccess] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
+    async function loadDashboardData() {
+      setIsLoading(true);
+      setDashboardError(null);
+      try {
+        if (user?.role === 'RECRUITER') {
+          const list = await usersApi.getCandidates();
+          setCandidates(list);
+        } else {
+          const feed = await jobsApi.getJobFeed(1, 10);
+          setJobs(feed);
+        }
+      } catch (err: any) {
+        console.error('Failed to load dashboard data:', err);
+        setDashboardError('Failed to retrieve live data from the database.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
   const name = user?.fullName ? user.fullName.split(' ')[0] : 'User';
   const isRecruiter = user?.role === 'RECRUITER';
@@ -292,13 +319,20 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-64 animate-pulse rounded-md bg-muted" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-xl bg-card" />
-          ))}
-        </div>
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading live workspace...</p>
+      </div>
+    );
+  }
+
+  if (dashboardError) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{dashboardError}</p>
+        <Button onClick={() => window.location.reload()} className="rounded-xl font-bold">Retry Connection</Button>
       </div>
     );
   }
@@ -374,7 +408,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {recruiterCandidates.map((c) => (
+              {candidates.map((c) => (
                 <div
                   key={c.id}
                   className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-all hover:border-primary/50 hover:shadow-md"
@@ -492,7 +526,7 @@ export default function DashboardPage() {
   }
 
   // JOB SEEKER DASHBOARD VIEW (Default)
-  const topMatchJob = sampleJobs[0];
+  const topMatchJob = jobs[0];
 
   return (
     <div className="space-y-8 pb-20 md:pb-0">
@@ -696,7 +730,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {sampleJobs.map((job) => (
+            {jobs.length === 0 ? (
+              <div className="text-center py-12 border border-dashed rounded-2xl p-6 bg-card text-xs text-muted-foreground">
+                No recommended jobs matching your profile yet.
+              </div>
+            ) : jobs.map((job) => (
               <div
                 key={job.id}
                 onClick={() => setSelectedJob(job)}

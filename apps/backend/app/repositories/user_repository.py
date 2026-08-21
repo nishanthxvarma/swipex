@@ -40,3 +40,10 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(profile)
         return profile
+
+    async def get_candidates(self):
+        from sqlalchemy.orm import selectinload
+        result = await self.db.execute(
+            select(UserModel).options(selectinload(UserModel.profile)).where(UserModel.role == "job_seeker")
+        )
+        return result.scalars().all()

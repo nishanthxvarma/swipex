@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Building2, Plus, Users, MapPin, DollarSign, Clock, MoreHorizontal, Edit, Trash2, CheckCircle2, PauseCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { jobsApi } from '@swipex/api';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface RecruiterJob {
   id: string;
@@ -49,8 +51,38 @@ const INITIAL_JOBS: RecruiterJob[] = [
 ];
 
 export default function RecruiterJobsPage() {
-  const [jobs, setJobs] = useState<RecruiterJob[]>(INITIAL_JOBS);
+  const [jobs, setJobs] = useState<RecruiterJob[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadJobs = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const feed = await jobsApi.getJobFeed(1, 20);
+      const mapped = feed.map((j: any) => ({
+        id: j.id,
+        title: j.title,
+        department: 'Engineering',
+        location: j.location,
+        salary: j.salary,
+        applicantsCount: j.applicationsCount || 0,
+        status: j.isActive ? 'Active' : 'Paused',
+        postedDate: j.postedAt ? new Date(j.postedAt).toLocaleDateString('en-US') : 'Recent',
+      }));
+      setJobs(mapped);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to fetch job postings from database.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -58,25 +90,47 @@ export default function RecruiterJobsPage() {
   const [location, setLocation] = useState('Remote');
   const [salary, setSalary] = useState('$140,000 - $180,000');
 
-  const handleAddJob = (e: React.FormEvent) => {
+  const handleAddJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
-
-    const newRole: RecruiterJob = {
-      id: 'rj_' + Date.now(),
-      title,
-      department,
-      location,
-      salary,
-      applicantsCount: 0,
-      status: 'Active',
-      postedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    };
-
-    setJobs([newRole, ...jobs]);
-    setTitle('');
-    setIsAddModalOpen(false);
+    setIsLoading(true);
+    try {
+      await jobsApi.createJob({
+        title,
+        location,
+        salaryMin: 120000,
+        salaryMax: 180000,
+        requirements: 'Requirements here...',
+      });
+      setTitle('');
+      setIsAddModalOpen(false);
+      await loadJobs();
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to create new job posting.');
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading active postings...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl bg-destructive/5 border-destructive/20">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+        <h3 className="font-bold text-lg">Connection Failure</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
+        <Button onClick={() => loadJobs()} className="rounded-xl font-bold">Retry</Button>
+      </div>
+    );
+  }
 
   const toggleStatus = (id: string) => {
     setJobs((prev) =>
