@@ -9,6 +9,22 @@ import bcrypt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
+import uuid
+def parse_id(val):
+    if not val:
+        return val
+    if isinstance(val, (uuid.UUID, int)):
+        return val
+    val_str = str(val)
+    if len(val_str) == 36 and val_str.count("-") == 4:
+        try:
+            return uuid.UUID(val_str)
+        except ValueError:
+            pass
+    if val_str.isdigit():
+        return int(val_str)
+    return val_str
+
 def hash_password(password: str) -> str:
     pwd_bytes = password[:72].encode("utf-8")
     salt = bcrypt.gensalt()

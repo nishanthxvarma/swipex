@@ -4,7 +4,7 @@ from app.repositories.application_repository import ApplicationRepository
 from app.repositories.job_repository import JobRepository
 from app.services.notification_service import NotificationService
 from app.models.application import ApplicationModel, ApplicationStatus
-from app.core.security import get_current_user
+from app.core.security import get_current_user, parse_id
 import uuid
 
 router = APIRouter()
@@ -49,8 +49,8 @@ async def create_application(
     job_repo: JobRepository = Depends(get_job_repository),
     notif_service: NotificationService = Depends(get_notification_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
-    job_id = uuid.UUID(app_data["jobId"])
+    user_id = parse_id(current_user["sub"])
+    job_id = parse_id(app_data["jobId"])
 
     application = ApplicationModel(
         user_id=user_id,
@@ -93,20 +93,20 @@ async def get_applications(
     current_user: dict = Depends(get_current_user),
     app_repo: ApplicationRepository = Depends(get_application_repository)
 ):
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     apps = await app_repo.get_user_applications(user_id=user_id, page=page, per_page=perPage)
     return [format_application(a) for a in apps]
 
 @router.get("/{app_id}")
 async def get_application(
-    app_id: uuid.UUID,
+    app_id: str,
     current_user: dict = Depends(get_current_user),
     app_repo: ApplicationRepository = Depends(get_application_repository)
 ):
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     apps = await app_repo.get_user_applications(user_id=user_id, page=1, per_page=100)
     for a in apps:
-        if a.id == app_id:
+        if str(a.id) == str(app_id):
             return format_application(a)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
@@ -119,7 +119,7 @@ async def get_recruiter_pipeline(
     if role not in ("recruiter", "admin"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter or Admin access required")
 
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     apps = await app_repo.get_recruiter_pipeline_applications(recruiter_id=user_id)
 
     def map_stage(status_val):
@@ -167,7 +167,7 @@ async def get_recruiter_pipeline(
 
 @router.put("/{app_id}/status")
 async def update_status(
-    app_id: uuid.UUID,
+    app_id: str,
     status_data: dict,
     current_user: dict = Depends(get_current_user),
     app_repo: ApplicationRepository = Depends(get_application_repository),

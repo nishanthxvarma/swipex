@@ -8,7 +8,9 @@ class JobRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(self, job_id: uuid.UUID):
+    async def get_by_id(self, job_id):
+        from app.core.security import parse_id
+        job_id = parse_id(job_id)
         result = await self.db.execute(select(JobModel).options(joinedload(JobModel.company)).where(JobModel.id == job_id))
         return result.scalars().first()
 
@@ -33,11 +35,15 @@ class JobRepository:
         await self.db.refresh(job)
         return job
 
-    async def delete(self, job_id: uuid.UUID):
+    async def delete(self, job_id):
+        from app.core.security import parse_id
+        job_id = parse_id(job_id)
         await self.db.execute(delete(JobModel).where(JobModel.id == job_id))
         await self.db.commit()
 
-    async def get_feed(self, user_id: uuid.UUID, page=1, per_page=10):
+    async def get_feed(self, user_id, page=1, per_page=10):
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
         # In a real app this would exclude swiped jobs
         result = await self.db.execute(select(JobModel).options(joinedload(JobModel.company)).limit(per_page).offset((page - 1) * per_page))
         return result.scalars().all()
@@ -48,7 +54,9 @@ class JobRepository:
         result = await self.db.execute(query)
         return result.scalars().all()
     
-    async def get_company_by_id(self, company_id: uuid.UUID):
+    async def get_company_by_id(self, company_id):
+        from app.core.security import parse_id
+        company_id = parse_id(company_id)
         result = await self.db.execute(select(CompanyModel).where(CompanyModel.id == company_id))
         return result.scalars().first()
     

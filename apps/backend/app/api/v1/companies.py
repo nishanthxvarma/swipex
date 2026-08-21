@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional, List
 import uuid
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, parse_id
 from app.api.deps import get_company_repository
 from app.repositories.company_repository import CompanyRepository
 from app.models.job import CompanyModel
@@ -74,10 +74,10 @@ async def list_companies(
 
 @router.get("/{company_id}")
 async def get_company(
-    company_id: uuid.UUID,
+    company_id: str,
     company_repo: CompanyRepository = Depends(get_company_repository)
 ):
-    company = await company_repo.get_by_id(company_id)
+    company = await company_repo.get_by_id(parse_id(company_id))
     if not company:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -116,7 +116,7 @@ async def create_company(
 
 @router.put("/{company_id}")
 async def update_company(
-    company_id: uuid.UUID,
+    company_id: str,
     company_data: dict,
     current_user: dict = Depends(get_current_user),
     company_repo: CompanyRepository = Depends(get_company_repository)

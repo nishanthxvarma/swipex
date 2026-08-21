@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from app.core.security import get_current_user
+from app.core.security import get_current_user, parse_id
 from app.api.deps import get_analytics_service
 from app.services.analytics_service import AnalyticsService
 from app.schemas.analytics import CandidateAnalyticsSchema, RecruiterAnalyticsSchema
@@ -13,7 +13,7 @@ async def get_candidate_analytics(
     current_user: dict = Depends(get_current_user),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     data = await service.get_candidate_analytics(user_id=user_id, time_range=timeRange)
     return data
 
@@ -30,7 +30,7 @@ async def get_recruiter_analytics(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Recruiter or Admin access required for recruiter analytics"
         )
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     data = await service.get_recruiter_analytics(user_id=user_id, time_range=timeRange)
     return data
 

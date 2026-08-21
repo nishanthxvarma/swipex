@@ -8,8 +8,8 @@ class UserRepository:
         self.db = db
 
     async def get_by_id(self, user_id):
-        if isinstance(user_id, str):
-            user_id = uuid.UUID(user_id)
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
         result = await self.db.execute(select(UserModel).where(UserModel.id == user_id))
         return result.scalars().first()
 
@@ -30,14 +30,14 @@ class UserRepository:
         return user
 
     async def delete(self, user_id):
-        if isinstance(user_id, str):
-            user_id = uuid.UUID(user_id)
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
         await self.db.execute(delete(UserModel).where(UserModel.id == user_id))
         await self.db.commit()
 
     async def get_profile(self, user_id):
-        if isinstance(user_id, str):
-            user_id = uuid.UUID(user_id)
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
         result = await self.db.execute(select(ProfileModel).where(ProfileModel.user_id == user_id))
         profile = result.scalars().first()
         if not profile:
@@ -113,8 +113,8 @@ class UserRepository:
         return result.scalars().first()
 
     async def revoke_refresh_tokens_for_user(self, user_id):
-        if isinstance(user_id, str):
-            user_id = uuid.UUID(user_id)
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
         from app.models.user import RefreshTokenModel
         result = await self.db.execute(select(RefreshTokenModel).where(RefreshTokenModel.user_id == user_id, RefreshTokenModel.is_revoked == False))
         for token in result.scalars().all():
@@ -129,10 +129,9 @@ class UserRepository:
         return action_record
 
     async def get_candidate_action(self, recruiter_id, candidate_id):
-        if isinstance(recruiter_id, str):
-            recruiter_id = uuid.UUID(recruiter_id)
-        if isinstance(candidate_id, str):
-            candidate_id = uuid.UUID(candidate_id)
+        from app.core.security import parse_id
+        recruiter_id = parse_id(recruiter_id)
+        candidate_id = parse_id(candidate_id)
         from app.models.application import RecruiterCandidateActionModel
         result = await self.db.execute(
             select(RecruiterCandidateActionModel).where(

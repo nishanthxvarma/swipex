@@ -4,7 +4,7 @@ from app.services.job_service import JobService
 from app.services.competition_service import CompetitionService
 from app.services.notification_service import NotificationService
 from app.services.user_service import UserService
-from app.core.security import get_current_user
+from app.core.security import get_current_user, parse_id
 from app.schemas.competition import CompetitionIndicatorSchema
 import uuid
 
@@ -112,7 +112,7 @@ async def get_feed(
     job_service: JobService = Depends(get_job_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     jobs = await job_service.get_feed(user_id=user_id, page=page, per_page=perPage)
     
     # Fetch user skills for rules-based match calculation
@@ -125,21 +125,21 @@ async def get_feed(
 
 @router.get("/{job_id}/competition", response_model=CompetitionIndicatorSchema)
 async def get_job_competition(
-    job_id: uuid.UUID,
+    job_id: str,
     current_user: dict = Depends(get_current_user),
     competition_service: CompetitionService = Depends(get_competition_service),
 ):
-    user_id = uuid.UUID(current_user["sub"])
-    return await competition_service.get_job_competition(job_id=job_id, user_id=user_id)
+    user_id = parse_id(current_user["sub"])
+    return await competition_service.get_job_competition(job_id=parse_id(job_id), user_id=user_id)
 
 @router.get("/{job_id}")
 async def get_job(
-    job_id: uuid.UUID, 
+    job_id: str, 
     job_service: JobService = Depends(get_job_service),
     current_user: dict = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service)
 ):
-    job = await job_service.get_job_detail(job_id)
+    job = await job_service.get_job_detail(parse_id(job_id))
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
         
@@ -192,25 +192,25 @@ async def create_job(
 
 @router.post("/{job_id}/swipe")
 async def swipe_job(
-    job_id: uuid.UUID,
+    job_id: str,
     direction: str = Query("right", regex="^(left|right|up)$"),
     current_user: dict = Depends(get_current_user),
     job_service: JobService = Depends(get_job_service),
     notif_service: NotificationService = Depends(get_notification_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
-    res = await job_service.swipe_job(user_id=user_id, job_id=job_id, direction=direction)
+    user_id = parse_id(current_user["sub"])
+    res = await job_service.swipe_job(user_id=user_id, job_id=parse_id(job_id), direction=direction)
     return res
 
 @router.post("/{job_id}/save")
 async def save_job(
-    job_id: uuid.UUID,
+    job_id: str,
     current_user: dict = Depends(get_current_user),
     job_service: JobService = Depends(get_job_service),
     notif_service: NotificationService = Depends(get_notification_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
-    res = await job_service.save_job(user_id=user_id, job_id=job_id)
+    user_id = parse_id(current_user["sub"])
+    res = await job_service.save_job(user_id=user_id, job_id=parse_id(job_id))
     
     await notif_service.create_notification(
         user_id=user_id,
@@ -223,19 +223,19 @@ async def save_job(
 
 @router.delete("/{job_id}/save")
 async def unsave_job(
-    job_id: uuid.UUID,
+    job_id: str,
     current_user: dict = Depends(get_current_user),
     job_service: JobService = Depends(get_job_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
-    return await job_service.unsave_job(user_id=user_id, job_id=job_id)
+    user_id = parse_id(current_user["sub"])
+    return await job_service.unsave_job(user_id=user_id, job_id=parse_id(job_id))
 
 @router.get("/saved")
 async def get_saved_jobs(
     current_user: dict = Depends(get_current_user),
     job_service: JobService = Depends(get_job_service)
 ):
-    user_id = uuid.UUID(current_user["sub"])
+    user_id = parse_id(current_user["sub"])
     saved = await job_service.get_saved_jobs(user_id=user_id)
     # format jobs inside SavedJobModel list
     formatted_saved = []

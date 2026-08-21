@@ -36,9 +36,9 @@ class CompanyRepository:
         res = await self.db.execute(stmt)
         return res.scalars().all()
 
-    async def get_by_id(self, company_id: uuid.UUID) -> Optional[CompanyModel]:
-        if isinstance(company_id, str):
-            company_id = uuid.UUID(company_id)
+    async def get_by_id(self, company_id) -> Optional[CompanyModel]:
+        from app.core.security import parse_id
+        company_id = parse_id(company_id)
         stmt = select(CompanyModel).options(selectinload(CompanyModel.jobs)).where(CompanyModel.id == company_id)
         res = await self.db.execute(stmt)
         return res.scalars().first()

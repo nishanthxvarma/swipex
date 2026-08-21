@@ -32,8 +32,8 @@ class ApplicationRepository:
         return result.scalars().all()
 
     async def update_status(self, application_id, status: str):
-        if isinstance(application_id, str):
-            application_id = uuid.UUID(application_id)
+        from app.core.security import parse_id
+        application_id = parse_id(application_id)
         result = await self.db.execute(select(ApplicationModel).where(ApplicationModel.id == application_id))
         app = result.scalars().first()
         if app:
@@ -49,11 +49,14 @@ class ApplicationRepository:
         await self.db.refresh(saved_job)
         return saved_job
     
-    async def unsave_job(self, user_id: uuid.UUID, job_id: uuid.UUID):
+    async def unsave_job(self, user_id, job_id):
+        from app.core.security import parse_id
+        user_id = parse_id(user_id)
+        job_id = parse_id(job_id)
         await self.db.execute(delete(SavedJobModel).where(SavedJobModel.user_id == user_id).where(SavedJobModel.job_id == job_id))
         await self.db.commit()
     
-    async def get_saved_jobs(self, user_id: uuid.UUID, page=1, per_page=10):
+    async def get_saved_jobs(self, user_id, page=1, per_page=10):
         query = select(SavedJobModel).where(SavedJobModel.user_id == user_id).limit(per_page).offset((page - 1) * per_page)
         result = await self.db.execute(query)
         return result.scalars().all()

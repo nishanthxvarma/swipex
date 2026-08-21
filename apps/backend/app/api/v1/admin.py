@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from typing import Optional, List
 import uuid
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, parse_id
 from app.api.deps import get_user_service, get_audit_service
 from app.services.user_service import UserService
 from app.services.audit_service import AuditService
@@ -61,14 +61,14 @@ async def list_recruiters(
 
 @router.put("/recruiters/{recruiter_id}/verify")
 async def toggle_recruiter_verification(
-    recruiter_id: uuid.UUID,
+    recruiter_id: str,
     current_user: dict = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
     audit_service: AuditService = Depends(get_audit_service)
 ):
     verify_admin_role(current_user)
 
-    recruiter = await user_service.user_repo.get_by_id(recruiter_id)
+    recruiter = await user_service.user_repo.get_by_id(parse_id(recruiter_id))
     if not recruiter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recruiter not found")
 
@@ -82,7 +82,7 @@ async def toggle_recruiter_verification(
     await audit_service.log_event(
         action=action_type,
         resource_type="RECRUITER",
-        user_id=uuid.UUID(current_user["id"]),
+        user_id=parse_id(current_user["id"]),
         resource_id=str(recruiter_id),
         metadata={"email": recruiter.email, "is_verified": recruiter.is_verified}
     )
@@ -96,7 +96,7 @@ async def toggle_recruiter_verification(
 
 @router.put("/recruiters/{recruiter_id}/status")
 async def toggle_recruiter_status(
-    recruiter_id: uuid.UUID,
+    recruiter_id: str,
     status_data: dict,
     current_user: dict = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
@@ -104,7 +104,7 @@ async def toggle_recruiter_status(
 ):
     verify_admin_role(current_user)
 
-    recruiter = await user_service.user_repo.get_by_id(recruiter_id)
+    recruiter = await user_service.user_repo.get_by_id(parse_id(recruiter_id))
     if not recruiter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recruiter not found")
 
@@ -122,7 +122,7 @@ async def toggle_recruiter_status(
     await audit_service.log_event(
         action="RECRUITER_SUSPENDED" if not recruiter.is_active else "RECRUITER_ACTIVATED",
         resource_type="RECRUITER",
-        user_id=uuid.UUID(current_user["id"]),
+        user_id=parse_id(current_user["id"]),
         resource_id=str(recruiter_id),
         metadata={"email": recruiter.email, "is_active": recruiter.is_active}
     )
@@ -163,7 +163,7 @@ async def list_admin_users(
 
 @router.put("/users/{user_id}/status")
 async def update_user_status(
-    user_id: uuid.UUID,
+    user_id: str,
     status_data: dict,
     current_user: dict = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
@@ -171,7 +171,7 @@ async def update_user_status(
 ):
     verify_admin_role(current_user)
 
-    target_user = await user_service.user_repo.get_by_id(user_id)
+    target_user = await user_service.user_repo.get_by_id(parse_id(user_id))
     if not target_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -185,7 +185,7 @@ async def update_user_status(
     await audit_service.log_event(
         action="USER_STATUS_UPDATED",
         resource_type="USER",
-        user_id=uuid.UUID(current_user["id"]),
+        user_id=parse_id(current_user["id"]),
         resource_id=str(user_id),
         metadata={"email": target_user.email, "is_active": target_user.is_active}
     )
