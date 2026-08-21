@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiClient, AnalyticsApi } from '@swipex/api';
-import { Loader2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
   Users, Building2, Shield, Activity, TrendingUp, AlertTriangle, 
-  CheckCircle2, XCircle, Search, Filter, RefreshCw, Sparkles, 
+  CheckCircle2, XCircle, Search, Filter, RefreshCw, Sparkles, Loader2,
   ArrowUpRight, BarChart3, UserCheck, Briefcase, Lock, Settings, Clock, Terminal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

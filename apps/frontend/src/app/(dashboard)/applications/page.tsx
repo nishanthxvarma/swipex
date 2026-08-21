@@ -92,7 +92,7 @@ const INITIAL_APPLICATIONS: Application[] = [
 ];
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

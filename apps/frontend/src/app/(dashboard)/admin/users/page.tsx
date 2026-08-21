@@ -1,33 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Users, Search, Filter, Shield, MoreVertical, 
-  CheckCircle2, AlertOctagon, UserX, UserCheck, Trash2, Mail
+  Users, Search, Shield, CheckCircle2, AlertOctagon, Loader2, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usersApi } from '@swipex/api';
-import { Loader2, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [users, setUsers] = useState([
-    { id: '1', name: 'Nishanth Varma', email: 'candidate@swipex.io', role: 'JOB_SEEKER', status: 'ACTIVE', joined: '2026-01-15', applications: 18 },
-    { id: '2', name: 'Sarah Jenkins', email: 'recruiter@techcorp.com', role: 'RECRUITER', status: 'ACTIVE', joined: '2026-02-01', applications: 142 },
-    { id: '3', name: 'Alex Morgan', email: 'admin@swipex.io', role: 'ADMIN', status: 'ACTIVE', joined: '2025-11-10', applications: 0 },
-    { id: '4', name: 'David Chen', email: 'david.chen@gmail.com', role: 'JOB_SEEKER', status: 'SUSPENDED', joined: '2026-03-12', applications: 3 },
-    { id: '5', name: 'Elena Rostova', email: 'elena@innovate.dev', role: 'RECRUITER', status: 'ACTIVE', joined: '2026-04-05', applications: 89 },
-  ]);
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await usersApi.listAllUsers();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to load users from backend database.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const toggleUserStatus = (id: string) => {
+    setUsers(prev => prev.map(u => {
+      if (u.id === id) {
+        return { ...u, status: u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' };
+      }
+      return u;
+    }));
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   if (isLoading) {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading users telemetry...</p>
+        <p className="text-xs font-bold text-muted-foreground animate-pulse">Loading users directory from database...</p>
       </div>
     );
   }
@@ -43,26 +69,11 @@ export default function AdminUsersPage() {
     );
   }
 
-  const toggleUserStatus = (id: string) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === id) {
-        return { ...u, status: u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' };
-      }
-      return u;
-    }));
-  };
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
-
   return (
     <div className="space-y-6 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">User Directory & Governance</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">User Directory &amp; Governance</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Manage candidates, recruiters, and platform administrators.
           </p>
@@ -113,12 +124,19 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y text-sm">
-              {filteredUsers.map((u) => (
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-xs font-semibold">
+                    <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    No users found.
+                  </td>
+                </tr>
+              ) : filteredUsers.map((u) => (
                 <tr key={u.id} className="hover:bg-muted/20 transition-colors">
                   <td className="py-4 px-6 font-semibold">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        {u.name.substring(0, 2).toUpperCase()}
+                        {(u.name || u.email || 'U').substring(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-bold text-foreground">{u.name}</p>
@@ -144,7 +162,7 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="py-4 px-6 text-xs text-muted-foreground font-medium">{u.joined}</td>
-                  <td className="py-4 px-6 text-xs font-bold">{u.applications} events</td>
+                  <td className="py-4 px-6 text-xs font-bold">{u.applications ?? 0} events</td>
                   <td className="py-4 px-6 text-right">
                     <Button
                       size="sm"

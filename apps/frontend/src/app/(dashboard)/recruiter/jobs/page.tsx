@@ -51,7 +51,7 @@ const INITIAL_JOBS: RecruiterJob[] = [
 ];
 
 export default function RecruiterJobsPage() {
-  const [jobs, setJobs] = useState<RecruiterJob[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
