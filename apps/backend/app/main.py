@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import time
@@ -136,6 +137,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    await logger.aerror("Unhandled server exception", path=request.url.path, error=str(exc))
+    origin = request.headers.get("origin") or "*"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"},
+        headers={
+            "Access-Control-Allow-Origin": origin if not is_wildcard else "*",
+            "Access-Control-Allow-Credentials": "true" if not is_wildcard else "false",
+        }
+    )
 
 @app.middleware("http")
 async def performance_timing_middleware(request: Request, call_next):

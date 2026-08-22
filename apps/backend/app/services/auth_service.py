@@ -288,9 +288,21 @@ class AuthService:
                         if google_user and google_user.get("email"):
                             return google_user
                     else:
-                        await logger.aerror("Google code exchange failed", status=res.status_code, body=res.text)
+                        err_data = res.json() if "json" in res.headers.get("content-type", "") else {}
+                        err_desc = err_data.get("error_description") or err_data.get("error") or res.text[:200]
+                        await logger.aerror("Google code exchange failed", status=res.status_code, body=err_desc)
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Google OAuth code exchange failed: {err_desc}"
+                        )
+            except HTTPException:
+                raise
             except Exception as e:
                 await logger.aerror("Error during Google OAuth code exchange", error=str(e))
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Google OAuth connection error: {str(e)}"
+                )
 
         # Verify id_token via tokeninfo endpoint if user not yet resolved
         if not google_user and id_token:
