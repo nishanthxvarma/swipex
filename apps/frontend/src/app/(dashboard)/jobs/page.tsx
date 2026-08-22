@@ -1,43 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { SlidersHorizontal, MapPin, Filter, RefreshCw, Sparkles, Layers, ArrowUpRight } from 'lucide-react';
 import { SwipeStack } from '@/components/swipe/swipe-stack';
-import { jobsApi } from '@swipex/api';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { JobDetailModal } from '@/components/jobs/job-detail-modal';
 import { Job } from '@/components/swipe/swipe-card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useJobFeed, QUERY_KEYS } from '@/hooks/queries';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function JobFeedPage() {
+  const queryClient = useQueryClient();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filters state
   const [locationFilter, setLocationFilter] = useState('');
   const [experienceFilter, setExperienceFilter] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const feed = await jobsApi.getJobFeed(1, 20);
-      setJobs(feed || []);
-    } catch (err: unknown) {
-      console.error('Feed error:', err);
-      setError('Failed to pull available matching jobs from database.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  const { data: feedData, isLoading, error, refetch } = useJobFeed(1, 20);
+  const jobs = (feedData || []) as Job[];
 
   const filteredJobs = jobs.filter((j) => {
     if (locationFilter.trim() && !j.location?.toLowerCase().includes(locationFilter.toLowerCase().trim())) {
@@ -48,28 +32,8 @@ export default function JobFeedPage() {
 
   const activeJob = filteredJobs[0];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading live matching feed...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
-        <Button onClick={() => fetchJobs()} className="rounded-xl font-bold">Retry Connection</Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-6rem)] max-w-7xl mx-auto overflow-hidden rounded-3xl border border-border glass-1">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-6rem)] max-w-7xl mx-auto overflow-hidden rounded-3xl border border-border glass-1 animate-in fade-in duration-200">
       {/* Left Panel: Filters (Desktop) */}
       <div className="hidden lg:block w-72 border-r border-border bg-card/40 overflow-y-auto p-6 space-y-6">
         <div>
@@ -154,7 +118,10 @@ export default function JobFeedPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => fetchJobs()}
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobFeed(1, 20) });
+                refetch();
+              }}
               title="Refresh Deck"
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
@@ -163,7 +130,22 @@ export default function JobFeedPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center p-4">
-          <SwipeStack jobs={filteredJobs} onShowDetails={setSelectedJob} />
+          {isLoading ? (
+            <div className="w-full max-w-sm h-96 rounded-3xl glass-2 border border-border animate-pulse flex flex-col items-center justify-center space-y-3">
+              <Sparkles className="w-8 h-8 text-primary opacity-60 animate-spin" />
+              <p className="text-xs font-semibold text-muted-foreground">Indexing matches...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center p-6 space-y-3">
+              <AlertTriangle className="w-8 h-8 text-destructive mx-auto" />
+              <p className="text-xs text-muted-foreground">Failed to pull matching jobs.</p>
+              <Button size="sm" onClick={() => refetch()} className="rounded-xl">
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <SwipeStack jobs={filteredJobs} onShowDetails={setSelectedJob} />
+          )}
         </div>
       </div>
 
@@ -183,7 +165,9 @@ export default function JobFeedPage() {
             <div className="space-y-5">
               <div>
                 <p className="text-xs font-bold text-foreground">{activeJob.title}</p>
-                <p className="text-xs text-muted-foreground">{activeJob.company} • {activeJob.location}</p>
+                <p className="text-xs text-muted-foreground">
+                  {activeJob.company} • {activeJob.location}
+                </p>
               </div>
 
               {/* Breakdown bars */}
@@ -224,7 +208,10 @@ export default function JobFeedPage() {
                 <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Required Skills</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {activeJob.skills?.map((skill, idx) => (
-                    <span key={idx} className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                    <span
+                      key={idx}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20"
+                    >
                       {skill}
                     </span>
                   ))}
@@ -274,11 +261,7 @@ export default function JobFeedPage() {
       )}
 
       {/* Details Modal */}
-      <JobDetailModal
-        job={selectedJob}
-        isOpen={!!selectedJob}
-        onClose={() => setSelectedJob(null)}
-      />
+      <JobDetailModal job={selectedJob} isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }

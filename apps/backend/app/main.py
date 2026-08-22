@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import time
 from app.api.v1.router import api_router
 from app.core.config import settings
 import structlog
@@ -31,6 +32,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def performance_timing_middleware(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
+    
+    # Attach Server-Timing header for frontend network diagnostics
+    response.headers["Server-Timing"] = f"total;dur={duration_ms}"
+    
+    # Log structured performance metric
+    if not request.url.path.endswith("/health"):
+        logger.info(
+            "http_request_completed",
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            duration_ms=duration_ms,
+        )
+    return response
 
 app.include_router(api_router, prefix="/api/v1")
 

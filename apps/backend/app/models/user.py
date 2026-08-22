@@ -29,7 +29,7 @@ class UserModel(Base):
 class ProfileModel(Base):
     __tablename__ = "profiles"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, index=True)
     full_name = Column(String)
     headline = Column(String)
     bio = Column(String)

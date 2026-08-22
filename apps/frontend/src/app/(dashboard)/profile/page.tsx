@@ -1,116 +1,100 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { User, Mail, MapPin, Briefcase, Code, FileText, Link as LinkIcon, Edit2, Download, ExternalLink, Plus, Check, Save, Upload, Sparkles, X, Loader2, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  User,
+  Mail,
+  MapPin,
+  Briefcase,
+  Code,
+  FileText,
+  Edit2,
+  Save,
+  Upload,
+  Sparkles,
+  X,
+  Plus,
+  Check,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useResumeStore } from '@/stores/resume-store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usersApi } from '@swipex/api';
+import { useUserProfile, useActiveResume } from '@/hooks/queries';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/hooks/queries';
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
-  
-  const { activeResume, uploadResume, isUploading, fetchActiveResume } = useResumeStore();
+  const queryClient = useQueryClient();
+
+  const { data: profileData, isLoading: isProfileQueryLoading } = useUserProfile();
+  const { data: activeResumeData } = useActiveResume();
+  const { uploadResume, isUploading } = useResumeStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const [fullName, setFullName] = useState("");
-  const [headline, setHeadline] = useState("");
-  const [location, setLocation] = useState("");
-  const [bio, setBio] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
-  const [experiences, setExperiences] = useState<any[]>([]);
-  const [newSkillInput, setNewSkillInput] = useState("");
+  // Form State initialized from cached user immediately (0ms perceived load)
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [headline, setHeadline] = useState(user?.headline || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [skills, setSkills] = useState<string[]>(user?.skills || []);
+  const [experiences, setExperiences] = useState<any[]>(user?.experiences || []);
+  const [newSkillInput, setNewSkillInput] = useState('');
   const [showAddSkill, setShowAddSkill] = useState(false);
-  
-  const [socialLinks, setSocialLinks] = useState(user?.socialLinks || [
-    { id: 1, name: "LinkedIn", url: "https://linkedin.com", handle: "linkedin.com", colorClass: "bg-blue-500/10 text-blue-500" },
-    { id: 2, name: "GitHub", url: "https://github.com", handle: "github.com", colorClass: "bg-foreground/10 text-[#F5FAFF]" },
-  ]);
 
-  const [resumeFileName, setResumeFileName] = useState("");
+  const [socialLinks, setSocialLinks] = useState(
+    user?.socialLinks || [
+      { id: 1, name: 'LinkedIn', url: 'https://linkedin.com', handle: 'linkedin.com' },
+      { id: 2, name: 'GitHub', url: 'https://github.com', handle: 'github.com' },
+    ]
+  );
+
+  const [resumeFileName, setResumeFileName] = useState('');
   const [atsScore, setAtsScore] = useState(0);
 
-  const fetchProfileFromDb = useCallback(async () => {
-    setIsLoadingProfile(true);
-    try {
-      const p = await usersApi.getProfile();
-      if (p) {
-        setFullName(p.fullName || p.full_name || user?.fullName || "");
-        setHeadline(p.headline || user?.headline || "");
-        setLocation(p.location || user?.location || "");
-        setBio(p.bio || user?.bio || "");
-        setSkills(p.skills && p.skills.length > 0 ? p.skills : (user?.skills || []));
-        setExperiences(p.experiences && p.experiences.length > 0 ? p.experiences : (user?.experiences || []));
-        if (p.socialLinks && p.socialLinks.length > 0) {
-          setSocialLinks(p.socialLinks);
-        } else if (p.social_links && p.social_links.length > 0) {
-          setSocialLinks(p.social_links);
-        }
-
-        if (user) {
-          setUser({
-            ...user,
-            fullName: p.fullName || p.full_name || user.fullName,
-            headline: p.headline || user.headline,
-            location: p.location || user.location,
-            bio: p.bio || user.bio,
-            skills: p.skills || user.skills,
-            experiences: p.experiences || user.experiences,
-            socialLinks: p.socialLinks || p.social_links || user.socialLinks
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Error loading profile from DB:", err);
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  }, [user, setUser]);
-
+  // Synchronize when server profile data arrives without wiping user input
   useEffect(() => {
-    fetchActiveResume();
-    fetchProfileFromDb();
-  }, [fetchActiveResume, fetchProfileFromDb]);
-
-  useEffect(() => {
-    if (activeResume?.parsedData && skills.length === 0) {
-      const p = activeResume.parsedData;
-      if (!fullName) setFullName(p.personalInfo?.name || "");
-      if (!headline) setHeadline(p.personalInfo?.headline || "");
-      if (!location) setLocation(p.personalInfo?.location || "");
-      if (!bio) setBio((p.personalInfo as any)?.summary || p.personalInfo?.headline || "");
-      
-      const extractedSkills = p.skills ? (Object.values(p.skills).flat() as string[]) : [];
-      if (extractedSkills.length > 0 && skills.length === 0) {
-        setSkills(extractedSkills);
+    if (profileData && !isEditing) {
+      if (profileData.fullName || profileData.full_name) {
+        setFullName(profileData.fullName || profileData.full_name);
       }
-      
-      if (experiences.length === 0 && p.experience) {
-        const extractedExp = p.experience.map((exp: any, idx: number) => ({
-          id: exp.id || idx,
-          title: exp.role || "",
-          company: exp.company || "",
-          date: exp.duration || "",
-          description: exp.description || "",
-        }));
-        setExperiences(extractedExp);
+      if (profileData.headline) setHeadline(profileData.headline);
+      if (profileData.location) setLocation(profileData.location);
+      if (profileData.bio) setBio(profileData.bio);
+      if (profileData.skills && profileData.skills.length > 0) {
+        setSkills(profileData.skills);
       }
-      setAtsScore(activeResume.atsScore || 0);
-      setResumeFileName(activeResume.filename || "Resume.pdf");
+      if (profileData.experiences && profileData.experiences.length > 0) {
+        setExperiences(profileData.experiences);
+      }
+      if (profileData.socialLinks && profileData.socialLinks.length > 0) {
+        setSocialLinks(profileData.socialLinks);
+      } else if (profileData.social_links && profileData.social_links.length > 0) {
+        setSocialLinks(profileData.social_links);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeResume]);
+  }, [profileData, isEditing]);
+
+  // Synchronize active resume
+  useEffect(() => {
+    if (activeResumeData) {
+      setAtsScore(activeResumeData.atsScore || 0);
+      setResumeFileName(activeResumeData.filename || activeResumeData.originalName || 'Resume.pdf');
+    }
+  }, [activeResumeData]);
 
   const getUserInitials = (name: string) => {
-    if (!name) return "U";
-    const parts = name.split(" ");
+    if (!name) return 'U';
+    const parts = name.split(' ');
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
@@ -128,13 +112,13 @@ export default function ProfilePage() {
         bio,
         skills,
         experiences,
-        socialLinks
+        socialLinks,
       };
 
       const updated = await usersApi.updateProfile(payload);
 
       if (user) {
-        setUser({
+        const updatedUser = {
           ...user,
           fullName: updated?.fullName || updated?.full_name || fullName,
           headline: updated?.headline || headline,
@@ -142,16 +126,21 @@ export default function ProfilePage() {
           bio: updated?.bio || bio,
           skills: updated?.skills || skills,
           experiences: updated?.experiences || experiences,
-          socialLinks: updated?.socialLinks || updated?.social_links || socialLinks
-        });
+          socialLinks: updated?.socialLinks || updated?.social_links || socialLinks,
+        };
+        setUser(updatedUser);
       }
+
+      // Invalidate React Query cache
+      queryClient.setQueryData(QUERY_KEYS.profile, updated);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
 
       setIsEditing(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err: any) {
-      console.error("Save profile error:", err);
-      setError(err?.message || "Failed to persist profile changes to backend database.");
+      console.error('Save profile error:', err);
+      setError(err?.message || 'Failed to persist profile changes to backend database.');
     } finally {
       setIsSaving(false);
     }
@@ -161,7 +150,7 @@ export default function ProfilePage() {
     e.preventDefault();
     if (newSkillInput.trim() && !skills.includes(newSkillInput.trim())) {
       setSkills([...skills, newSkillInput.trim()]);
-      setNewSkillInput("");
+      setNewSkillInput('');
       setShowAddSkill(false);
     }
   };
@@ -175,20 +164,12 @@ export default function ProfilePage() {
     if (file) {
       setResumeFileName(file.name);
       await uploadResume(file);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeResume });
     }
   };
 
-  if (isLoadingProfile) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-bold text-[#66788A] animate-pulse">Loading candidate profile from database...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 pb-20 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 pb-20 space-y-8 animate-in fade-in duration-200">
       {saveSuccess && (
         <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-600 dark:text-emerald-400 font-semibold text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <Check className="w-5 h-5 text-emerald-500 shrink-0" />
@@ -206,11 +187,11 @@ export default function ProfilePage() {
       {/* Profile Header Card */}
       <div className="glass-1 border rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xs">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-        
+
         <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start relative z-10">
           <div className="relative">
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl border-4 border-background">
-              {getUserInitials(fullName)}
+              {getUserInitials(fullName || user?.fullName || 'User')}
             </div>
             <button
               onClick={() => setIsEditing(!isEditing)}
@@ -220,7 +201,7 @@ export default function ProfilePage() {
               <Edit2 className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="flex-1 text-center sm:text-left space-y-3">
             {isEditing ? (
               <div className="space-y-3">
@@ -264,24 +245,38 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                <h1 className="text-3xl font-bold tracking-tight">{fullName || "Candidate Name"}</h1>
-                <p className="text-lg font-semibold text-primary">{headline || "Software Engineer"}</p>
+                <h1 className="text-3xl font-bold tracking-tight">{fullName || user?.fullName || 'Candidate Name'}</h1>
+                <p className="text-lg font-semibold text-primary">{headline || user?.headline || 'Software Engineer'}</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-xs font-semibold mt-2">
-                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full"><MapPin className="w-3.5 h-3.5 text-primary" /> {location || "Remote"}</span>
-                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full"><Mail className="w-3.5 h-3.5 text-primary" /> {user?.email || "candidate@swipex.ai"}</span>
+                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full">
+                    <MapPin className="w-3.5 h-3.5 text-primary" /> {location || user?.location || 'Remote'}
+                  </span>
+                  <span className="flex items-center gap-1.5 glass-1 px-3 py-1.5 rounded-full">
+                    <Mail className="w-3.5 h-3.5 text-primary" /> {user?.email || 'candidate@swipex.ai'}
+                  </span>
                 </div>
               </>
             )}
           </div>
-          
+
           <div className="w-32 h-32 flex flex-col items-center justify-center">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-muted" />
-                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * (atsScore || 85)) / 100} className="text-emerald-500 transition-all duration-1000" />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray="226"
+                  strokeDashoffset={226 - (226 * (atsScore || 85)) / 100}
+                  className="text-emerald-500 transition-all duration-1000"
+                />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-lg font-bold">
-                {atsScore || 85}%
+                {atsScore > 0 ? `${atsScore}%` : '85%'}
               </div>
             </div>
             <span className="text-xs text-[#66788A] mt-2 font-semibold">ATS Match Score</span>
@@ -295,19 +290,23 @@ export default function ProfilePage() {
           {/* About */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold flex items-center gap-2"><User className="w-6 h-6 text-primary" /> About Me</h2>
-              <button onClick={() => setIsEditing(!isEditing)} className="text-[#66788A] hover:text-primary"><Edit2 className="w-4 h-4" /></button>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <User className="w-6 h-6 text-primary" /> About Me
+              </h2>
+              <button onClick={() => setIsEditing(!isEditing)} className="text-[#66788A] hover:text-primary">
+                <Edit2 className="w-4 h-4" />
+              </button>
             </div>
             <div className="glass-1 border rounded-2xl p-6 text-[#66788A] leading-relaxed text-sm sm:text-base">
               {isEditing ? (
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full h-32 bg-background border p-3 rounded-xl text-[#F5FAFF] text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full h-32 bg-background border p-3 rounded-xl text-foreground text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Tell recruiters about yourself..."
                 />
               ) : (
-                bio || "No summary provided. Click edit to add your bio!"
+                bio || user?.bio || 'No summary provided. Click edit to add your bio!'
               )}
             </div>
           </section>
@@ -315,14 +314,19 @@ export default function ProfilePage() {
           {/* Experience Timeline */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold flex items-center gap-2"><Briefcase className="w-6 h-6 text-primary" /> Experience</h2>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Briefcase className="w-6 h-6 text-primary" /> Experience
+              </h2>
             </div>
             <div className="glass-1 border rounded-2xl p-6 space-y-6 shadow-xs">
               {experiences.length === 0 ? (
                 <p className="text-xs text-[#66788A] italic">No work experience listed yet.</p>
               ) : (
                 experiences.map((exp, index) => (
-                  <div key={exp.id || index} className={cn("relative pl-6 border-l-2 border-primary/20", index !== experiences.length - 1 && "pb-6")}>
+                  <div
+                    key={exp.id || index}
+                    className={cn('relative pl-6 border-l-2 border-primary/20', index !== experiences.length - 1 && 'pb-6')}
+                  >
                     <div className="absolute w-3.5 h-3.5 bg-primary rounded-full -left-[8px] top-1.5 border-2 border-background" />
                     <h3 className="font-bold text-lg">{exp.title}</h3>
                     <div className="text-primary font-semibold text-sm mb-1">{exp.company}</div>
@@ -340,8 +344,13 @@ export default function ProfilePage() {
           {/* Skills Tag Cloud */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center gap-2"><Code className="w-5 h-5 text-primary" /> Skills ({skills.length})</h2>
-              <button onClick={() => setShowAddSkill(!showAddSkill)} className="text-primary hover:scale-110 transition-transform">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Code className="w-5 h-5 text-primary" /> Skills ({skills.length})
+              </h2>
+              <button
+                onClick={() => setShowAddSkill(!showAddSkill)}
+                className="text-primary hover:scale-110 transition-transform"
+              >
                 <Plus className="w-5 h-5" />
               </button>
             </div>
@@ -356,7 +365,9 @@ export default function ProfilePage() {
                     placeholder="e.g. React, Python"
                     className="flex-1 px-3 py-1.5 bg-background border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <Button type="submit" size="sm" className="rounded-xl text-xs font-bold px-3">Add</Button>
+                  <Button type="submit" size="sm" className="rounded-xl text-xs font-bold px-3">
+                    Add
+                  </Button>
                 </form>
               )}
 
@@ -364,7 +375,7 @@ export default function ProfilePage() {
                 {skills.map((skill) => (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 glass-1 text-secondary-foreground rounded-xl text-xs font-semibold hover:glass-1/80 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 glass-1 text-foreground rounded-xl text-xs font-semibold hover:glass-1/80 transition-colors"
                   >
                     {skill}
                     {isEditing && (
@@ -380,19 +391,24 @@ export default function ProfilePage() {
 
           {/* Resume Upload */}
           <section className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> Active Resume</h2>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> Active Resume
+            </h2>
             <div className="glass-1 border rounded-2xl p-6 space-y-4 shadow-xs">
               <div className="flex items-center justify-between p-3 glass-1/50 rounded-xl border border-border">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <FileText className="w-8 h-8 text-primary shrink-0" />
                   <div className="truncate">
-                    <div className="font-bold text-xs truncate">{resumeFileName || "Candidate_Resume.pdf"}</div>
+                    <div className="font-bold text-xs truncate">{resumeFileName || 'Candidate_Resume.pdf'}</div>
                     <div className="text-[10px] text-[#66788A]">Parsed & Indexed</div>
                   </div>
                 </div>
-                <label className="p-2 hover:bg-background rounded-lg cursor-pointer transition-colors text-primary" title="Upload new resume">
+                <label
+                  className="p-2 hover:bg-background rounded-lg cursor-pointer transition-colors text-primary"
+                  title="Upload new resume"
+                >
                   <Upload className="w-4 h-4" />
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="hidden" />
+                  <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleResumeUpload} className="hidden" />
                 </label>
               </div>
               {isUploading && (

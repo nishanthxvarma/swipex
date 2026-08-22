@@ -62,14 +62,7 @@ export default function ResumeDashboardPage() {
   const atsScore = activeResume ? Math.round(activeResume.atsScore) : 0;
   const atsBreakdown = activeResume?.atsBreakdown;
 
-  if (isLoading && !activeResume) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading resume profile &amp; ATS analytics...</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-8 pb-20 md:pb-8 relative">
@@ -156,7 +149,13 @@ export default function ResumeDashboardPage() {
         </motion.div>
       )}
 
-      {!activeResume ? (
+      {isLoading && !activeResume ? (
+        <div className="border border-border glass-1 rounded-3xl p-10 max-w-xl mx-auto my-8 space-y-4 animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto" />
+          <div className="h-6 w-48 bg-muted rounded-xl mx-auto" />
+          <div className="h-4 w-72 bg-muted rounded-xl mx-auto" />
+        </div>
+      ) : !activeResume ? (
         /* Empty State */
         <div className="border border-dashed border-border glass-1 rounded-3xl p-10 text-center space-y-4 max-w-xl mx-auto my-8">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto shadow-xs">

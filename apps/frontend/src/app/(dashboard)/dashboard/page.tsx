@@ -1,17 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowUpRight,
   Award,
   Building2,
   Calendar,
   Clock,
-  Eye,
   FileText,
-  MapPin,
   Plus,
   Shield,
   Sparkles,
@@ -20,31 +17,25 @@ import {
   X,
   Loader2,
   AlertTriangle,
-  Briefcase,
   Layers,
-  ChevronRight,
-  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
-import { jobsApi, usersApi, notificationsApi } from '@swipex/api';
+import { jobsApi } from '@swipex/api';
 import { JobDetailModal } from '@/components/jobs/job-detail-modal';
 import { Job } from '@/components/swipe/swipe-card';
 import { useNotificationStore } from '@/stores/notification-store';
+import { useDashboardData, QUERY_KEYS } from '@/hooks/queries';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function DashboardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
-
-  // Dynamic lists from DB
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   // New Job Form State
   const [newJobTitle, setNewJobTitle] = useState('');
@@ -58,56 +49,20 @@ export default function DashboardPage() {
   const [jobPostedSuccess, setJobPostedSuccess] = useState(false);
 
   const notifications = useNotificationStore((s) => s.notifications);
-  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
 
-  const loadDashboardData = useCallback(async () => {
-    setIsLoading(true);
-    setDashboardError(null);
-    try {
-      if (user?.role === 'RECRUITER') {
-        const [candidateList, feedJobs] = await Promise.allSettled([
-          usersApi.getCandidates(),
-          jobsApi.getJobFeed(1, 20),
-        ]);
-        if (candidateList.status === 'fulfilled') {
-          setCandidates(candidateList.value || []);
-        }
-        if (feedJobs.status === 'fulfilled') {
-          setJobs(feedJobs.value || []);
-        }
-      } else {
-        const [feed, userApps] = await Promise.allSettled([
-          jobsApi.getJobFeed(1, 10),
-          jobsApi.getApplications(1),
-        ]);
-        if (feed.status === 'fulfilled') {
-          setJobs(feed.value || []);
-        }
-        if (userApps.status === 'fulfilled') {
-          setApplications(userApps.value || []);
-        }
-        fetchNotifications();
-      }
-    } catch (err: unknown) {
-      console.error('Failed to load dashboard data:', err);
-      setDashboardError('Failed to retrieve live data from the database.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, fetchNotifications]);
+  // High-performance React Query hook with 2-min stale caching
+  const { data, isLoading, error, refetch } = useDashboardData(user?.role);
 
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user, loadDashboardData]);
+  const jobs = (data?.jobs || []) as Job[];
+  const candidates = data?.candidates || [];
+  const applications = data?.applications || [];
 
   const name = user?.fullName ? user.fullName.split(' ')[0] : 'User';
   const isRecruiter = user?.role === 'RECRUITER';
 
   // Calculate live stats from backend state
   const totalAppsCount = applications.length;
-  const interviewCount = applications.filter((a) => a.status === 'interview' || a.status === 'INTERVIEW').length;
+  const interviewCount = applications.filter((a: any) => a.status === 'interview' || a.status === 'INTERVIEW').length;
   const calculatedProfileStrength = user?.fullName && user?.email ? 85 : 40;
 
   const candidateStats = [
@@ -212,7 +167,7 @@ export default function DashboardPage() {
       });
 
       setJobPostedSuccess(true);
-      await loadDashboardData();
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard('RECRUITER') });
 
       setTimeout(() => {
         setJobPostedSuccess(false);
@@ -228,30 +183,10 @@ export default function DashboardPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading live workspace...</p>
-      </div>
-    );
-  }
-
-  if (dashboardError) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{dashboardError}</p>
-        <Button onClick={() => loadDashboardData()} className="rounded-xl font-bold">Retry Connection</Button>
-      </div>
-    );
-  }
-
   // RECRUITER DASHBOARD VIEW
   if (isRecruiter) {
     return (
-      <div className="space-y-8 pb-20 md:pb-0">
+      <div className="space-y-8 pb-20 md:pb-0 animate-in fade-in duration-200">
         {/* Recruiter Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -288,7 +223,13 @@ export default function DashboardPage() {
                   <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
                   <p className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
                 </div>
-                <div className={cn('flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110', stat.bgColor, stat.color)}>
+                <div
+                  className={cn(
+                    'flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform group-hover:scale-110',
+                    stat.bgColor,
+                    stat.color
+                  )}
+                >
                   <stat.icon className="h-6 w-6" />
                 </div>
               </div>
@@ -318,12 +259,18 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {candidates.length === 0 ? (
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-24 rounded-2xl glass-1 border border-border animate-pulse" />
+                  ))}
+                </div>
+              ) : candidates.length === 0 ? (
                 <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-muted-foreground">
                   No registered candidates found in the database.
                 </div>
               ) : (
-                candidates.slice(0, 5).map((c) => (
+                candidates.slice(0, 5).map((c: any) => (
                   <div
                     key={c.id}
                     className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border glass-1 p-5 shadow-xs transition-all hover:border-primary/40 hover:shadow-md"
@@ -347,7 +294,10 @@ export default function DashboardPage() {
                         <p className="text-xs text-muted-foreground mt-0.5 font-medium">{c.title || c.headline || 'Software Engineer'}</p>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {(c.skills || ['React', 'TypeScript']).slice(0, 4).map((s: string, idx: number) => (
-                            <span key={idx} className="text-[10px] font-semibold glass-2 px-2 py-0.5 rounded-md border border-border/50 text-foreground">
+                            <span
+                              key={idx}
+                              className="text-[10px] font-semibold glass-2 px-2 py-0.5 rounded-md border border-border/50 text-foreground"
+                            >
                               {s}
                             </span>
                           ))}
@@ -385,7 +335,13 @@ export default function DashboardPage() {
             </div>
 
             <div className="rounded-2xl border border-border glass-1 p-5 shadow-xs space-y-3">
-              {jobs.length === 0 ? (
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="h-14 rounded-xl glass-2 border border-border animate-pulse" />
+                  ))}
+                </div>
+              ) : jobs.length === 0 ? (
                 <div className="text-center py-8 text-xs text-muted-foreground">
                   No active job listings yet. Post your first job!
                 </div>
@@ -418,7 +374,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Post Job Modal with Real Backend Wiring */}
+        {/* Post Job Modal */}
         {isPostJobModalOpen && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
@@ -550,7 +506,7 @@ export default function DashboardPage() {
   const topMatchJob = jobs[0];
 
   return (
-    <div className="space-y-8 pb-20 md:pb-0">
+    <div className="space-y-8 pb-20 md:pb-0 animate-in fade-in duration-200">
       {/* Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -569,6 +525,17 @@ export default function DashboardPage() {
           Find Matches
         </Button>
       </div>
+
+      {error ? (
+        <div className="space-y-6 flex flex-col justify-center items-center h-[30vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
+          <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+          <h3 className="font-bold text-lg text-foreground">Connection Notice</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mb-4">Live dashboard updates could not be synced.</p>
+          <Button onClick={() => refetch()} className="rounded-xl font-bold">
+            Retry Sync
+          </Button>
+        </div>
+      ) : null}
 
       {/* Dominant Feature: "Your Next Best Match" with spatial SwipeX Card Stack */}
       {topMatchJob ? (
@@ -692,10 +659,15 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-muted-foreground">Skills Alignment</span>
-                      <span className="text-primary font-bold">{topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%</span>
+                      <span className="text-primary font-bold">
+                        {topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%
+                      </span>
                     </div>
                     <div className="h-1.5 w-full glass-1 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%` }} />
+                      <div
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${topMatchJob.matchPercentage ? Math.min(100, topMatchJob.matchPercentage + 2) : 92}%` }}
+                      />
                     </div>
                   </div>
 
@@ -731,6 +703,8 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+      ) : isLoading ? (
+        <div className="h-64 rounded-3xl glass-1 border border-border animate-pulse" />
       ) : (
         <div className="text-center py-12 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
           <Sparkles className="w-10 h-10 text-primary mx-auto opacity-70" />
@@ -757,7 +731,13 @@ export default function DashboardPage() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.title}</p>
                 <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
               </div>
-              <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110', stat.bgColor, stat.color)}>
+              <div
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110',
+                  stat.bgColor,
+                  stat.color
+                )}
+              >
                 <stat.icon className="h-5 w-5" />
               </div>
             </div>
@@ -785,7 +765,13 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {jobs.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-20 rounded-2xl glass-1 border border-border animate-pulse" />
+                ))}
+              </div>
+            ) : jobs.length === 0 ? (
               <div className="text-center py-12 border border-dashed rounded-2xl p-6 glass-1 text-xs text-muted-foreground">
                 No recommended jobs matching your profile yet.
               </div>
@@ -820,9 +806,7 @@ export default function DashboardPage() {
                       <span className="inline-block rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-bold text-success border border-success/20">
                         {job.atsScore || job.matchPercentage || 85}% Match
                       </span>
-                      <p className="text-xs font-medium text-muted-foreground mt-1">
-                        {job.salary}
-                      </p>
+                      <p className="text-xs font-medium text-muted-foreground mt-1">{job.salary}</p>
                     </div>
                     <Button variant="outline" size="sm" className="rounded-xl group-hover:border-primary group-hover:text-primary">
                       View
@@ -877,11 +861,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Modal for detailed job view */}
-      <JobDetailModal
-        job={selectedJob}
-        isOpen={!!selectedJob}
-        onClose={() => setSelectedJob(null)}
-      />
+      <JobDetailModal job={selectedJob} isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }

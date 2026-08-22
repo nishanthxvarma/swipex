@@ -42,7 +42,7 @@ class CompanyModel(Base):
 class JobModel(Base):
     __tablename__ = "jobs"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"))
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), index=True)
     title = Column(String, nullable=False)
     description = Column(String)
     requirements = Column(String)
@@ -57,10 +57,10 @@ class JobModel(Base):
     skills_preferred = Column(JSON, default=list)
     benefits = Column(JSON, default=list)
     application_deadline = Column(DateTime)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)
     views_count = Column(Integer, default=0)
     applications_count = Column(Integer, default=0)
-    posted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    posted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     company = relationship("CompanyModel", back_populates="jobs")

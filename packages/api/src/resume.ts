@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import { ApiClient, api } from './client';
 import {
   ActiveResumeResponse,
   ATSScoreResult,
@@ -123,7 +123,7 @@ function normalizeResumeResponse(raw: any, fallbackFilename: string = 'Resume.pd
 }
 
 export class ResumeApi {
-  constructor(private client: ApiClient) {}
+  constructor(private client: ApiClient = api) {}
 
   public async uploadResume(file: File): Promise<ActiveResumeResponse> {
     const formData = new FormData();
@@ -239,3 +239,5 @@ export class ResumeApi {
     }
   }
 }
+
+export const resumeApi = new ResumeApi();

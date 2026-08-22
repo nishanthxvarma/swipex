@@ -20,7 +20,7 @@ class ResumeModel(Base):
     ats_breakdown = Column(JSON, default=dict)
     health_report = Column(JSON, default=dict)
     suggestions = Column(JSON, default=list)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)
 
     # Versioning & extraction metadata (Backward-compatible additions)
     parser_version = Column(String, default="2.0.0", nullable=True)
@@ -30,7 +30,7 @@ class ResumeModel(Base):
     raw_text = Column(String, nullable=True)
     evidence_spans = Column(JSON, default=dict, nullable=True)
 
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships

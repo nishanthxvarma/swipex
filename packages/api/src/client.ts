@@ -20,22 +20,109 @@ function defaultGetToken(): string | null {
   return null;
 }
 
+function defaultGetRefreshToken(): string | null {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('swipex-auth-storage');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed?.state?.tokens?.refreshToken || parsed?.state?.tokens?.refresh_token || null;
+      }
+    } catch (e) {
+      console.error('Error reading refresh token from localStorage', e);
+    }
+  }
+  return null;
+}
+
+function defaultSetTokens(accessToken: string | null, refreshToken?: string | null): void {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('swipex-auth-storage');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.state) {
+          if (!accessToken) {
+            parsed.state.tokens = null;
+            parsed.state.isAuthenticated = false;
+          } else {
+            parsed.state.tokens = {
+              accessToken,
+              refreshToken: refreshToken || parsed.state.tokens?.refreshToken || parsed.state.tokens?.refresh_token || '',
+            };
+            parsed.state.isAuthenticated = true;
+          }
+          localStorage.setItem('swipex-auth-storage', JSON.stringify(parsed));
+        }
+      }
+    } catch (e) {
+      console.error('Error updating tokens in localStorage', e);
+    }
+  }
+}
+
 export class ApiClient {
   private baseUrl: string;
   private getToken: () => string | null;
   private setToken: (token: string | null) => void;
   private handleRefresh: () => Promise<string | null>;
+  private refreshPromise: Promise<string | null> | null = null;
+  private inFlightGets = new Map<string, Promise<any>>();
 
   constructor(
     baseUrl = API_BASE_URL,
     getToken: () => string | null = defaultGetToken,
     setToken = (_token: string | null) => {},
-    handleRefresh = async () => null
+    handleRefresh?: () => Promise<string | null>
   ) {
     this.baseUrl = baseUrl;
     this.getToken = getToken;
     this.setToken = setToken;
-    this.handleRefresh = handleRefresh;
+    this.handleRefresh = handleRefresh || this.defaultRefreshFlow.bind(this);
+  }
+
+  private async defaultRefreshFlow(): Promise<string | null> {
+    const refreshToken = defaultGetRefreshToken();
+    if (!refreshToken) return null;
+
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${refreshToken}`,
+        },
+        body: JSON.stringify({ refresh_token: refreshToken, refreshToken }),
+      });
+
+      if (!res.ok) {
+        defaultSetTokens(null);
+        return null;
+      }
+
+      const data = await res.json();
+      const newAccess = data.access_token || data.tokens?.accessToken || data.accessToken;
+      const newRefresh = data.refresh_token || data.tokens?.refreshToken || data.refreshToken || refreshToken;
+
+      if (newAccess) {
+        defaultSetTokens(newAccess, newRefresh);
+        this.setToken(newAccess);
+        return newAccess;
+      }
+      return null;
+    } catch (e) {
+      console.error('Failed to execute refresh flow:', e);
+      return null;
+    }
+  }
+
+  private async executeSingleFlightRefresh(): Promise<string | null> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = this.handleRefresh().finally(() => {
+        this.refreshPromise = null;
+      });
+    }
+    return this.refreshPromise;
   }
 
   private async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
@@ -53,72 +140,91 @@ export class ApiClient {
       if (qs) url += `?${qs}`;
     }
 
-    const token = this.getToken();
-    const isFormData = typeof FormData !== 'undefined' && restConfig.body instanceof FormData;
-    const defaultHeaders: Record<string, string> = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(headers as Record<string, string> || {})
-    };
-    if (!isFormData && !defaultHeaders['Content-Type']) {
-      defaultHeaders['Content-Type'] = 'application/json';
+    const isGet = !restConfig.method || restConfig.method.toUpperCase() === 'GET';
+
+    // GET Request Deduplication: if an identical GET request is in flight, share the promise
+    if (isGet && this.inFlightGets.has(url)) {
+      return this.inFlightGets.get(url) as Promise<T>;
     }
 
-    try {
-      let response = await fetch(url, {
-        ...restConfig,
-        headers: defaultHeaders
-      });
-
-      // Handle 401 Unauthorized for token refresh
-      if (response.status === 401 && token) {
-        const newToken = await this.handleRefresh();
-        if (newToken) {
-          defaultHeaders['Authorization'] = `Bearer ${newToken}`;
-          response = await fetch(url, {
-            ...restConfig,
-            headers: defaultHeaders
-          });
-        }
+    const executeFetch = async (): Promise<T> => {
+      const token = this.getToken();
+      const isFormData = typeof FormData !== 'undefined' && restConfig.body instanceof FormData;
+      const defaultHeaders: Record<string, string> = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(headers as Record<string, string> || {})
+      };
+      if (!isFormData && !defaultHeaders['Content-Type']) {
+        defaultHeaders['Content-Type'] = 'application/json';
       }
 
-      const data = await response.json().catch(() => null);
+      try {
+        let response = await fetch(url, {
+          ...restConfig,
+          headers: defaultHeaders
+        });
 
-      if (!response.ok) {
-        let errorMsg = '';
-        if (data) {
-          if (typeof data.detail === 'string') {
-            errorMsg = data.detail;
-          } else if (Array.isArray(data.detail)) {
-            errorMsg = data.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
-          } else if (typeof data.message === 'string') {
-            errorMsg = data.message;
+        // Single-Flight 401 Refresh Handling
+        if (response.status === 401 && token) {
+          const newToken = await this.executeSingleFlightRefresh();
+          if (newToken) {
+            defaultHeaders['Authorization'] = `Bearer ${newToken}`;
+            response = await fetch(url, {
+              ...restConfig,
+              headers: defaultHeaders
+            });
           }
         }
-        if (!errorMsg && response.statusText) {
-          errorMsg = response.statusText;
-        }
-        if (!errorMsg) {
-          errorMsg = `Request failed with status ${response.status}`;
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          let errorMsg = '';
+          if (data) {
+            if (typeof data.detail === 'string') {
+              errorMsg = data.detail;
+            } else if (Array.isArray(data.detail)) {
+              errorMsg = data.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+            } else if (typeof data.message === 'string') {
+              errorMsg = data.message;
+            }
+          }
+          if (!errorMsg && response.statusText) {
+            errorMsg = response.statusText;
+          }
+          if (!errorMsg) {
+            errorMsg = `Request failed with status ${response.status}`;
+          }
+
+          const error: ApiError = {
+            code: data?.code || `HTTP_${response.status}`,
+            message: errorMsg,
+            details: data?.details || data?.detail
+          };
+          throw error;
         }
 
-        const error: ApiError = {
-          code: data?.code || `HTTP_${response.status}`,
-          message: errorMsg,
-          details: data?.details || data?.detail
+        return data as T;
+      } catch (error) {
+        if ((error as ApiError).code) throw error;
+        
+        const genericError: ApiError = {
+          code: 'NETWORK_ERROR',
+          message: error instanceof Error ? error.message : 'Network error occurred'
         };
-        throw error;
+        throw genericError;
       }
+    };
 
-      return data as T;
-    } catch (error) {
-      if ((error as ApiError).code) throw error;
-      
-      const genericError: ApiError = {
-        code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network error occurred'
-      };
-      throw genericError;
+    if (isGet) {
+      const getPromise = executeFetch().finally(() => {
+        this.inFlightGets.delete(url);
+      });
+      this.inFlightGets.set(url, getPromise);
+      return getPromise;
     }
+
+    return executeFetch();
   }
 
   public get<T>(endpoint: string, config?: RequestConfig) {

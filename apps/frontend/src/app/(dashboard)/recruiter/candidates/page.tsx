@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, MapPin, Briefcase, Check, X, RotateCcw, UserCheck, Loader2, AlertTriangle, Users } from 'lucide-react';
+import { Sparkles, MapPin, Briefcase, Check, X, RotateCcw, UserCheck, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usersApi } from '@swipex/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/hooks/queries';
 
 interface CandidateProfile {
   id: string;
@@ -20,29 +22,23 @@ interface CandidateProfile {
 }
 
 export default function RecruiterCandidatesPage() {
-  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
+  const queryClient = useQueryClient();
   const [shortlisted, setShortlisted] = useState<CandidateProfile[]>([]);
   const [history, setHistory] = useState<CandidateProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadCandidates = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const list = await usersApi.getCandidates();
-      setCandidates(list || []);
-    } catch (err: unknown) {
-      console.error(err);
-      setError('Failed to load candidate directory.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: rawCandidates, isLoading, error, refetch } = useQuery({
+    queryKey: QUERY_KEYS.recruiterCandidates,
+    queryFn: () => usersApi.getCandidates(),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
 
   useEffect(() => {
-    loadCandidates();
-  }, [loadCandidates]);
+    if (rawCandidates) {
+      setCandidates(rawCandidates);
+    }
+  }, [rawCandidates]);
 
   const handleAction = async (direction: 'left' | 'right') => {
     if (candidates.length === 0) return;
@@ -63,30 +59,10 @@ export default function RecruiterCandidatesPage() {
     setCandidates([last, ...candidates]);
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading candidate pool...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
-        <Button onClick={() => loadCandidates()} className="rounded-xl font-bold">Retry Connection</Button>
-      </div>
-    );
-  }
-
   const currentCandidate = candidates[0];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 tracking-tight text-foreground">
@@ -98,98 +74,156 @@ export default function RecruiterCandidatesPage() {
 
         <div className="flex items-center gap-3">
           <div className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+            {candidates.length} in Active Pool
+          </div>
+          <div className="text-xs font-semibold px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success">
             {shortlisted.length} Shortlisted
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleUndo}
-            disabled={history.length === 0}
-            className="rounded-xl text-xs"
-          >
-            <RotateCcw className="w-3.5 h-3.5 mr-1" /> Undo
-          </Button>
         </div>
       </div>
 
-      {!currentCandidate ? (
-        <div className="text-center py-16 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4 max-w-lg mx-auto">
-          <Users className="w-12 h-12 text-primary mx-auto opacity-60" />
-          <h3 className="text-lg font-bold text-foreground">No more candidates</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            You&apos;ve reviewed all available matched candidates in this queue. Check back as new engineers join SwipeX.
-          </p>
-          <Button onClick={() => loadCandidates()} variant="outline" className="rounded-xl text-xs font-bold">
-            Refresh Candidate Queue
+      {error ? (
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs text-destructive flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> Failed to load candidate directory from database.
+          </div>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>
+            Retry
           </Button>
         </div>
-      ) : (
-        <div className="max-w-xl mx-auto">
-          <div className="glass-3 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
-            {/* Candidate Header */}
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-4">
+      ) : null}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Candidate Evaluation Card */}
+        <div className="lg:col-span-8 space-y-6">
+          {isLoading ? (
+            <div className="h-96 rounded-3xl glass-1 border border-border animate-pulse" />
+          ) : currentCandidate ? (
+            <div className="glass-2 border border-border rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-border pb-6">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-md"
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-md shrink-0"
                   style={{ backgroundColor: currentCandidate.color || '#1677A8' }}
                 >
                   {currentCandidate.initials || 'C'}
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{currentCandidate.name}</h2>
-                  <p className="text-xs font-medium text-muted-foreground mt-0.5">{currentCandidate.headline || currentCandidate.title || 'Full Stack Engineer'}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-primary" /> {currentCandidate.location || 'Remote'}</span>
-                    <span className="flex items-center gap-1"><Briefcase className="w-3 h-3 text-primary" /> {currentCandidate.experience || '3+ Years'}</span>
+
+                <div className="flex-1 text-center sm:text-left space-y-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h2 className="text-2xl font-bold text-foreground">{currentCandidate.name}</h2>
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-black bg-success/10 text-success border border-success/20">
+                      {currentCandidate.matchScore || 90}% Match Score
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-primary">
+                    {currentCandidate.headline || currentCandidate.title || 'Software Engineer'}
+                  </p>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-xs text-muted-foreground pt-1">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-primary" /> {currentCandidate.location || 'Remote'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="w-3.5 h-3.5 text-primary" /> {currentCandidate.experience || '2+ Years Exp'}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-success/10 text-success border border-success/20">
-                {currentCandidate.matchScore || 92}% Match
-              </span>
-            </div>
+              {/* Bio & Skills */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">About Candidate</h4>
+                <p className="text-sm text-foreground/90 leading-relaxed glass-1 p-4 rounded-2xl border border-border">
+                  {currentCandidate.bio || 'Experienced software professional specialized in full-stack web applications.'}
+                </p>
 
-            {/* Candidate Skills */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Core Skills</span>
-              <div className="flex flex-wrap gap-1.5">
-                {(currentCandidate.skills || ['React', 'TypeScript', 'Node.js', 'PostgreSQL']).map((skill, idx) => (
-                  <span key={idx} className="text-xs font-semibold px-3 py-1 rounded-lg glass-1 border border-border text-foreground">
-                    {skill}
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground pt-2">Skills & Technologies</h4>
+                <div className="flex flex-wrap gap-2">
+                  {(currentCandidate.skills && currentCandidate.skills.length > 0
+                    ? currentCandidate.skills
+                    : ['React', 'TypeScript', 'Node.js', 'PostgreSQL']
+                  ).map((s, idx) => (
+                    <span key={idx} className="px-3 py-1 rounded-lg text-xs font-semibold glass-1 border border-border text-foreground">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex items-center justify-between pt-6 border-t border-border">
+                <Button
+                  variant="ghost"
+                  onClick={handleUndo}
+                  disabled={history.length === 0}
+                  className="rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" /> Undo Last Action
+                </Button>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleAction('left')}
+                    className="rounded-2xl px-6 py-6 border-destructive/30 hover:bg-destructive/10 text-destructive font-bold text-sm"
+                  >
+                    <X className="w-5 h-5 mr-1.5" /> Pass
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => handleAction('right')}
+                    className="rounded-2xl px-8 py-6 font-bold text-sm shadow-md"
+                  >
+                    <Check className="w-5 h-5 mr-1.5" /> Shortlist Candidate
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
+              <Users className="w-10 h-10 text-primary mx-auto opacity-70" />
+              <h3 className="text-lg font-bold text-foreground">All Candidates Reviewed</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                You have reached the end of the current candidate pool. New matching candidates will appear automatically.
+              </p>
+              <Button onClick={() => refetch()} variant="outline" className="rounded-xl text-xs font-bold">
+                Refresh Directory
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Shortlist Sidebar */}
+        <div className="lg:col-span-4 space-y-4">
+          <h3 className="font-bold text-base text-foreground">Shortlisted Candidates ({shortlisted.length})</h3>
+          <div className="glass-1 border border-border rounded-2xl p-4 space-y-3 min-h-[300px]">
+            {shortlisted.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-xs text-muted-foreground text-center">
+                Shortlisted candidates will appear here for batch outreach and interview scheduling.
+              </div>
+            ) : (
+              shortlisted.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3 glass-2 border border-border rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
+                      style={{ backgroundColor: c.color || '#1677A8' }}
+                    >
+                      {c.initials}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs text-foreground">{c.name}</h4>
+                      <p className="text-[10px] text-muted-foreground">{c.location || 'Remote'}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full border border-success/20">
+                    {c.matchScore || 90}%
                   </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Candidate Bio */}
-            {currentCandidate.bio && (
-              <div className="space-y-1 pt-2 border-t border-border/60">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">About</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">{currentCandidate.bio}</p>
-              </div>
+                </div>
+              ))
             )}
-
-            {/* Action Buttons */}
-            <div className="pt-4 border-t border-border flex justify-center gap-6">
-              <button
-                onClick={() => handleAction('left')}
-                title="Pass"
-                className="w-14 h-14 rounded-full glass-2 border border-destructive/30 text-destructive flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <button
-                onClick={() => handleAction('right')}
-                title="Shortlist Candidate"
-                className="w-14 h-14 rounded-full bg-success text-success-foreground flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-              >
-                <Check className="w-6 h-6" />
-              </button>
-            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

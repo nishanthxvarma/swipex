@@ -32,6 +32,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    router.prefetch('/dashboard');
+    router.prefetch('/recruiter/dashboard');
+    router.prefetch('/profile');
+  }, [router]);
+
   const {
     register,
     handleSubmit,

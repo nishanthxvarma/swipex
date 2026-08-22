@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Clock, Mail, Loader2, AlertTriangle, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Clock, Mail, AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { jobsApi } from '@swipex/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/hooks/queries';
 
 const STAGES = [
   { id: 'new', title: 'New Applicants', color: 'bg-primary', badgeColor: 'bg-primary/10 text-primary border border-primary/20' },
@@ -30,36 +32,24 @@ interface CandidateApplicant {
 }
 
 export default function RecruiterPipelinePage() {
-  const [candidates, setCandidates] = useState<CandidateApplicant[]>([]);
+  const queryClient = useQueryClient();
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateApplicant | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fetchPipeline = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await jobsApi.getRecruiterPipeline();
-      setCandidates(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      console.error('Failed to load recruiter pipeline:', err);
-      setError('Failed to load live applications pipeline.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: pipelineData, isLoading, error, refetch } = useQuery({
+    queryKey: QUERY_KEYS.recruiterPipeline,
+    queryFn: () => jobsApi.getRecruiterPipeline(),
+    staleTime: 2 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    fetchPipeline();
-  }, [fetchPipeline]);
+  const candidates: CandidateApplicant[] = Array.isArray(pipelineData) ? pipelineData : [];
 
   const moveStage = async (id: string, newStage: CandidateApplicant['stage']) => {
-    const prevCandidates = [...candidates];
-    
     // Optimistic UI update
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, stage: newStage } : c))
+    queryClient.setQueryData(QUERY_KEYS.recruiterPipeline, (old: any) =>
+      (old || []).map((c: any) => (c.id === id ? { ...c, stage: newStage } : c))
     );
+
     if (selectedCandidate && selectedCandidate.id === id) {
       setSelectedCandidate((prev) => (prev ? { ...prev, stage: newStage } : null));
     }
@@ -68,160 +58,170 @@ export default function RecruiterPipelinePage() {
       await jobsApi.updateApplicationStatus(id, newStage);
     } catch (err) {
       console.error('Failed to update stage in database:', err);
-      // Rollback
-      setCandidates(prevCandidates);
-      if (selectedCandidate && selectedCandidate.id === id) {
-        const orig = prevCandidates.find((c) => c.id === id);
-        if (orig) setSelectedCandidate(orig);
-      }
-      setError('Failed to update candidate status on server.');
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recruiterPipeline });
+      setErrorMsg('Failed to update candidate status on server.');
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading candidate pipeline...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
-        <Button onClick={() => fetchPipeline()} className="rounded-xl font-bold">Retry Connection</Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <div className="flex justify-between items-center">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 tracking-tight text-foreground">
             <Users className="w-7 h-7 text-primary" />
-            Candidate Pipeline
+            Hiring Pipeline
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Review applicant profiles and progress candidates across recruitment stages.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Track candidates across each stage of your hiring pipeline in real-time.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+            {candidates.length} Total Applicants
+          </span>
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-4 pt-2">
-        <div className="flex gap-6 min-w-max">
-          {STAGES.map((stg) => {
-            const list = candidates.filter((c) => c.stage === stg.id);
-            return (
-              <div key={stg.id} className="w-80 flex flex-col glass-1 border border-border rounded-2xl p-4 min-h-[520px]">
-                <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <div className={cn('w-2.5 h-2.5 rounded-full', stg.color)} />
-                    <h3 className="font-bold text-sm text-foreground">{stg.title}</h3>
+      {error || errorMsg ? (
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs text-destructive flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> {errorMsg || 'Failed to pull live applications pipeline.'}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      ) : null}
+
+      {/* Kanban Board */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start">
+        {STAGES.map((stage) => {
+          const stageCandidates = candidates.filter((c) => c.stage === stage.id);
+
+          return (
+            <div key={stage.id} className="glass-1 border border-border rounded-2xl p-4 flex flex-col min-h-[550px]">
+              {/* Stage Header */}
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <span className={cn('w-2.5 h-2.5 rounded-full', stage.color)} />
+                  <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">{stage.title}</h3>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full glass-2 border border-border text-foreground">
+                  {stageCandidates.length}
+                </span>
+              </div>
+
+              {/* Stage Cards */}
+              <div className="space-y-3 flex-1 overflow-y-auto pr-1">
+                {isLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-24 rounded-xl glass-2 border border-border animate-pulse" />
+                    ))}
                   </div>
-                  <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', stg.badgeColor)}>
-                    {list.length}
-                  </span>
-                </div>
-
-                <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                  {list.length === 0 ? (
-                    <div className="text-center py-12 border border-dashed border-border/60 rounded-xl p-4">
-                      <p className="text-xs text-muted-foreground">No candidates in this stage</p>
-                    </div>
-                  ) : (
-                    list.map((cand) => (
-                      <div
-                        key={cand.id}
-                        onClick={() => setSelectedCandidate(cand)}
-                        className="glass-2 border border-border rounded-xl p-4 shadow-xs hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
-                      >
-                        <div className="flex items-start gap-3 mb-3">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0"
-                            style={{ backgroundColor: cand.color || '#1677A8' }}
-                          >
-                            {cand.initials || 'C'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-bold text-sm truncate text-foreground group-hover:text-primary transition-colors">{cand.name}</h4>
-                              <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded-full">
-                                {cand.matchScore}%
-                              </span>
-                            </div>
-                            <p className="text-xs font-medium text-muted-foreground">{cand.roleApplied}</p>
-                          </div>
+                ) : stageCandidates.length === 0 ? (
+                  <div className="h-32 flex items-center justify-center border border-dashed border-border/40 rounded-xl text-[11px] text-muted-foreground/60 text-center p-3">
+                    No candidates
+                  </div>
+                ) : (
+                  stageCandidates.map((cand) => (
+                    <div
+                      key={cand.id}
+                      onClick={() => setSelectedCandidate(cand)}
+                      className="glass-2 border border-border hover:border-primary/40 rounded-xl p-3.5 space-y-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-bold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                          {cand.name}
                         </div>
-
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/60">
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-primary" /> {cand.appliedDate}</span>
-                          <span className="font-semibold text-primary group-hover:underline">Review</span>
-                        </div>
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-success/10 text-success border border-success/20 shrink-0">
+                          {cand.matchScore || 90}%
+                        </span>
                       </div>
-                    ))
-                  )}
-                </div>
+
+                      <div className="text-[11px] text-muted-foreground font-medium truncate">
+                        {cand.roleApplied}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-muted-foreground" /> {cand.appliedDate}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Candidate Action Modal */}
+      {/* Candidate Drawer / Modal */}
       {selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedCandidate(null)}>
-          <div className="glass-3 border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-start border-b border-border pb-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm"
-                  style={{ backgroundColor: selectedCandidate.color || '#1677A8' }}
-                >
-                  {selectedCandidate.initials || 'C'}
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-foreground">{selectedCandidate.name}</h3>
-                  <p className="text-sm font-semibold text-primary">{selectedCandidate.roleApplied}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedCandidate(null)} className="p-1.5 rounded-full hover:bg-secondary cursor-pointer"><X className="w-5 h-5" /></button>
-            </div>
-
-            <div className="space-y-4 text-sm">
-              {selectedCandidate.email && (
-                <div className="p-3 glass-2 border border-border rounded-xl space-y-1">
-                  <span className="text-xs text-muted-foreground block">Email</span>
-                  <span className="font-semibold text-xs flex items-center gap-1.5 text-foreground"><Mail className="w-3.5 h-3.5 text-primary" /> {selectedCandidate.email}</span>
-                </div>
-              )}
-
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setSelectedCandidate(null)}
+        >
+          <div
+            className="glass-3 border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Move Recruitment Stage</span>
-                <div className="flex flex-wrap gap-2">
-                  {STAGES.map((stg) => (
-                    <button
-                      key={stg.id}
-                      onClick={() => moveStage(selectedCandidate.id, stg.id as any)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer',
-                        selectedCandidate.stage === stg.id
-                          ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                          : 'glass-1 hover:bg-secondary text-muted-foreground'
-                      )}
-                    >
-                      {stg.title}
-                    </button>
-                  ))}
-                </div>
+                <h3 className="font-bold text-lg text-foreground">{selectedCandidate.name}</h3>
+                <p className="text-xs text-muted-foreground">Applying for {selectedCandidate.roleApplied}</p>
+              </div>
+              <button
+                onClick={() => setSelectedCandidate(null)}
+                className="p-1 rounded-full hover:bg-secondary cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Match Score</span>
+                <span className="font-bold text-success">{selectedCandidate.matchScore || 90}%</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Current Stage</span>
+                <span className="font-bold uppercase text-primary">{selectedCandidate.stage}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Applied Date</span>
+                <span className="font-semibold text-foreground">{selectedCandidate.appliedDate}</span>
               </div>
             </div>
 
-            <div className="pt-2 flex gap-3">
-              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setSelectedCandidate(null)}>Close</Button>
+            {/* Move stage action */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <span className="text-xs font-semibold text-foreground block">Transition Pipeline Stage:</span>
+              <div className="grid grid-cols-3 gap-2">
+                {STAGES.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => moveStage(selectedCandidate.id, s.id as any)}
+                    disabled={selectedCandidate.stage === s.id}
+                    className={cn(
+                      'text-[10px] font-bold py-1.5 px-2 rounded-lg border transition-all cursor-pointer',
+                      selectedCandidate.stage === s.id
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'glass-2 border-border text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {s.title.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <Button onClick={() => setSelectedCandidate(null)} className="w-full rounded-xl font-bold mt-2">
+              Done
+            </Button>
           </div>
         </div>
       )}
