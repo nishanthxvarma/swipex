@@ -268,18 +268,25 @@ class AuthService:
                     res = await client.post("https://oauth2.googleapis.com/token", data=token_payload)
                     if res.status_code == 200:
                         data = res.json()
-                        id_token = data.get("id_token") or id_token
-                        access_token = data.get("access_token")
+                        id_tok = data.get("id_token")
+                        acc_tok = data.get("access_token")
 
-                        if not id_token and access_token:
+                        if id_tok:
+                            info_res = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_tok}")
+                            if info_res.status_code == 200:
+                                google_user = info_res.json()
+
+                        if not google_user and acc_tok:
                             userinfo_res = await client.get(
                                 "https://www.googleapis.com/oauth2/v3/userinfo",
-                                headers={"Authorization": f"Bearer {access_token}"}
+                                headers={"Authorization": f"Bearer {acc_tok}"}
                             )
                             if userinfo_res.status_code == 200:
                                 google_user = userinfo_res.json()
                                 google_user["email_verified"] = google_user.get("email_verified", True)
-                                return google_user
+
+                        if google_user and google_user.get("email"):
+                            return google_user
                     else:
                         await logger.aerror("Google code exchange failed", status=res.status_code, body=res.text)
             except Exception as e:
