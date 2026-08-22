@@ -58,15 +58,18 @@ export const ResumeVersionHistoryModal: React.FC<ResumeVersionHistoryModalProps>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                      v{ver.versionNumber || (versions.length - versions.indexOf(ver))}
+                    </span>
                     <h4 className="font-bold text-sm truncate">{ver.originalName}</h4>
                     {ver.isActive && (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Active
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-[#66788A] mt-0.5">
-                    ATS Score: <span className="font-bold text-[#F5FAFF]">{ver.atsScore}/100</span> • Uploaded{' '}
+                    ATS Score: <span className="font-bold text-[#F5FAFF]">{Math.round(ver.atsScore)}/100</span> • Uploaded{' '}
                     {new Date(ver.uploadedAt).toLocaleDateString()}
                   </p>
                 </div>

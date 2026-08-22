@@ -15,6 +15,7 @@ if "sqlite" not in settings.async_database_url:
 
 engine = create_async_engine(settings.async_database_url, **engine_kwargs)
 async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+async_session_factory = async_session
 
 class Base(DeclarativeBase):
     pass

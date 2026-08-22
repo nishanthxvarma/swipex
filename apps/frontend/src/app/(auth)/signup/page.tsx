@@ -25,7 +25,7 @@ const signupSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   confirmPassword: z.string(),
-  role: z.enum(['JOB_SEEKER', 'RECRUITER', 'ADMIN']),
+  role: z.enum(['JOB_SEEKER', 'RECRUITER']),
   terms: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and conditions',
   }),
@@ -48,12 +48,6 @@ const roles = [
     title: 'Recruiter',
     description: 'Hiring top talent',
     icon: Building2,
-  },
-  {
-    id: 'ADMIN',
-    title: 'Admin',
-    description: 'Platform management',
-    icon: Shield,
   },
 ];
 
@@ -190,7 +184,7 @@ export default function SignupPage() {
         {/* Role selection */}
         <div className="space-y-2">
           <Label>I am a...</Label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {roles.map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;

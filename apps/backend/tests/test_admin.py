@@ -2,12 +2,12 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_admin_recruiter_verification_and_audit(client):
-    # 1. Register Admin
-    admin_res = await client.post("/api/v1/auth/register", json={
-        "email": "super_admin@swipex.io",
-        "password": "Password1234!",
-        "fullName": "Super Admin",
-        "role": "admin"
+    # 1. Login as Predefined Admin
+    from app.main import seed_admin_account
+    await seed_admin_account()
+    admin_res = await client.post("/api/v1/auth/login", json={
+        "email": "sxadmin@gmail.com",
+        "password": "Sxpassword1234"
     })
     admin_token = admin_res.json()["access_token"]
     admin_headers = {"Authorization": f"Bearer {admin_token}"}

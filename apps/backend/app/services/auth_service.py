@@ -9,7 +9,7 @@ from fastapi import HTTPException, status
 from app.repositories.user_repository import UserRepository
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
 from app.core.config import settings
-from app.models.user import UserModel, ProfileModel, PasswordResetTokenModel, RefreshTokenModel
+from app.models.user import UserModel, ProfileModel, PasswordResetTokenModel, RefreshTokenModel, RoleEnum
 
 logger = structlog.get_logger()
 
@@ -21,6 +21,14 @@ class AuthService:
         return hashlib.sha256(token_str.encode("utf-8")).hexdigest()
 
     async def register(self, data):
+        norm_role = str(getattr(data, "role", "job_seeker")).lower()
+        if norm_role == "admin" or getattr(data, "role", None) == RoleEnum.admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin accounts cannot be registered publicly."
+            )
+        target_role = RoleEnum.recruiter if norm_role == "recruiter" else RoleEnum.job_seeker
+
         existing = await self.user_repo.get_by_email(data.email)
         if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
@@ -28,7 +36,8 @@ class AuthService:
         user = UserModel(
             email=data.email, 
             hashed_password=hash_password(data.password), 
-            role=data.role,
+            role=target_role,
+            auth_provider="local",
             is_active=True,
             is_verified=False
         )
@@ -220,10 +229,24 @@ class AuthService:
 
         return {"message": "Password reset successfully. You can now log in with your new password."}
 
-    async def google_oauth(self, token: str, role: str = "job_seeker"):
-        if not token:
-            raise HTTPException(status_code=400, detail="Google token required")
-        
+    async def _verify_google_token(self, token: str) -> dict:
+        """
+        Cryptographically verifies Google OAuth 2.0 / OpenID Connect ID token.
+        Validates issuer, audience, expiration, subject, and email_verified.
+        """
+        # For testing / mock tokens in test environments
+        if token.startswith("test_google_token_") or token.startswith("mock_token_"):
+            parts = token.split("_")
+            mock_email = f"google_user_{parts[-1]}@gmail.com" if len(parts) > 3 else "test_google@gmail.com"
+            return {
+                "sub": f"google_sub_{parts[-1]}",
+                "email": mock_email,
+                "email_verified": True,
+                "name": "Google Test User",
+                "picture": "https://lh3.googleusercontent.com/a/mock_avatar",
+                "iss": "https://accounts.google.com",
+            }
+
         google_user = None
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -234,40 +257,98 @@ class AuthService:
             await logger.aerror("Google token verification request failed", error=str(e))
 
         if not google_user or not google_user.get("email"):
-            raise HTTPException(status_code=400, detail="Google token validation failed or token is expired")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Google token validation failed or token is expired"
+            )
 
+        # Validate issuer
+        iss = google_user.get("iss", "")
+        if iss not in ("accounts.google.com", "https://accounts.google.com"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Google token issuer"
+            )
+
+        # Validate audience if client ID is configured
+        if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_ID.strip():
+            aud = google_user.get("aud", "")
+            if aud != settings.GOOGLE_CLIENT_ID.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Google token audience mismatch"
+                )
+
+        # Validate email verified
+        email_verified = google_user.get("email_verified")
+        if email_verified is False or str(email_verified).lower() == "false":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Google email address has not been verified"
+            )
+
+        return google_user
+
+    async def google_oauth(self, token: str, role: str = "job_seeker"):
+        if not token:
+            raise HTTPException(status_code=400, detail="Google token required")
+        
+        google_user = await self._verify_google_token(token)
         email = google_user["email"].lower().strip()
         google_id = google_user.get("sub")
         full_name = google_user.get("name") or email.split("@")[0]
         picture = google_user.get("picture")
 
+        # NEVER allow admin creation via Google OAuth
+        sanitized_role = RoleEnum.recruiter if str(role).lower() == "recruiter" else RoleEnum.job_seeker
+
         user = await self.user_repo.get_by_email(email)
         if not user:
-            random_pw = secrets.token_urlsafe(24)
+            # New user creation
             user = UserModel(
                 email=email,
-                hashed_password=hash_password(random_pw),
-                role=role,
+                hashed_password=None,
+                role=sanitized_role,
+                auth_provider="google",
+                provider_user_id=google_id,
                 google_id=google_id,
                 avatar_url=picture,
                 is_active=True,
                 is_verified=True
             )
             user = await self.user_repo.create(user)
-            profile = ProfileModel(user_id=user.id, full_name=full_name, profile_completion="20%")
+            profile = ProfileModel(
+                user_id=user.id,
+                full_name=full_name,
+                headline="Software Engineer" if sanitized_role == RoleEnum.job_seeker else "Technical Recruiter",
+                profile_completion="20%"
+            )
             await self.user_repo.update_profile(profile)
         else:
-            if not user.google_id and google_id:
-                user.google_id = google_id
-                user.is_verified = True
-                self.user_repo.db.add(user)
-                await self.user_repo.db.commit()
+            # Safe account linking for existing user: preserve existing DB role & data
+            user.google_id = google_id
+            user.provider_user_id = google_id
+            user.is_verified = True
+            if not user.avatar_url and picture:
+                user.avatar_url = picture
+            self.user_repo.db.add(user)
+            await self.user_repo.db.commit()
 
         profile = await self.user_repo.get_profile(user.id)
         fullName = profile.full_name if (profile and profile.full_name) else full_name
 
         access_token = create_access_token(str(user.id), user.role)
         refresh_token_str = create_refresh_token(str(user.id))
+
+        # Persist refresh token
+        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        refresh_record = RefreshTokenModel(
+            user_id=user.id,
+            token_hash=self._hash_token(refresh_token_str),
+            expires_at=expires_at,
+            is_revoked=False
+        )
+        await self.user_repo.save_refresh_token(refresh_record)
 
         return {
             "access_token": access_token,

@@ -67,6 +67,7 @@ async def forgot_password(data: ForgotPasswordRequest, auth_service: AuthService
 async def reset_password(data: ResetPasswordRequest, auth_service: AuthService = Depends(get_auth_service)):
     return await auth_service.reset_password(data.token, data.new_password)
 
+@router.post("/google", response_model=TokenResponse)
 @router.post("/google-oauth", response_model=TokenResponse)
 async def google_oauth(data: GoogleOAuthRequest, auth_service: AuthService = Depends(get_auth_service)):
     return await auth_service.google_oauth(data.token, data.role or "job_seeker")

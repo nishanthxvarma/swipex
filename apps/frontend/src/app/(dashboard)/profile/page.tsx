@@ -171,9 +171,15 @@ export default function ProfilePage() {
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!['pdf', 'docx'].includes(ext || '')) {
+        setError('Unsupported file format. Please upload a PDF or DOCX file.');
+        return;
+      }
       setResumeFileName(file.name);
       await uploadResume(file);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeResume });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
     }
   };
 
@@ -409,7 +415,7 @@ export default function ProfilePage() {
                   <FileText className="w-8 h-8 text-primary shrink-0" />
                   <div className="truncate">
                     <div className="font-bold text-xs truncate">{resumeFileName || 'Candidate_Resume.pdf'}</div>
-                    <div className="text-[10px] text-[#66788A]">Parsed & Indexed</div>
+                    <div className="text-[10px] text-[#66788A]">Parsed &amp; Indexed</div>
                   </div>
                 </div>
                 <label
@@ -417,14 +423,58 @@ export default function ProfilePage() {
                   title="Upload new resume"
                 >
                   <Upload className="w-4 h-4" />
-                  <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleResumeUpload} className="hidden" />
+                  <input type="file" accept=".pdf,.docx" onChange={handleResumeUpload} className="hidden" />
                 </label>
               </div>
-              {isUploading && (
-                <div className="flex items-center gap-2 text-xs font-semibold text-primary animate-pulse">
-                  <Sparkles className="w-3.5 h-3.5 animate-spin" /> Parsing resume with AI...
-                </div>
-              )}
+
+              <div className="pt-1 flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (activeResumeData?.parsedData) {
+                      const pd = activeResumeData.parsedData;
+                      if (pd.personalInfo?.name && (!fullName || fullName === 'Candidate Name')) setFullName(pd.personalInfo.name);
+                      if (pd.personalInfo?.headline && !headline) setHeadline(pd.personalInfo.headline);
+                      if (pd.personalInfo?.location && !location) setLocation(pd.personalInfo.location);
+                      if ((pd.personalInfo?.bio || (pd as any).summary) && !bio) setBio(pd.personalInfo?.bio || (pd as any).summary);
+                      
+                      const extracted: string[] = [];
+                      if (pd.skills) {
+                        Object.values(pd.skills).forEach((list: any) => {
+                          if (Array.isArray(list)) extracted.push(...list);
+                        });
+                      }
+                      const merged = Array.from(new Set([...skills, ...extracted]));
+                      setSkills(merged);
+
+                      if (pd.experience && pd.experience.length > 0 && experiences.length === 0) {
+                        setExperiences(pd.experience);
+                      }
+
+                      try {
+                        await usersApi.updateProfile({
+                          fullName: pd.personalInfo?.name || fullName,
+                          headline: pd.personalInfo?.headline || headline,
+                          location: pd.personalInfo?.location || location,
+                          bio: pd.personalInfo?.bio || (pd as any).summary || bio,
+                          skills: merged,
+                          experiences: pd.experience || experiences,
+                        } as any);
+                        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+                        setSaveSuccess(true);
+                        setTimeout(() => setSaveSuccess(false), 3000);
+                      } catch (e) {
+                        console.error('Error syncing profile:', e);
+                      }
+                    }
+                  }}
+                  className="w-full rounded-xl text-xs font-semibold"
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                  Sync Profile with Active Resume
+                </Button>
+              </div>
             </div>
           </section>
         </div>

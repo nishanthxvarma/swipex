@@ -83,21 +83,21 @@ async def test_full_pipeline_end_to_end():
 
 @pytest.mark.asyncio
 async def test_resume_upload_endpoint_matches_frontend_contract(client: AsyncClient, auth_headers: dict):
-    # Test /upload (primary contract)
-    files = {"file": ("my_resume.txt", SAMPLE_RESUME_TEXT.encode("utf-8"), "text/plain")}
+    # Test /upload (primary contract with PDF)
+    files = {"file": ("my_resume.pdf", SAMPLE_RESUME_TEXT.encode("utf-8"), "application/pdf")}
     res_upload = await client.post("/api/v1/resumes/upload", headers=auth_headers, files=files)
     assert res_upload.status_code == 201
     data = res_upload.json()
-    assert data["originalName"] == "my_resume.txt"
+    assert data["originalName"] == "my_resume.pdf"
     assert data["atsScore"] >= 80.0
     assert data["parsedData"]["personalInfo"]["email"] == "nishanth@swipex.io"
 
-    # Test /uploadResume (alias contract)
-    files_alias = {"file": ("my_resume_v2.txt", SAMPLE_RESUME_TEXT.encode("utf-8"), "text/plain")}
+    # Test /uploadResume (alias contract with DOCX)
+    files_alias = {"file": ("my_resume_v2.docx", SAMPLE_RESUME_TEXT.encode("utf-8"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
     res_alias = await client.post("/api/v1/resumes/uploadResume", headers=auth_headers, files=files_alias)
     assert res_alias.status_code == 201
     data_alias = res_alias.json()
-    assert data_alias["originalName"] == "my_resume_v2.txt"
+    assert data_alias["originalName"] == "my_resume_v2.docx"
 
 @pytest.mark.asyncio
 async def test_invalid_file_type(client: AsyncClient, auth_headers: dict):
@@ -129,35 +129,45 @@ async def test_unauthorized_access(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_resume_analysis_and_versions(client: AsyncClient, auth_headers: dict):
-    # 1. Upload initial resume
-    files = {"file": ("resume_v1.txt", SAMPLE_RESUME_TEXT.encode("utf-8"), "text/plain")}
-    res_v1 = await client.post("/api/v1/resumes/upload", headers=auth_headers, files=files)
+    # 1. Upload initial resume v1
+    files_v1 = {"file": ("resume_v1.pdf", SAMPLE_RESUME_TEXT.encode("utf-8"), "application/pdf")}
+    res_v1 = await client.post("/api/v1/resumes/upload", headers=auth_headers, files=files_v1)
     assert res_v1.status_code == 201
-    resume_id = res_v1.json()["id"]
+    resume_v1_id = res_v1.json()["id"]
+    score_v1 = res_v1.json()["atsScore"]
 
-    # 2. Get active resume via /active and root /
-    res_active = await client.get("/api/v1/resumes/active", headers=auth_headers)
-    assert res_active.status_code == 200
-    assert res_active.json()["id"] == resume_id
+    # 2. Upload second resume v2
+    resume_text_v2 = SAMPLE_RESUME_TEXT + "\nGraphQL, Docker, Kubernetes, AWS\n"
+    files_v2 = {"file": ("resume_v2.docx", resume_text_v2.encode("utf-8"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
+    res_v2 = await client.post("/api/v1/resumes/upload", headers=auth_headers, files=files_v2)
+    assert res_v2.status_code == 201
+    resume_v2_id = res_v2.json()["id"]
 
-    res_root = await client.get("/api/v1/resumes", headers=auth_headers)
-    assert res_root.status_code == 200
-
-    # 3. Analyze resume
-    res_analyze = await client.post("/api/v1/resumes/analyze", headers=auth_headers, json={"resumeId": resume_id})
-    assert res_analyze.status_code == 200
-
-    # 4. Calculate ATS
-    res_ats = await client.post("/api/v1/resumes/calculateATS", headers=auth_headers, json={"resumeId": resume_id})
-    assert res_ats.status_code == 200
-    assert res_ats.json()["overallScore"] >= 80.0
-
-    # 5. Versions list
+    # 3. Verify version list has both versions with immutable scores
     res_versions = await client.get("/api/v1/resumes/versions", headers=auth_headers)
     assert res_versions.status_code == 200
-    assert len(res_versions.json()) >= 1
+    versions = res_versions.json()
+    assert len(versions) >= 2
 
-    # 6. Delete resume version
-    res_delete = await client.delete(f"/api/v1/resumes/{resume_id}", headers=auth_headers)
+    # 4. Verify switching active version back to v1
+    res_set_active = await client.post(f"/api/v1/resumes/setActive/{resume_v1_id}", headers=auth_headers)
+    assert res_set_active.status_code == 200
+    assert res_set_active.json()["id"] == resume_v1_id
+    assert res_set_active.json()["isActive"] is True
+
+    # 5. Check profile synchronization
+    res_sync = await client.post("/api/v1/resumes/sync-profile", headers=auth_headers)
+    assert res_sync.status_code == 200
+    assert res_sync.json()["success"] is True
+
+    # 6. Verify profile has received parsed data
+    res_profile = await client.get("/api/v1/users/profile", headers=auth_headers)
+    assert res_profile.status_code == 200
+    profile_data = res_profile.json()
+    assert profile_data["fullName"] == "Nishanth Varma"
+    assert "TypeScript" in profile_data["skills"]
+
+    # 7. Delete version v2
+    res_delete = await client.delete(f"/api/v1/resumes/{resume_v2_id}", headers=auth_headers)
     assert res_delete.status_code == 200
     assert res_delete.json()["success"] is True

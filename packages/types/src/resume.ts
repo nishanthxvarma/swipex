@@ -7,6 +7,7 @@ export interface PersonalInformation {
   portfolio: string;
   location?: string;
   headline?: string;
+  bio?: string;
 }
 
 export interface EducationEntry {
@@ -152,6 +153,7 @@ export interface ResumeVersion {
   fileType: string;
   atsScore: number;
   isActive: boolean;
+  versionNumber?: number;
   uploadedAt: string;
 }
 
@@ -178,6 +180,7 @@ export interface ActiveResumeResponse {
   healthReport: HealthReport;
   suggestions: AiSuggestion[];
   isActive: boolean;
+  versionNumber?: number;
   uploadedAt: string;
   versions: ResumeVersion[];
 }

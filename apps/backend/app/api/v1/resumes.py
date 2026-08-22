@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB limit
-ALLOWED_EXTENSIONS = {"pdf", "docx", "doc", "txt"}
+ALLOWED_EXTENSIONS = {"pdf", "docx"}
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 @router.post("/uploadResume", status_code=status.HTTP_201_CREATED)
@@ -39,7 +39,7 @@ async def upload_resume(
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file format '.{ext}'. Supported formats: PDF, DOCX, TXT."
+            detail=f"Unsupported file format '.{ext}'. Supported formats: PDF, DOCX."
         )
 
     file_bytes = await file.read()
@@ -148,6 +148,8 @@ async def reanalyze_resume(
     return await resume_service.reanalyze_resume(user_id, resume_id)
 
 @router.post("/setActive/{resume_id}")
+@router.post("/active/{resume_id}")
+@router.put("/setActive/{resume_id}")
 async def set_active_resume(
     resume_id: str,
     current_user: dict = Depends(get_current_user),
@@ -155,6 +157,19 @@ async def set_active_resume(
 ):
     user_id = parse_id(current_user["id"])
     return await resume_service.set_active_version(user_id, resume_id)
+
+@router.post("/sync-profile")
+@router.post("/{resume_id}/sync-profile")
+async def sync_resume_to_profile(
+    resume_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """
+    Synchronizes parsed resume data (skills, experience, education, contact) into the candidate profile.
+    """
+    user_id = parse_id(current_user["id"])
+    return await resume_service.sync_resume_to_profile(user_id, resume_id)
 
 @router.delete("/{resume_id}")
 async def delete_resume(

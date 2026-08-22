@@ -28,7 +28,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
       return;
     }
     const ext = file.name.split('.').pop()?.toLowerCase();
-    if (!['pdf', 'docx', 'doc', 'txt'].includes(ext || '')) {
+    if (!['pdf', 'docx'].includes(ext || '')) {
       setValidationError('Unsupported format. Please upload a PDF or DOCX file.');
       return;
     }
@@ -102,7 +102,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
             type="file"
             ref={fileInputRef}
             onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-            accept=".pdf,.docx,.doc,.txt"
+            accept=".pdf,.docx"
             className="hidden"
           />
 

@@ -21,6 +21,9 @@ TestAsyncSession = async_sessionmaker(test_engine, expire_on_commit=False, class
 async def setup_test_db():
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with TestAsyncSession() as session:
+        from app.main import seed_admin_account
+        await seed_admin_account(session)
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

@@ -50,9 +50,11 @@ class ResumeService:
         # 4. Generate Grounded AI Suggestions
         suggestions = suggestion_generator.generate(parsed_data)
 
-        # Deactivate previous active resumes for this user
+        # Calculate version number
         u_id = UUID(user_id) if isinstance(user_id, str) else user_id
         user_resumes = await self.repo.get_resumes_by_user(u_id)
+        version_num = len(user_resumes) + 1
+
         for r in user_resumes:
             r.is_active = False
 
@@ -69,6 +71,7 @@ class ResumeService:
             health_report=health_report,
             suggestions=suggestions,
             is_active=True,
+            version_number=version_num,
             parser_version=metadata.get("parser_version", "2.1.0"),
             scoring_version=ats_result.get("scoringVersion", "2.0.0"),
             extraction_confidence=metadata.get("extraction_confidence", 1.0),
@@ -89,6 +92,9 @@ class ResumeService:
         )
         self.repo.db.add(history_entry)
         await self.repo.db.commit()
+
+        # Non-destructive candidate profile synchronization
+        await self._sync_parsed_data_to_profile(u_id, parsed_data)
 
         all_versions = await self.repo.get_resumes_by_user(u_id)
         return self._format_resume_response(saved, all_versions)
@@ -121,8 +127,112 @@ class ResumeService:
         u_id = UUID(user_id) if isinstance(user_id, str) else user_id
         r_id = UUID(resume_id) if isinstance(resume_id, str) else resume_id
         active = await self.repo.set_active(u_id, r_id)
+        if active and active.parsed_data:
+            await self._sync_parsed_data_to_profile(u_id, active.parsed_data)
         all_versions = await self.repo.get_resumes_by_user(u_id)
         return self._format_resume_response(active, all_versions)
+
+    async def sync_resume_to_profile(self, user_id: str, resume_id: Optional[str] = None) -> dict:
+        u_id = UUID(user_id) if isinstance(user_id, str) else user_id
+        if resume_id:
+            r_id = UUID(resume_id) if isinstance(resume_id, str) else resume_id
+            resume = await self.repo.get_resume_by_id(r_id)
+        else:
+            resume = await self.repo.get_active_resume_by_user(u_id)
+
+        if not resume or not resume.parsed_data:
+            return {"success": False, "message": "No parsed resume data available"}
+
+        await self._sync_parsed_data_to_profile(u_id, resume.parsed_data)
+        return {"success": True, "message": "Profile synchronized successfully with resume"}
+
+    async def _sync_parsed_data_to_profile(self, user_id: UUID, parsed_data: dict) -> None:
+        """
+        Controlled non-destructive merge of parsed resume data into candidate ProfileModel.
+        """
+        from app.models.user import ProfileModel
+        stmt = select(ProfileModel).where(ProfileModel.user_id == user_id)
+        res = await self.repo.db.execute(stmt)
+        profile = res.scalar_one_or_none()
+
+        if not profile:
+            profile = ProfileModel(user_id=user_id)
+            self.repo.db.add(profile)
+
+        personal_info = parsed_data.get("personalInfo", {})
+        
+        # 1. Contact & Identity
+        if personal_info.get("name") and profile.full_name in (None, "", "Candidate", "User", "Job Seeker"):
+            profile.full_name = personal_info["name"].strip()
+        if personal_info.get("headline") and not profile.headline:
+            profile.headline = personal_info["headline"].strip()
+        if personal_info.get("location") and not profile.location:
+            profile.location = personal_info["location"].strip()
+        if personal_info.get("phone") and not profile.phone:
+            profile.phone = personal_info["phone"].strip()
+        if personal_info.get("linkedin") and not profile.linkedin_url:
+            profile.linkedin_url = personal_info["linkedin"].strip()
+        if personal_info.get("github") and not profile.github_url:
+            profile.github_url = personal_info["github"].strip()
+        if personal_info.get("portfolio") and not profile.portfolio_url:
+            profile.portfolio_url = personal_info["portfolio"].strip()
+
+        # 2. Bio / Summary (preserve manual bio if resume has no summary)
+        summary = parsed_data.get("summary") or personal_info.get("summary") or personal_info.get("bio")
+        if summary and (not profile.bio or len(profile.bio.strip()) < 10):
+            profile.bio = summary.strip()
+
+        # 3. Skills Union
+        skills_dict = parsed_data.get("skills", {})
+        extracted_skills = []
+        if isinstance(skills_dict, dict):
+            for cat, sk_list in skills_dict.items():
+                if isinstance(sk_list, list):
+                    extracted_skills.extend(sk_list)
+        elif isinstance(skills_dict, list):
+            extracted_skills = skills_dict
+
+        existing_skills = profile.skills or []
+        seen = set(s.lower() for s in existing_skills)
+        merged_skills = list(existing_skills)
+        for s in extracted_skills:
+            if s and s.strip() and s.strip().lower() not in seen:
+                merged_skills.append(s.strip())
+                seen.add(s.strip().lower())
+        profile.skills = merged_skills
+
+        # 4. Education
+        education = parsed_data.get("education", [])
+        if education and (not profile.education or len(profile.education) == 0):
+            profile.education = education
+
+        # 5. Experience
+        experience = parsed_data.get("experience", [])
+        if experience and (not profile.experiences or len(profile.experiences) == 0):
+            profile.experiences = experience
+
+        # 6. Projects
+        projects = parsed_data.get("projects", [])
+        if projects and (not profile.projects or len(profile.projects) == 0):
+            profile.projects = projects
+
+        # 7. Certifications
+        certifications = parsed_data.get("certifications", [])
+        if certifications and (not profile.certifications or len(profile.certifications) == 0):
+            profile.certifications = certifications
+
+        # Calculate completion %
+        score = 20
+        if profile.full_name: score += 10
+        if profile.headline: score += 10
+        if profile.location: score += 10
+        if profile.skills and len(profile.skills) >= 3: score += 20
+        if profile.experiences and len(profile.experiences) >= 1: score += 15
+        if profile.education and len(profile.education) >= 1: score += 15
+        profile.profile_completion = f"{min(100, score)}%"
+
+        self.repo.db.add(profile)
+        await self.repo.db.commit()
 
     async def delete_version(self, user_id: str, resume_id: str) -> bool:
         u_id = UUID(user_id) if isinstance(user_id, str) else user_id
@@ -277,6 +387,7 @@ class ResumeService:
             "healthReport": r.health_report or {},
             "suggestions": r.suggestions or [],
             "isActive": r.is_active,
+            "versionNumber": getattr(r, "version_number", 1) or 1,
             "uploadedAt": r.created_at.isoformat() if r.created_at else datetime.now(timezone.utc).isoformat(),
             "versions": [self._format_version(v) for v in valid_versions]
         }
@@ -291,5 +402,6 @@ class ResumeService:
             "fileType": r.file_type or "pdf",
             "atsScore": r.ats_score or 0.0,
             "isActive": r.is_active,
+            "versionNumber": getattr(r, "version_number", 1) or 1,
             "uploadedAt": r.created_at.isoformat() if r.created_at else datetime.now(timezone.utc).isoformat()
         }

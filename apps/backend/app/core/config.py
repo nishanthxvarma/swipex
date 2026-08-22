@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = ""
+    ADMIN_EMAIL: str = "sxadmin@gmail.com"
+    ADMIN_PASSWORD: str = "Sxpassword1234"
+    ADMIN_FULL_NAME: str = "SwipeX System Administrator"
     OPENAI_API_KEY: str = ""
     CORS_ORIGINS: str = "*"
 

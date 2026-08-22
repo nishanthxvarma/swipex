@@ -141,3 +141,110 @@ async def test_forgot_and_reset_password_flow(client, db_session):
     token_record = token_res.scalars().first()
     assert token_record is not None
     assert token_record.is_used is False
+
+@pytest.mark.asyncio
+async def test_register_admin_forbidden(client):
+    """
+    Public registration must NEVER allow creating an admin account.
+    """
+    payload = {
+        "email": "hacker_admin@swipex.io",
+        "password": "Password1234!",
+        "fullName": "Fake Admin",
+        "role": "admin"
+    }
+    response = await client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 403
+    assert "Admin accounts cannot be registered publicly" in response.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_admin_seed_and_login(client):
+    """
+    Predefined admin account must be seeded and able to authenticate with configured credentials.
+    """
+    from app.main import seed_admin_account
+    await seed_admin_account()
+
+    login_payload = {
+        "email": "sxadmin@gmail.com",
+        "password": "Sxpassword1234"
+    }
+    response = await client.post("/api/v1/auth/login", json=login_payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user"]["email"] == "sxadmin@gmail.com"
+    assert data["user"]["role"] == "admin"
+    assert "access_token" in data
+
+@pytest.mark.asyncio
+async def test_google_oauth_new_job_seeker(client):
+    """
+    Google OAuth creates a new job seeker account with verified email.
+    """
+    payload = {
+        "token": "test_google_token_1001",
+        "role": "job_seeker"
+    }
+    response = await client.post("/api/v1/auth/google", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user"]["email"] == "google_user_1001@gmail.com"
+    assert data["user"]["role"] == "job_seeker"
+    assert "access_token" in data
+
+@pytest.mark.asyncio
+async def test_google_oauth_new_recruiter(client):
+    """
+    Google OAuth creates a new recruiter account when selected.
+    """
+    payload = {
+        "token": "test_google_token_1002",
+        "role": "recruiter"
+    }
+    response = await client.post("/api/v1/auth/google", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user"]["email"] == "google_user_1002@gmail.com"
+    assert data["user"]["role"] == "recruiter"
+
+@pytest.mark.asyncio
+async def test_google_oauth_admin_role_prevented(client):
+    """
+    Google OAuth must NEVER create an admin account even if role='admin' is sent.
+    """
+    payload = {
+        "token": "test_google_token_1003",
+        "role": "admin"
+    }
+    response = await client.post("/api/v1/auth/google", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user"]["role"] == "job_seeker"  # Must fallback to job_seeker, not admin
+
+@pytest.mark.asyncio
+async def test_google_oauth_account_linking(client):
+    """
+    Existing local account links Google OAuth without resetting user role or corrupting data.
+    """
+    # 1. Register local recruiter
+    reg_payload = {
+        "email": "google_user_1004@gmail.com",
+        "password": "LocalPassword123!",
+        "fullName": "Existing Recruiter",
+        "role": "recruiter"
+    }
+    reg_res = await client.post("/api/v1/auth/register", json=reg_payload)
+    assert reg_res.status_code == 201
+    assert reg_res.json()["user"]["role"] == "recruiter"
+
+    # 2. Login via Google with same email
+    oauth_payload = {
+        "token": "test_google_token_1004",
+        "role": "job_seeker" # Frontend sends job_seeker, but DB role is recruiter
+    }
+    oauth_res = await client.post("/api/v1/auth/google", json=oauth_payload)
+    assert oauth_res.status_code == 200
+    oauth_data = oauth_res.json()
+    # Preserves authoritative DB role
+    assert oauth_data["user"]["role"] == "recruiter"
+    assert oauth_data["user"]["email"] == "google_user_1004@gmail.com"

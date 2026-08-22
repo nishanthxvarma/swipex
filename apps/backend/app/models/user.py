@@ -15,8 +15,10 @@ class UserModel(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True)
     role = Column(Enum(RoleEnum), default=RoleEnum.job_seeker)
+    auth_provider = Column(String, default="local", nullable=False)
+    provider_user_id = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     google_id = Column(String, nullable=True)

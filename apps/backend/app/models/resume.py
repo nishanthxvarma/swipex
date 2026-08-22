@@ -21,6 +21,7 @@ class ResumeModel(Base):
     health_report = Column(JSON, default=dict)
     suggestions = Column(JSON, default=list)
     is_active = Column(Boolean, default=True, index=True)
+    version_number = Column(Integer, default=1, nullable=False)
 
     # Versioning & extraction metadata (Backward-compatible additions)
     parser_version = Column(String, default="2.0.0", nullable=True)

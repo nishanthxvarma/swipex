@@ -33,8 +33,8 @@ export const authApi = {
   resetPassword: (data: ResetPasswordRequest) => 
     api.post<any>(API_ENDPOINTS.AUTH.RESET_PASSWORD, data),
     
-  googleOAuth: (token: string) => 
-    api.post<BackendAuthResponse>(API_ENDPOINTS.AUTH.GOOGLE_OAUTH, { token }),
+  googleOAuth: (token: string, role?: string) => 
+    api.post<BackendAuthResponse>(API_ENDPOINTS.AUTH.GOOGLE_OAUTH, { token, role }),
     
   getCurrentUser: () => 
     api.get<any>(API_ENDPOINTS.AUTH.ME)
