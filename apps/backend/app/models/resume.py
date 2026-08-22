@@ -5,6 +5,10 @@ import uuid
 from datetime import datetime, timezone
 from app.core.database import Base
 
+def utc_now():
+    """Returns a naive UTC datetime compatible with PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 class ResumeModel(Base):
     __tablename__ = "resumes"
 
@@ -31,8 +35,8 @@ class ResumeModel(Base):
     raw_text = Column(String, nullable=True)
     evidence_spans = Column(JSON, default=dict, nullable=True)
 
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now, index=True)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     skills = relationship("ResumeSkillModel", back_populates="resume", cascade="all, delete-orphan")
@@ -53,7 +57,7 @@ class ResumeAnalysisHistoryModel(Base):
     ats_breakdown = Column(JSON, default=dict)
     health_report = Column(JSON, default=dict)
     suggestions = Column(JSON, default=list)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
     resume = relationship("ResumeModel", back_populates="analysis_history")
 

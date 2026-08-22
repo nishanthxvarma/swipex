@@ -22,6 +22,10 @@ class SwipeDirection(str, enum.Enum):
 
 from sqlalchemy.orm import relationship
 
+def utc_now():
+    """Returns a naive UTC datetime compatible with PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 class ApplicationModel(Base):
     __tablename__ = "applications"
     __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_user_job_application"),)
@@ -33,8 +37,8 @@ class ApplicationModel(Base):
     cover_letter = Column(String, nullable=True)
     resume_url = Column(String, nullable=True)
     ats_score = Column(Float, nullable=True)
-    applied_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    applied_at = Column(DateTime, default=utc_now, index=True)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("UserModel", foreign_keys=[user_id])
     job = relationship("JobModel", foreign_keys=[job_id])
@@ -46,7 +50,7 @@ class SavedJobModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), index=True, nullable=False)
-    saved_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    saved_at = Column(DateTime, default=utc_now, index=True)
 
     user = relationship("UserModel", foreign_keys=[user_id])
     job = relationship("JobModel", foreign_keys=[job_id])
@@ -59,7 +63,7 @@ class SwipeModel(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), index=True, nullable=False)
     direction = Column(Enum(SwipeDirection), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime, default=utc_now, index=True)
 
     user = relationship("UserModel", foreign_keys=[user_id])
     job = relationship("JobModel", foreign_keys=[job_id])
@@ -79,7 +83,7 @@ class RecruiterCandidateActionModel(Base):
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=True)
     action = Column(Enum(CandidateActionType), nullable=False)
     notes = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime, default=utc_now, index=True)
 
     recruiter = relationship("UserModel", foreign_keys=[recruiter_id])
     candidate = relationship("UserModel", foreign_keys=[candidate_id])

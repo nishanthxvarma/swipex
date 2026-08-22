@@ -6,6 +6,10 @@ import enum
 from datetime import datetime, timezone
 from app.core.database import Base
 
+def utc_now():
+    """Returns a naive UTC datetime compatible with PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 class RoleEnum(str, enum.Enum):
     admin = "admin"
     recruiter = "recruiter"
@@ -23,8 +27,8 @@ class UserModel(Base):
     is_verified = Column(Boolean, default=False)
     google_id = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     
     profile = relationship("ProfileModel", back_populates="user", uselist=False)
 
@@ -48,7 +52,7 @@ class ProfileModel(Base):
     linkedin_url = Column(String)
     portfolio_url = Column(String)
     profile_completion = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
     user = relationship("UserModel", back_populates="profile")
 
 class PasswordResetTokenModel(Base):
@@ -58,7 +62,7 @@ class PasswordResetTokenModel(Base):
     token_hash = Column(String, index=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
 class RefreshTokenModel(Base):
     __tablename__ = "refresh_tokens"
@@ -67,4 +71,4 @@ class RefreshTokenModel(Base):
     token_hash = Column(String, index=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)

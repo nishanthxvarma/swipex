@@ -52,7 +52,7 @@ class AuthService:
         refresh_token_str = create_refresh_token(str(created_user.id))
 
         # Persist refresh token hash
-        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).replace(tzinfo=None)
         refresh_record = RefreshTokenModel(
             user_id=created_user.id,
             token_hash=self._hash_token(refresh_token_str),
@@ -104,7 +104,7 @@ class AuthService:
         refresh_token_str = create_refresh_token(str(user.id))
 
         # Persist refresh token
-        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).replace(tzinfo=None)
         refresh_record = RefreshTokenModel(
             user_id=user.id,
             token_hash=self._hash_token(refresh_token_str),
@@ -156,7 +156,7 @@ class AuthService:
         new_refresh_record = RefreshTokenModel(
             user_id=user.id,
             token_hash=self._hash_token(new_refresh),
-            expires_at=datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            expires_at=(datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).replace(tzinfo=None),
             is_revoked=False
         )
         await self.user_repo.save_refresh_token(new_refresh_record)
@@ -182,7 +182,7 @@ class AuthService:
             # Generate secure token
             raw_token = secrets.token_urlsafe(32)
             token_hash = self._hash_token(raw_token)
-            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+            expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).replace(tzinfo=None)
 
             reset_record = PasswordResetTokenModel(
                 user_id=user.id,
@@ -379,7 +379,7 @@ class AuthService:
         refresh_token_str = create_refresh_token(str(user.id))
 
         # Persist refresh token
-        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).replace(tzinfo=None)
         refresh_record = RefreshTokenModel(
             user_id=user.id,
             token_hash=self._hash_token(refresh_token_str),

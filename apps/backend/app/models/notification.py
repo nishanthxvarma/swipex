@@ -11,6 +11,10 @@ class InterviewType(str, enum.Enum):
     onsite = "onsite"
     technical = "technical"
 
+def utc_now():
+    """Returns a naive UTC datetime compatible with PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 class NotificationModel(Base):
     __tablename__ = "notifications"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -20,7 +24,7 @@ class NotificationModel(Base):
     message = Column(String, nullable=False)
     is_read = Column(Boolean, default=False, index=True, nullable=False)
     metadata_json = Column("metadata", JSON, default=dict)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime, default=utc_now, index=True)
     expires_at = Column(DateTime, nullable=True)
 
 class NotificationPreferenceModel(Base):
@@ -33,7 +37,7 @@ class NotificationPreferenceModel(Base):
     recruiter_activity = Column(Boolean, default=True)
     analytics = Column(Boolean, default=True)
     system_notifications = Column(Boolean, default=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 class AuditLogModel(Base):
     __tablename__ = "audit_logs"
@@ -44,7 +48,7 @@ class AuditLogModel(Base):
     resource_id = Column(String)
     metadata_json = Column("metadata", JSON, default=dict)
     ip_address = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
 class InterviewScheduleModel(Base):
     __tablename__ = "interview_schedules"
@@ -57,4 +61,4 @@ class InterviewScheduleModel(Base):
     meeting_url = Column(String)
     notes = Column(String)
     status = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)

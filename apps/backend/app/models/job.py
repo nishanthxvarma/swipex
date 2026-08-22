@@ -19,6 +19,10 @@ class ExperienceLevelEnum(str, enum.Enum):
     lead = "lead"
     executive = "executive"
 
+def utc_now():
+    """Returns a naive UTC datetime compatible with PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 class CompanyModel(Base):
     __tablename__ = "companies"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -35,7 +39,7 @@ class CompanyModel(Base):
     employee_count = Column(Integer)
     founded_year = Column(Integer)
     headquarters = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
     
     jobs = relationship("JobModel", back_populates="company")
 
@@ -61,7 +65,7 @@ class JobModel(Base):
     is_active = Column(Boolean, default=True, index=True)
     views_count = Column(Integer, default=0)
     applications_count = Column(Integer, default=0)
-    posted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    posted_at = Column(DateTime, default=utc_now, index=True)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     
     company = relationship("CompanyModel", back_populates="jobs")
