@@ -1,9 +1,24 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Building2, Plus, Users, MapPin, DollarSign, Clock, Trash2, PauseCircle, PlayCircle, Loader2, AlertTriangle, X } from 'lucide-react';
+import {
+  Building2,
+  Plus,
+  Users,
+  MapPin,
+  DollarSign,
+  Clock,
+  Trash2,
+  PauseCircle,
+  PlayCircle,
+  Loader2,
+  AlertTriangle,
+  X,
+  CheckCircle2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { jobsApi } from '@swipex/api';
+import { cn } from '@/lib/utils';
 
 interface RecruiterJob {
   id: string;
@@ -14,6 +29,7 @@ interface RecruiterJob {
   applicantsCount: number;
   status: 'Active' | 'Paused' | 'Closed';
   postedDate: string;
+  skills: string[];
 }
 
 export default function RecruiterJobsPage() {
@@ -21,6 +37,7 @@ export default function RecruiterJobsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -28,27 +45,30 @@ export default function RecruiterJobsPage() {
   const [location, setLocation] = useState('Remote');
   const [salaryMin, setSalaryMin] = useState('140000');
   const [salaryMax, setSalaryMax] = useState('180000');
-  const [skills, setSkills] = useState('React, TypeScript');
+  const [skills, setSkills] = useState('React, TypeScript, Node.js');
+  const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [createdSuccess, setCreatedSuccess] = useState(false);
 
   const loadJobs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const feed = await jobsApi.getJobFeed(1, 50);
-      const mapped: RecruiterJob[] = (feed || []).map((j: any) => ({
+      const list = await jobsApi.getRecruiterJobs(1, 50);
+      const mapped: RecruiterJob[] = (list || []).map((j: any) => ({
         id: String(j.id),
         title: j.title || 'Untitled Role',
-        department: 'Engineering',
+        department: j.department || 'Engineering',
         location: j.location || 'Remote',
         salary: j.salary || '$140,000 - $180,000',
         applicantsCount: j.applicationsCount || 0,
         status: j.isActive !== false ? 'Active' : 'Paused',
         postedDate: j.postedAt ? new Date(j.postedAt).toLocaleDateString() : 'Recent',
+        skills: j.skills || j.skillsRequired || ['React', 'TypeScript'],
       }));
       setJobs(mapped);
     } catch (err: unknown) {
-      console.error(err);
+      console.error('Failed to load recruiter jobs:', err);
       setError('Failed to fetch job postings from database.');
     } finally {
       setIsLoading(false);
@@ -63,6 +83,7 @@ export default function RecruiterJobsPage() {
     e.preventDefault();
     if (!title.trim()) return;
     setIsCreating(true);
+    setActionError(null);
     try {
       const skillsArray = skills.split(',').map((s) => s.trim()).filter(Boolean);
       await jobsApi.createJob({
@@ -70,62 +91,73 @@ export default function RecruiterJobsPage() {
         location: location.trim() || 'Remote',
         salaryMin: parseInt(salaryMin, 10) || 120000,
         salaryMax: parseInt(salaryMax, 10) || 180000,
-        description: `Position for ${title.trim()} in ${department}`,
+        description: description.trim() || `Position for ${title.trim()} in ${department}`,
         skillsRequired: skillsArray.length > 0 ? skillsArray : ['React', 'TypeScript'],
         requirements: `Proficiency with ${skillsArray.join(', ')}`,
       });
-      setTitle('');
-      setIsAddModalOpen(false);
-      await loadJobs();
+      setCreatedSuccess(true);
+      setTimeout(async () => {
+        setCreatedSuccess(false);
+        setTitle('');
+        setDescription('');
+        setIsAddModalOpen(false);
+        await loadJobs();
+      }, 1000);
     } catch (err: unknown) {
-      console.error(err);
-      setError('Failed to create new job posting.');
+      console.error('Job creation error:', err);
+      setActionError('Failed to create new job posting.');
     } finally {
       setIsCreating(false);
     }
   };
 
-  const toggleStatus = (id: string) => {
+  const toggleStatus = async (id: string, currentStatus: 'Active' | 'Paused' | 'Closed') => {
+    const newIsActive = currentStatus !== 'Active';
+    // Optimistic UI
     setJobs((prev) =>
-      prev.map((j) =>
-        j.id === id ? { ...j, status: j.status === 'Active' ? 'Paused' : 'Active' } : j
-      )
+      prev.map((j) => (j.id === id ? { ...j, status: newIsActive ? 'Active' : 'Paused' } : j))
     );
+    try {
+      await jobsApi.updateJobStatus(id, newIsActive);
+    } catch (err) {
+      console.error('Failed to persist status change:', err);
+      setActionError('Failed to update job status on server.');
+      await loadJobs();
+    }
   };
 
-  const deleteJob = (id: string) => {
+  const deleteJob = async (id: string) => {
+    // Optimistic UI
     setJobs((prev) => prev.filter((j) => j.id !== id));
+    try {
+      await jobsApi.deleteJob(id);
+    } catch (err) {
+      console.error('Failed to delete job from server:', err);
+      setActionError('Failed to delete job posting.');
+      await loadJobs();
+    }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading active postings...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6 flex flex-col justify-center items-center h-[50vh] text-center p-6 border border-dashed rounded-3xl glass-1 border-destructive/20">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
-        <h3 className="font-bold text-lg text-foreground">Connection Failure</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mb-4">{error}</p>
-        <Button onClick={() => loadJobs()} className="rounded-xl font-bold">Retry Connection</Button>
+        <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading active postings from database...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 tracking-tight text-foreground">
             <Building2 className="w-7 h-7 text-primary" />
             Manage Job Postings
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Create, monitor, and manage open positions across your organization.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Create, monitor, and manage open positions across your organization.
+          </p>
         </div>
 
         <Button onClick={() => setIsAddModalOpen(true)} variant="primary" className="rounded-xl shadow-md font-bold">
@@ -133,65 +165,109 @@ export default function RecruiterJobsPage() {
         </Button>
       </div>
 
+      {error && (
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs text-destructive flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> {error}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => loadJobs()}>
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-destructive font-bold">✕</button>
+        </div>
+      )}
+
       {jobs.length === 0 ? (
         <div className="text-center py-16 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
           <Building2 className="w-12 h-12 text-primary mx-auto opacity-60" />
           <h3 className="text-lg font-bold text-foreground">No active job listings</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Create your first job requisition to start matching with top talent on SwipeX.
+            Create your first job requisition to start matching with candidates in real-time.
           </p>
           <Button onClick={() => setIsAddModalOpen(true)} variant="primary" className="rounded-xl font-bold text-xs">
             <Plus className="w-4 h-4 mr-1.5" /> Post Job
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <div key={job.id} className="glass-1 border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{job.department}</span>
+            <div
+              key={job.id}
+              className="glass-1 border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors">
+                      {job.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">{job.department}</p>
+                  </div>
                   <span
-                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                    className={cn(
+                      'text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0',
                       job.status === 'Active'
                         ? 'bg-success/10 text-success border-success/20'
-                        : 'bg-warning/10 text-warning border-warning/20'
-                    }`}
+                        : 'bg-muted/40 text-muted-foreground border-border'
+                    )}
                   >
                     {job.status}
                   </span>
                 </div>
-                <h3 className="font-bold text-lg text-foreground">{job.title}</h3>
-                <div className="space-y-1.5 mt-3 text-xs text-muted-foreground font-medium">
+
+                <div className="space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-primary" /> {job.location}
-                  </div>
-                  <div className="flex items-center gap-2 font-semibold text-foreground">
-                    <DollarSign className="w-3.5 h-3.5 text-success" /> {job.salary}
+                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                    <span>{job.location}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5" /> Posted {job.postedDate}
+                    <DollarSign className="w-3.5 h-3.5 text-primary" />
+                    <span>{job.salary}</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-semibold text-foreground">{job.applicantsCount} Applicants</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {job.skills.slice(0, 4).map((s, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-medium glass-2 border border-border text-foreground"
+                    >
+                      {s}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border/60 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                  <Users className="w-3.5 h-3.5" /> {job.applicantsCount} Applicants
-                </div>
-
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> {job.postedDate}
+                </span>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => toggleStatus(job.id)}
-                    title={job.status === 'Active' ? 'Pause Requisition' : 'Activate Requisition'}
-                    className="p-2 rounded-lg glass-2 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => toggleStatus(job.id, job.status)}
+                    title={job.status === 'Active' ? 'Pause Requisition' : 'Resume Requisition'}
+                    className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   >
-                    {job.status === 'Active' ? <PauseCircle className="w-4 h-4" /> : <PlayCircle className="w-4 h-4 text-success" />}
+                    {job.status === 'Active' ? (
+                      <PauseCircle className="w-4 h-4 text-warning" />
+                    ) : (
+                      <PlayCircle className="w-4 h-4 text-success" />
+                    )}
                   </button>
                   <button
                     onClick={() => deleteJob(job.id)}
-                    title="Remove Job"
-                    className="p-2 rounded-lg glass-2 border border-border text-muted-foreground hover:text-destructive cursor-pointer"
+                    title="Delete Requisition"
+                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -202,56 +278,159 @@ export default function RecruiterJobsPage() {
         </div>
       )}
 
-      {/* Post Modal */}
+      {/* Add Job Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => !isCreating && setIsAddModalOpen(false)}>
-          <form onSubmit={handleAddJob} className="glass-3 border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center border-b border-border pb-3">
-              <h3 className="font-bold text-lg text-foreground">Post New Position</h3>
-              <button type="button" disabled={isCreating} onClick={() => setIsAddModalOpen(false)} className="p-1.5 rounded-full hover:bg-secondary cursor-pointer">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsAddModalOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="glass-3 border border-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative"
+          >
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">Post New Position</h3>
+                  <p className="text-xs text-muted-foreground">Requisition will be saved and published immediately</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-sm">
-              <div>
-                <label className="text-xs font-semibold block mb-1 text-foreground">Job Title *</label>
-                <input required type="text" placeholder="e.g. Senior Frontend Engineer" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
+            {createdSuccess ? (
+              <div className="py-8 text-center space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
+                <h4 className="font-bold text-base text-foreground">Position Created Successfully!</h4>
+                <p className="text-xs text-muted-foreground">Updating live requisitions list...</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+            ) : (
+              <form onSubmit={handleAddJob} className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold block mb-1 text-foreground">Department</label>
-                  <input type="text" placeholder="Engineering / Design" value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Job Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Senior Frontend Engineer"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                  />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold block mb-1 text-foreground">Location</label>
-                  <input type="text" placeholder="Remote / SF" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold block mb-1 text-foreground">Min Salary ($)</label>
-                  <input type="number" placeholder="140000" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold block mb-1 text-foreground">Max Salary ($)</label>
-                  <input type="number" placeholder="180000" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold block mb-1 text-foreground">Required Skills</label>
-                <input type="text" placeholder="React, TypeScript, GraphQL" value={skills} onChange={(e) => setSkills(e.target.value)} className="w-full px-3 py-2 border border-border rounded-xl bg-input text-foreground text-sm" />
-              </div>
-            </div>
 
-            <div className="pt-2 flex gap-3">
-              <Button type="button" variant="outline" disabled={isCreating} className="flex-1 rounded-xl" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="primary" disabled={isCreating} className="flex-1 rounded-xl font-bold">
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {isCreating ? 'Publishing...' : 'Publish Position'}
-              </Button>
-            </div>
-          </form>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                      Department
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Engineering"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Remote / San Francisco"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                      Min Salary ($)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="120000"
+                      value={salaryMin}
+                      onChange={(e) => setSalaryMin(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                      Max Salary ($)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="180000"
+                      value={salaryMax}
+                      onChange={(e) => setSalaryMax(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Skills Required (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="React, TypeScript, Next.js, PostgreSQL"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Role Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe role responsibilities and requirements..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 rounded-xl"
+                    onClick={() => setIsAddModalOpen(false)}
+                    disabled={isCreating}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="flex-1 rounded-xl font-bold"
+                    disabled={isCreating || !title.trim()}
+                  >
+                    {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                    Create Position
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       )}
     </div>

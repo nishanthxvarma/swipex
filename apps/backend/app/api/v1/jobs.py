@@ -30,8 +30,9 @@ def calculate_match_percentage(user_skills: list, job_skills: list) -> int:
     return min(100, max(50, score))
 
 def format_job(job, user_skills: list = None) -> dict:
-    company_name = job.company.name if job.company else "SwipeX Partner"
-    rating = job.company.rating if job.company and job.company.rating else 4.5
+    company = job.__dict__.get("company") if hasattr(job, "__dict__") else getattr(job, "company", None)
+    company_name = company.name if company and hasattr(company, "name") else "SwipeX Partner"
+    rating = company.rating if company and hasattr(company, "rating") and company.rating else 4.5
     logo_color = get_color_for_company(company_name)
     
     req_list = []
@@ -151,6 +152,32 @@ async def get_job(
         
     return format_job(job, user_skills)
 
+@router.get("/recruiter/mine")
+@router.get("/recruiter/list")
+async def list_recruiter_jobs_endpoint(
+    page: int = Query(1, ge=1),
+    perPage: int = Query(50, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+    job_service: JobService = Depends(get_job_service)
+):
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required")
+    user_id = parse_id(current_user["sub"])
+    jobs = await job_service.list_recruiter_jobs(recruiter_id=user_id, page=page, per_page=perPage)
+    
+    # Calculate real applicant counts per job
+    from app.models.application import ApplicationModel
+    from sqlalchemy import select, func
+    res_list = []
+    for j in jobs:
+        cnt_stmt = select(func.count(ApplicationModel.id)).where(ApplicationModel.job_id == j.id)
+        cnt_res = await job_service.job_repo.db.execute(cnt_stmt)
+        app_count = cnt_res.scalar_one() or 0
+        j.applications_count = app_count
+        res_list.append(format_job(j))
+    return res_list
+
 @router.post("/")
 async def create_job(
     job_data: dict,
@@ -160,9 +187,10 @@ async def create_job(
     role = current_user.get("role", "job_seeker")
     if role not in ("recruiter", "admin"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required")
+    user_id = parse_id(current_user["sub"])
     # Adapt dictionary keys to JobModel fields
     title = job_data.get("title")
-    description = job_data.get("description")
+    description = job_data.get("description", "")
     company_id = job_data.get("companyId")
     if company_id:
         company_id = parse_id(company_id)
@@ -177,23 +205,66 @@ async def create_job(
             company_id = c.id
     
     from app.models.job import JobModel
+    skills_req = job_data.get("skillsRequired") or job_data.get("skills") or ["React", "TypeScript"]
+    if isinstance(skills_req, str):
+        skills_req = [s.strip() for s in skills_req.split(",") if s.strip()]
+
     job = JobModel(
         title=title, 
         description=description, 
         company_id=company_id,
+        recruiter_id=user_id,
         location=job_data.get("location", "Remote"),
         salary_min=float(job_data.get("salaryMin", 100000)),
         salary_max=float(job_data.get("salaryMax", 150000)),
-        skills_required=job_data.get("skillsRequired", ["React"]),
+        skills_required=skills_req,
         requirements=job_data.get("requirements", "")
     )
     res = await job_service.job_repo.create(job)
     return format_job(res)
 
+@router.put("/{job_id}/status")
+@router.patch("/{job_id}/status")
+async def update_job_status(
+    job_id: str,
+    status_data: dict,
+    current_user: dict = Depends(get_current_user),
+    job_service: JobService = Depends(get_job_service)
+):
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required")
+    
+    job = await job_service.get_job_detail(parse_id(job_id))
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+
+    is_active = status_data.get("isActive")
+    if is_active is None:
+        st = status_data.get("status", "").lower()
+        is_active = (st == "active")
+    
+    job.is_active = bool(is_active)
+    await job_service.job_repo.update(job)
+    return format_job(job)
+
+@router.delete("/{job_id}")
+async def delete_job_endpoint(
+    job_id: str,
+    current_user: dict = Depends(get_current_user),
+    job_service: JobService = Depends(get_job_service)
+):
+    role = current_user.get("role", "job_seeker")
+    if role not in ("recruiter", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required")
+    
+    await job_service.job_repo.delete(job_id)
+    return {"success": True, "deletedId": job_id}
+
 @router.post("/{job_id}/swipe")
 async def swipe_job(
     job_id: str,
-    direction: str = Query("right", regex="^(left|right|up)$"),
+    direction: str = Query("right", pattern="^(left|right|up)$"),
     current_user: dict = Depends(get_current_user),
     job_service: JobService = Depends(get_job_service),
     notif_service: NotificationService = Depends(get_notification_service)

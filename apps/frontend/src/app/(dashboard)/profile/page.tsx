@@ -27,10 +27,19 @@ import { useUserProfile, useActiveResume } from '@/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/hooks/queries';
 
+import { useRouter } from 'next/navigation';
+
 export default function ProfilePage() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (user?.role?.toUpperCase() === 'RECRUITER') {
+      router.replace('/recruiter/profile');
+    }
+  }, [user, router]);
 
   const { data: profileData, isLoading: isProfileQueryLoading } = useUserProfile();
   const { data: activeResumeData } = useActiveResume();

@@ -15,11 +15,28 @@ class JobRepository:
         return result.scalars().first()
 
     async def list_jobs(self, page=1, per_page=10, filters=None):
-        query = select(JobModel).options(joinedload(JobModel.company))
+        query = select(JobModel).options(joinedload(JobModel.company)).where(JobModel.is_active == True)
         if filters:
             # apply filters
             pass
-        query = query.limit(per_page).offset((page - 1) * per_page)
+        query = query.order_by(JobModel.posted_at.desc()).limit(per_page).offset((page - 1) * per_page)
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
+    async def list_recruiter_jobs(self, recruiter_id=None, company_id=None, page=1, per_page=50):
+        from app.core.security import parse_id
+        query = select(JobModel).options(joinedload(JobModel.company))
+        if recruiter_id:
+            r_id = parse_id(recruiter_id)
+            if company_id:
+                c_id = parse_id(company_id)
+                query = query.where((JobModel.recruiter_id == r_id) | (JobModel.company_id == c_id))
+            else:
+                query = query.where((JobModel.recruiter_id == r_id) | (JobModel.recruiter_id == None))
+        elif company_id:
+            c_id = parse_id(company_id)
+            query = query.where(JobModel.company_id == c_id)
+        query = query.order_by(JobModel.posted_at.desc()).limit(per_page).offset((page - 1) * per_page)
         result = await self.db.execute(query)
         return result.scalars().all()
 

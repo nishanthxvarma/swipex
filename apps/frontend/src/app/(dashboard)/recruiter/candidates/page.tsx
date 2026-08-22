@@ -1,7 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, MapPin, Briefcase, Check, X, RotateCcw, UserCheck, AlertTriangle, Users } from 'lucide-react';
+import {
+  Sparkles,
+  MapPin,
+  Briefcase,
+  Check,
+  X,
+  RotateCcw,
+  UserCheck,
+  AlertTriangle,
+  Users,
+  Loader2,
+  Bookmark,
+  Mail,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usersApi } from '@swipex/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,14 +32,22 @@ interface CandidateProfile {
   bio?: string;
   color?: string;
   initials?: string;
+  email?: string;
 }
 
 export default function RecruiterCandidatesPage() {
   const queryClient = useQueryClient();
   const [shortlisted, setShortlisted] = useState<CandidateProfile[]>([]);
+  const [passed, setPassed] = useState<CandidateProfile[]>([]);
   const [history, setHistory] = useState<CandidateProfile[]>([]);
 
-  const { data: rawCandidates, isLoading, error, refetch } = useQuery({
+  const {
+    data: rawCandidates,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: QUERY_KEYS.recruiterCandidates,
     queryFn: () => usersApi.getCandidates(),
     staleTime: 2 * 60 * 1000,
@@ -35,7 +56,7 @@ export default function RecruiterCandidatesPage() {
   const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
 
   useEffect(() => {
-    if (rawCandidates) {
+    if (rawCandidates && Array.isArray(rawCandidates)) {
       setCandidates(rawCandidates);
     }
   }, [rawCandidates]);
@@ -46,6 +67,24 @@ export default function RecruiterCandidatesPage() {
 
     if (direction === 'right') {
       setShortlisted([current, ...shortlisted]);
+      try {
+        await usersApi.recordCandidateAction({
+          candidateId: current.id,
+          action: 'shortlist',
+        });
+      } catch (err) {
+        console.warn('Failed to record candidate action:', err);
+      }
+    } else {
+      setPassed([current, ...passed]);
+      try {
+        await usersApi.recordCandidateAction({
+          candidateId: current.id,
+          action: 'pass',
+        });
+      } catch (err) {
+        console.warn('Failed to record candidate action:', err);
+      }
     }
     setHistory([current, ...history]);
     setCandidates(candidates.slice(1));
@@ -56,6 +95,7 @@ export default function RecruiterCandidatesPage() {
     const last = history[0];
     setHistory(history.slice(1));
     setShortlisted(shortlisted.filter((c) => c.id !== last.id));
+    setPassed(passed.filter((c) => c.id !== last.id));
     setCandidates([last, ...candidates]);
   };
 
@@ -69,36 +109,58 @@ export default function RecruiterCandidatesPage() {
             <UserCheck className="w-7 h-7 text-primary" />
             Candidate Discovery
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Review AI-matched candidates looking for new opportunities.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Evaluate candidate profiles and shortlist top engineering talent.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
-            {candidates.length} in Active Pool
+        {!isLoading && !isError && (
+          <div className="flex items-center gap-3">
+            <div className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+              {candidates.length} in Active Pool
+            </div>
+            <div className="text-xs font-semibold px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success">
+              {shortlisted.length} Shortlisted
+            </div>
           </div>
-          <div className="text-xs font-semibold px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success">
-            {shortlisted.length} Shortlisted
-          </div>
-        </div>
+        )}
       </div>
 
-      {error ? (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs text-destructive flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" /> Failed to load candidate directory from database.
-          </div>
-          <Button size="sm" variant="outline" onClick={() => refetch()}>
-            Retry
+      {isError ? (
+        <div className="p-8 border border-dashed rounded-3xl glass-1 border-destructive/30 text-center space-y-3">
+          <AlertTriangle className="w-10 h-10 text-destructive mx-auto" />
+          <h3 className="text-base font-bold text-foreground">Unable to connect to candidate directory</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Please ensure you have recruiter permissions and database connectivity.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => refetch()} className="rounded-xl font-bold">
+            Retry Connection
           </Button>
         </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Candidate Evaluation Card */}
-        <div className="lg:col-span-8 space-y-6">
-          {isLoading ? (
-            <div className="h-96 rounded-3xl glass-1 border border-border animate-pulse" />
-          ) : currentCandidate ? (
+      ) : isLoading ? (
+        <div className="space-y-6 flex flex-col justify-center items-center h-[50vh]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading verified candidate pool...</p>
+        </div>
+      ) : candidates.length === 0 ? (
+        <div className="p-12 border border-dashed rounded-3xl glass-1 border-border text-center space-y-4 max-w-lg mx-auto">
+          <Users className="w-12 h-12 text-primary mx-auto opacity-50" />
+          <h3 className="text-lg font-bold text-foreground">You have reviewed all available candidates</h3>
+          <p className="text-xs text-muted-foreground">
+            {shortlisted.length > 0
+              ? `You shortlisted ${shortlisted.length} candidate${shortlisted.length === 1 ? '' : 's'}. You can review them in your Shortlisted list.`
+              : 'Check back soon as new candidate profiles are registered on SwipeX.'}
+          </p>
+          {history.length > 0 && (
+            <Button size="sm" variant="outline" onClick={handleUndo} className="rounded-xl">
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Undo Last Action
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Candidate Evaluation Card */}
+          <div className="lg:col-span-8 space-y-6">
             <div className="glass-2 border border-border rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-border pb-6">
                 <div
@@ -112,7 +174,7 @@ export default function RecruiterCandidatesPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <h2 className="text-2xl font-bold text-foreground">{currentCandidate.name}</h2>
                     <span className="inline-block px-3 py-1 rounded-full text-xs font-black bg-success/10 text-success border border-success/20">
-                      {currentCandidate.matchScore || 90}% Match Score
+                      {currentCandidate.matchScore || 88}% Match Index
                     </span>
                   </div>
                   <p className="text-sm font-semibold text-primary">
@@ -136,7 +198,7 @@ export default function RecruiterCandidatesPage() {
                   {currentCandidate.bio || 'Experienced software professional specialized in full-stack web applications.'}
                 </p>
 
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground pt-2">Skills & Technologies</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground pt-2">Skills &amp; Technologies</h4>
                 <div className="flex flex-wrap gap-2">
                   {(currentCandidate.skills && currentCandidate.skills.length > 0
                     ? currentCandidate.skills
@@ -149,81 +211,66 @@ export default function RecruiterCandidatesPage() {
                 </div>
               </div>
 
-              {/* Actions Footer */}
-              <div className="flex items-center justify-between pt-6 border-t border-border">
+              {/* Actions */}
+              <div className="flex items-center justify-center gap-4 pt-4 border-t border-border">
                 <Button
-                  variant="ghost"
                   onClick={handleUndo}
                   disabled={history.length === 0}
-                  className="rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full w-12 h-12"
+                  title="Undo"
                 >
-                  <RotateCcw className="w-4 h-4 mr-1.5" /> Undo Last Action
+                  <RotateCcw className="w-5 h-5" />
                 </Button>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleAction('left')}
-                    className="rounded-2xl px-6 py-6 border-destructive/30 hover:bg-destructive/10 text-destructive font-bold text-sm"
-                  >
-                    <X className="w-5 h-5 mr-1.5" /> Pass
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() => handleAction('right')}
-                    className="rounded-2xl px-8 py-6 font-bold text-sm shadow-md"
-                  >
-                    <Check className="w-5 h-5 mr-1.5" /> Shortlist Candidate
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => handleAction('left')}
+                  variant="destructive"
+                  className="rounded-2xl px-6 h-12 font-bold shadow-md"
+                >
+                  <X className="w-5 h-5 mr-1.5" /> Pass
+                </Button>
+                <Button
+                  onClick={() => handleAction('right')}
+                  variant="primary"
+                  className="rounded-2xl px-8 h-12 font-bold shadow-lg"
+                >
+                  <Check className="w-5 h-5 mr-1.5" /> Shortlist Candidate
+                </Button>
               </div>
             </div>
-          ) : (
-            <div className="text-center py-16 border border-dashed rounded-3xl glass-1 border-border p-8 space-y-4">
-              <Users className="w-10 h-10 text-primary mx-auto opacity-70" />
-              <h3 className="text-lg font-bold text-foreground">All Candidates Reviewed</h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                You have reached the end of the current candidate pool. New matching candidates will appear automatically.
-              </p>
-              <Button onClick={() => refetch()} variant="outline" className="rounded-xl text-xs font-bold">
-                Refresh Directory
-              </Button>
-            </div>
-          )}
-        </div>
+          </div>
 
-        {/* Shortlist Sidebar */}
-        <div className="lg:col-span-4 space-y-4">
-          <h3 className="font-bold text-base text-foreground">Shortlisted Candidates ({shortlisted.length})</h3>
-          <div className="glass-1 border border-border rounded-2xl p-4 space-y-3 min-h-[300px]">
+          {/* Right: Shortlisted Candidates */}
+          <div className="lg:col-span-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <Bookmark className="w-4 h-4 text-primary" /> Shortlisted ({shortlisted.length})
+              </h3>
+            </div>
+
             {shortlisted.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-xs text-muted-foreground text-center">
-                Shortlisted candidates will appear here for batch outreach and interview scheduling.
+              <div className="p-6 border border-dashed rounded-2xl glass-1 border-border text-center text-xs text-muted-foreground">
+                Shortlisted candidates will appear here during this session.
               </div>
             ) : (
-              shortlisted.map((c) => (
-                <div key={c.id} className="flex items-center justify-between p-3 glass-2 border border-border rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
-                      style={{ backgroundColor: c.color || '#1677A8' }}
-                    >
-                      {c.initials}
-                    </div>
-                    <div>
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                {shortlisted.map((c) => (
+                  <div key={c.id} className="glass-1 border border-border rounded-xl p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
                       <h4 className="font-bold text-xs text-foreground">{c.name}</h4>
-                      <p className="text-[10px] text-muted-foreground">{c.location || 'Remote'}</p>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-success/10 text-success">
+                        {c.matchScore || 90}%
+                      </span>
                     </div>
+                    <p className="text-[11px] text-muted-foreground truncate">{c.headline || 'Software Engineer'}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full border border-success/20">
-                    {c.matchScore || 90}%
-                  </span>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

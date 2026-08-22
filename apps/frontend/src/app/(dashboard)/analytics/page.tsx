@@ -1,26 +1,35 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, TrendingUp, Target, Activity, Zap, Calendar, Filter, 
-  CheckCircle2, ArrowUpRight, Award, Layers, Users, Briefcase
+  CheckCircle2, ArrowUpRight, Award, Layers, Users, Briefcase, AlertTriangle, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAnalyticsStore } from '@/stores/analytics-store';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function AnalyticsPage() {
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const {
     candidateAnalytics,
     timeRange,
     setTimeRange,
     fetchCandidateAnalytics,
     isLoading,
+    error,
   } = useAnalyticsStore();
 
   useEffect(() => {
+    if (user?.role?.toUpperCase() === 'RECRUITER') {
+      router.replace('/recruiter/analytics');
+      return;
+    }
     fetchCandidateAnalytics();
-  }, [fetchCandidateAnalytics]);
+  }, [user, router, fetchCandidateAnalytics]);
 
   const data = candidateAnalytics;
 
@@ -79,6 +88,17 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs text-destructive flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> {error}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => fetchCandidateAnalytics()}>
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Overview Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Applications Submitted */}
@@ -92,11 +112,11 @@ export default function AnalyticsPage() {
         >
           <p className="text-[12px] font-medium text-[#66788A] uppercase tracking-wider">Applications Submitted</p>
           <p className="text-[28px] font-bold text-[#F5FAFF] leading-none tracking-tight">
-            {data?.applicationsSubmitted || 28}
+            {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : data?.applicationsSubmitted ?? 0}
           </p>
           <div className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: '#5EE7C2' }}>
             <TrendingUp className="w-3.5 h-3.5" />
-            Success Rate: {data?.applicationSuccessRatePct || 28.6}%
+            Success Rate: {data?.applicationSuccessRatePct ?? 0}%
           </div>
         </div>
 
@@ -111,11 +131,11 @@ export default function AnalyticsPage() {
         >
           <p className="text-[12px] font-medium text-[#66788A] uppercase tracking-wider">Interviews Scheduled</p>
           <p className="text-[28px] font-bold text-[#F5FAFF] leading-none tracking-tight">
-            {data?.interviewsCount || 8}
+            {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : data?.interviewsCount ?? 0}
           </p>
           <div className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: '#BFE8FF' }}>
             <Calendar className="w-3.5 h-3.5" />
-            {data?.offersCount || 2} Offers Extended
+            {data?.offersCount ?? 0} Offers Extended
           </div>
         </div>
 
@@ -130,10 +150,10 @@ export default function AnalyticsPage() {
         >
           <p className="text-[12px] font-medium text-[#66788A] uppercase tracking-wider">Jobs Liked / Saved</p>
           <p className="text-[28px] font-bold text-[#F5FAFF] leading-none tracking-tight">
-            {data?.jobsLiked || 42}
+            {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : data?.jobsLiked ?? 0}
           </p>
           <div className="text-[12px] font-semibold text-[#66788A]">
-            {data?.jobsSaved || 18} Bookmarked Jobs
+            {data?.jobsSaved ?? 0} Bookmarked Jobs
           </div>
         </div>
 
@@ -149,12 +169,12 @@ export default function AnalyticsPage() {
         >
           <p className="text-[12px] font-medium uppercase tracking-wider" style={{ color: '#7DD3FC' }}>Career ATS Score</p>
           <p className="text-[28px] font-bold text-[#F5FAFF] leading-none tracking-tight">
-            {data?.careerScore || 88.5}{' '}
+            {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : data?.careerScore ?? 0}{' '}
             <span className="text-[16px] font-semibold text-[#9BAFC2]">/ 100</span>
           </p>
           <div className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: '#BFE8FF' }}>
             <Award className="w-3.5 h-3.5" />
-            Profile {data?.profileCompletionPct || 92}% Complete
+            Profile {data?.profileCompletionPct ?? 0}% Complete
           </div>
         </div>
       </div>

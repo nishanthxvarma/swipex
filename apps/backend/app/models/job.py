@@ -43,6 +43,7 @@ class JobModel(Base):
     __tablename__ = "jobs"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), index=True)
+    recruiter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=True)
     title = Column(String, nullable=False)
     description = Column(String)
     requirements = Column(String)

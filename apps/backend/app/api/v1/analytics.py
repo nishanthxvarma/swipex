@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/candidate", response_model=CandidateAnalyticsSchema)
 async def get_candidate_analytics(
-    timeRange: str = Query("30d", regex="^(7d|30d|90d|all)$"),
+    timeRange: str = Query("30d", pattern="^(7d|30d|90d|all)$"),
     current_user: dict = Depends(get_current_user),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -19,7 +19,7 @@ async def get_candidate_analytics(
 
 @router.get("/recruiter", response_model=RecruiterAnalyticsSchema)
 async def get_recruiter_analytics(
-    timeRange: str = Query("30d", regex="^(7d|30d|90d|all)$"),
+    timeRange: str = Query("30d", pattern="^(7d|30d|90d|all)$"),
     current_user: dict = Depends(get_current_user),
     service: AnalyticsService = Depends(get_analytics_service),
 ):

@@ -115,6 +115,28 @@ export const jobsApi = {
   createJob: (data: any) =>
     api.post<Job>('/jobs/', data),
 
+  getRecruiterJobs: async (page = 1, perPage = 50): Promise<any[]> => {
+    try {
+      const res = await api.get<any[]>('/jobs/recruiter/mine', { params: { page, perPage } });
+      if (Array.isArray(res)) return res;
+    } catch (e) {
+      // Fallback to legacy
+    }
+    try {
+      const fallback = await api.get<any[]>('/jobs/recruiter/list', { params: { page, perPage } });
+      if (Array.isArray(fallback)) return fallback;
+    } catch (err) {
+      // Fallback
+    }
+    return [];
+  },
+
+  updateJobStatus: (id: string, isActive: boolean | string) =>
+    api.put<Job>(`/jobs/${id}/status`, typeof isActive === 'boolean' ? { isActive } : { status: isActive }),
+
+  deleteJob: (id: string) =>
+    api.delete<{ success: boolean }>(`/jobs/${id}`),
+
   updateApplicationStatus: (id: string, status: string) =>
     api.put<Application>(`/applications/${id}/status`, { status }),
 

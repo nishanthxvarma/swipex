@@ -11,6 +11,9 @@ class JobService:
     async def list_jobs(self, page=1, per_page=10):
         return await self.job_repo.list_jobs(page, per_page)
 
+    async def list_recruiter_jobs(self, recruiter_id=None, company_id=None, page=1, per_page=50):
+        return await self.job_repo.list_recruiter_jobs(recruiter_id, company_id, page, per_page)
+
     async def get_feed(self, user_id: uuid.UUID, page=1, per_page=10):
         return await self.job_repo.get_feed(user_id, page, per_page)
 

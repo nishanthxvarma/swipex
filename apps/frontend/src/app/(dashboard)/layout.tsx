@@ -52,7 +52,9 @@ const recruiterNavigation = [
   { name: 'Jobs', href: '/recruiter/jobs', icon: Building2 },
   { name: 'Candidates', href: '/recruiter/candidates', icon: Layers },
   { name: 'Pipeline', href: '/recruiter/pipeline', icon: FileText },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Analytics', href: '/recruiter/analytics', icon: BarChart3 },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
+  { name: 'Company Profile', href: '/recruiter/profile', icon: User },
 ];
 
 const adminNavigation = [
@@ -65,8 +67,9 @@ const adminNavigation = [
 ];
 
 const getNavItems = (role?: string) => {
-  if (role === 'ADMIN') return adminNavigation;
-  if (role === 'RECRUITER') return recruiterNavigation;
+  const norm = (role || '').toUpperCase();
+  if (norm === 'ADMIN') return adminNavigation;
+  if (norm === 'RECRUITER') return recruiterNavigation;
   return candidateNavigation;
 };
 
@@ -95,6 +98,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSearch]);
+
+  const isRecruiter = user?.role?.toUpperCase() === 'RECRUITER';
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
+  const profileHref = isRecruiter ? '/recruiter/profile' : '/profile';
+
+  // Role Protection & Workspace Separation
+  useEffect(() => {
+    if (!user) return;
+    const normRole = (user.role || '').toUpperCase();
+    if (normRole === 'RECRUITER') {
+      const candidatePaths = ['/dashboard', '/jobs', '/applications', '/resume', '/saved', '/analytics'];
+      if (candidatePaths.includes(pathname)) {
+        if (pathname === '/analytics') {
+          router.replace('/recruiter/analytics');
+        } else {
+          router.replace('/recruiter/dashboard');
+        }
+      }
+    } else if (normRole === 'JOB_SEEKER') {
+      if (pathname.startsWith('/recruiter')) {
+        router.replace('/dashboard');
+      }
+    }
+  }, [user, pathname, router]);
 
   const handleLogout = () => {
     logout();
@@ -209,7 +236,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="border-t border-border/60 p-3">
           <div className={cn('flex items-center gap-2.5', !isSidebarOpen && 'justify-center')}>
             <button
-              onClick={() => router.push('/profile')}
+              onClick={() => router.push(profileHref)}
               className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center font-bold text-xs bg-primary/10 border border-primary/25 text-primary transition-all hover:scale-105"
               title="View Profile"
             >
@@ -217,7 +244,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             {isSidebarOpen && (
               <>
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push('/profile')}>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(profileHref)}>
                   <p className="truncate text-[13px] font-semibold text-foreground leading-none">{userName}</p>
                   <p className="truncate text-[11px] text-muted-foreground mt-0.5">
                     {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'RECRUITER' ? 'Recruiter' : 'Job Seeker'}
@@ -422,7 +449,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <p className="text-[11px] text-muted-foreground truncate mt-0.5">{userEmail}</p>
                       </div>
                       {[
-                        { label: 'My Profile', href: '/profile', icon: User },
+                        { label: 'My Profile', href: profileHref, icon: User },
                         { label: 'Settings', href: '/settings', icon: Settings },
                       ].map((item) => (
                         <Link
