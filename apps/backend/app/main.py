@@ -11,9 +11,54 @@ logger = structlog.get_logger()
 from app.core.database import engine, Base, async_session_factory
 from app.models.user import UserModel, ProfileModel, RoleEnum
 from app.core.security import hash_password
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
+async def migrate_database():
+    """Add columns that were added to ORM models after the initial table creation.
+    
+    SQLAlchemy's create_all() only creates tables that don't exist yet —
+    it never adds new columns to existing tables. This function fills that gap
+    by issuing ALTER TABLE ... ADD COLUMN IF NOT EXISTS for every column that
+    may be missing in production.
+    """
+    migrations = [
+        # users table — columns added for Google OAuth and account management
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR DEFAULT 'local' NOT NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_user_id VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP",
+        # profiles table — columns added for enriched profile data
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS headline VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS experience_years VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS education JSON",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS certifications JSON",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS projects JSON",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS experiences JSON",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS social_links JSON",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS github_url VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS portfolio_url VARCHAR",
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS profile_completion VARCHAR",
+        # password_reset_tokens table
+        "CREATE TABLE IF NOT EXISTS password_reset_tokens (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) ON DELETE CASCADE, token_hash VARCHAR NOT NULL, expires_at TIMESTAMP NOT NULL, is_used BOOLEAN DEFAULT FALSE NOT NULL, created_at TIMESTAMP DEFAULT NOW())",
+        # refresh_tokens table
+        "CREATE TABLE IF NOT EXISTS refresh_tokens (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) ON DELETE CASCADE, token_hash VARCHAR NOT NULL, expires_at TIMESTAMP NOT NULL, is_revoked BOOLEAN DEFAULT FALSE NOT NULL, created_at TIMESTAMP DEFAULT NOW())",
+    ]
+    async with engine.begin() as conn:
+        for stmt in migrations:
+            try:
+                await conn.execute(text(stmt))
+            except Exception as e:
+                # Log but don't crash — some may already exist or be unsupported on SQLite
+                await logger.awarning("Migration statement skipped", stmt=stmt[:80], error=str(e)[:120])
+    await logger.ainfo("Database migration check completed")
+
 
 async def seed_admin_account(session: AsyncSession = None):
     admin_email = (settings.ADMIN_EMAIL or "sxadmin@gmail.com").lower().strip()
@@ -69,8 +114,9 @@ async def seed_admin_account(session: AsyncSession = None):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: Connect to db, create tables, and seed admin
+    # Startup logic: Connect to db, migrate schema, create tables, and seed admin
     await logger.ainfo("Starting up application and verifying database tables")
+    await migrate_database()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await seed_admin_account()
