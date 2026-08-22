@@ -27,6 +27,7 @@ async def migrate_database():
     """
     migrations = [
         # users table — columns added for Google OAuth and account management
+        "ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR DEFAULT 'local' NOT NULL",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_user_id VARCHAR",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE",

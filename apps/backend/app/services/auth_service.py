@@ -364,7 +364,7 @@ class AuthService:
             # New user creation
             user = UserModel(
                 email=email,
-                hashed_password=None,
+                hashed_password="",
                 role=sanitized_role,
                 auth_provider="google",
                 provider_user_id=google_id,
