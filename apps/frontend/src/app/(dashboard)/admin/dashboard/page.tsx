@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiClient, AnalyticsApi } from '@swipex/api';
+import { API_BASE_URL } from '@swipex/config';
 import { motion } from 'framer-motion';
 import { 
   Users, Building2, Shield, Activity, TrendingUp, AlertTriangle, 
@@ -25,7 +26,7 @@ export default function AdminDashboardPage() {
     setError(null);
     try {
       const client = new ApiClient(
-        process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend.onrender.com/api/v1',
+        API_BASE_URL,
         () => token || null,
         () => {}
       );

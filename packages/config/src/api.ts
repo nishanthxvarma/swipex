@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend.onrender.com/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend-i4vn.onrender.com/api/v1';
 
 export const API_ENDPOINTS = {
   AUTH: {

@@ -12,11 +12,12 @@ import {
 } from '@swipex/types';
 import { ResumeApi, ApiClient } from '@swipex/api';
 import { useAuthStore } from './auth-store';
+import { API_BASE_URL } from '@swipex/config';
 
 const getApiClient = () => {
   const token = useAuthStore.getState().tokens?.accessToken || null;
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_URL || 'https://swipex-backend.onrender.com/api/v1',
+    API_BASE_URL,
     () => token,
     (t) => {}
   );
