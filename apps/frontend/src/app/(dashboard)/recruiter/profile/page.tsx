@@ -38,19 +38,17 @@ export default function RecruiterProfilePage() {
 
   // Recruiter fields
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [title, setTitle] = useState((user as any)?.headline || 'Head of Talent Acquisition');
-  const [location, setLocation] = useState((user as any)?.location || 'San Francisco, CA');
-  const [bio, setBio] = useState((user as any)?.bio || 'Leading technical recruiting and engineering talent strategy.');
-  const [phone, setPhone] = useState((user as any)?.phone || '+1 (555) 019-2834');
+  const [title, setTitle] = useState((user as any)?.headline || '');
+  const [location, setLocation] = useState((user as any)?.location || '');
+  const [bio, setBio] = useState((user as any)?.bio || '');
+  const [phone, setPhone] = useState((user as any)?.phone || '');
 
   // Company fields
-  const [companyName, setCompanyName] = useState('SwipeX Technologies');
-  const [companyIndustry, setCompanyIndustry] = useState('Software & Artificial Intelligence');
-  const [companySize, setCompanySize] = useState('50-200');
-  const [companyWebsite, setCompanyWebsite] = useState('https://swipex.io');
-  const [companyDescription, setCompanyDescription] = useState(
-    'SwipeX is the next-generation AI-powered career platform connecting top engineering talent with high-growth tech companies.'
-  );
+  const [companyName, setCompanyName] = useState((user as any)?.companyName || 'SwipeX Workspace');
+  const [companyIndustry, setCompanyIndustry] = useState((user as any)?.companyIndustry || 'Technology');
+  const [companySize, setCompanySize] = useState((user as any)?.companySize || '10-50');
+  const [companyWebsite, setCompanyWebsite] = useState((user as any)?.companyWebsite || '');
+  const [companyDescription, setCompanyDescription] = useState((user as any)?.companyDescription || '');
 
   // Live stats
   const [activeJobsCount, setActiveJobsCount] = useState(0);
@@ -75,6 +73,16 @@ export default function RecruiterProfilePage() {
     }
     loadStats();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName || '');
+      setTitle(user.headline || '');
+      setLocation(user.location || '');
+      setBio(user.bio || '');
+      setPhone((user as any)?.phone || '');
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (profileData && !isEditing) {
@@ -121,8 +129,8 @@ export default function RecruiterProfilePage() {
         });
       }
 
-      queryClient.setQueryData(QUERY_KEYS.profile, updated);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+      queryClient.setQueryData(QUERY_KEYS.profile(user?.id), updated);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile(user?.id) });
 
       setIsEditing(false);
       setSaveSuccess(true);

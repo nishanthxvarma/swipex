@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { jobsApi } from '@swipex/api';
 import Link from 'next/link';
+import { useAuthStore } from '@/stores/auth-store';
 import { useUserApplications, QUERY_KEYS } from '@/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -31,6 +32,7 @@ interface Application {
 }
 
 export default function ApplicationsPage() {
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -83,7 +85,7 @@ export default function ApplicationsPage() {
       notes: 'Added manually to tracker.',
     };
 
-    queryClient.setQueryData(QUERY_KEYS.applications(1), (old: any) => [newApp, ...(old || [])]);
+    queryClient.setQueryData(QUERY_KEYS.applications(user?.id, 1), (old: any) => [newApp, ...(old || [])]);
 
     setIsAddModalOpen(false);
     setNewCompany('');

@@ -8,6 +8,7 @@ import { jobsApi } from '@swipex/api';
 import Link from 'next/link';
 import { useSavedJobs, QUERY_KEYS } from '@/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface SavedJobItem {
   id: string;
@@ -22,6 +23,7 @@ interface SavedJobItem {
 }
 
 export default function SavedJobsPage() {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -47,7 +49,7 @@ export default function SavedJobsPage() {
 
   const handleRemove = async (id: string) => {
     // Optimistic removal
-    queryClient.setQueryData(QUERY_KEYS.savedJobs, (old: any) =>
+    queryClient.setQueryData(QUERY_KEYS.savedJobs(user?.id), (old: any) =>
       (old || []).filter((s: any) => String(s.jobId || s.id) !== id)
     );
     try {

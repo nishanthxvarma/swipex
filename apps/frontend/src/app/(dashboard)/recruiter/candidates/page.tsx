@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { usersApi } from '@swipex/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/hooks/queries';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface CandidateProfile {
   id: string;
@@ -36,6 +37,7 @@ interface CandidateProfile {
 }
 
 export default function RecruiterCandidatesPage() {
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [shortlisted, setShortlisted] = useState<CandidateProfile[]>([]);
   const [passed, setPassed] = useState<CandidateProfile[]>([]);
@@ -48,7 +50,7 @@ export default function RecruiterCandidatesPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: QUERY_KEYS.recruiterCandidates,
+    queryKey: QUERY_KEYS.recruiterCandidates(user?.id),
     queryFn: () => usersApi.getCandidates(),
     staleTime: 2 * 60 * 1000,
   });

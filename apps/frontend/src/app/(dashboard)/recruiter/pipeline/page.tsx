@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { jobsApi } from '@swipex/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/hooks/queries';
+import { useAuthStore } from '@/stores/auth-store';
 
 const STAGES = [
   { id: 'new', title: 'New Applicants', color: 'bg-primary', badgeColor: 'bg-primary/10 text-primary border border-primary/20' },
@@ -43,6 +44,7 @@ interface CandidateApplicant {
 }
 
 export default function RecruiterPipelinePage() {
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateApplicant | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export default function RecruiterPipelinePage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: QUERY_KEYS.recruiterPipeline,
+    queryKey: QUERY_KEYS.recruiterPipeline(user?.id),
     queryFn: () => jobsApi.getRecruiterPipeline(),
     staleTime: 2 * 60 * 1000,
   });
@@ -63,7 +65,7 @@ export default function RecruiterPipelinePage() {
 
   const moveStage = async (id: string, newStage: CandidateApplicant['stage']) => {
     // Optimistic UI update
-    queryClient.setQueryData(QUERY_KEYS.recruiterPipeline, (old: any) =>
+    queryClient.setQueryData(QUERY_KEYS.recruiterPipeline(user?.id), (old: any) =>
       (old || []).map((c: any) => (c.id === id ? { ...c, stage: newStage } : c))
     );
 
@@ -73,10 +75,10 @@ export default function RecruiterPipelinePage() {
 
     try {
       await jobsApi.updateApplicationStatus(id, newStage);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recruiterPipeline });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recruiterPipeline(user?.id) });
     } catch (err) {
       console.error('Failed to update stage in database:', err);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recruiterPipeline });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.recruiterPipeline(user?.id) });
       setErrorMsg('Failed to update candidate status on server.');
     }
   };

@@ -3,17 +3,17 @@ import { usersApi, jobsApi, notificationsApi, resumeApi, analyticsApi } from '@s
 import { useAuthStore } from '@/stores/auth-store';
 
 export const QUERY_KEYS = {
-  profile: ['user', 'profile'] as const,
-  dashboard: (role?: string) => ['dashboard', role || 'candidate'] as const,
+  profile: (userId?: string) => ['user', 'profile', userId || 'anonymous'] as const,
+  dashboard: (userId?: string, role?: string) => ['dashboard', userId || 'anonymous', role || 'candidate'] as const,
   jobFeed: (page: number, limit: number) => ['jobs', 'feed', page, limit] as const,
-  applications: (page: number) => ['applications', page] as const,
-  savedJobs: ['jobs', 'saved'] as const,
-  activeResume: ['resume', 'active'] as const,
-  notifications: ['notifications', 'list'] as const,
-  unreadCount: ['notifications', 'unread-count'] as const,
-  candidateAnalytics: (timeRange: string) => ['analytics', 'candidate', timeRange] as const,
-  recruiterPipeline: ['recruiter', 'pipeline'] as const,
-  recruiterCandidates: ['recruiter', 'candidates'] as const,
+  applications: (userId?: string, page?: number) => ['applications', userId || 'anonymous', page || 1] as const,
+  savedJobs: (userId?: string) => ['jobs', 'saved', userId || 'anonymous'] as const,
+  activeResume: (userId?: string) => ['resume', 'active', userId || 'anonymous'] as const,
+  notifications: (userId?: string) => ['notifications', 'list', userId || 'anonymous'] as const,
+  unreadCount: (userId?: string) => ['notifications', 'unread-count', userId || 'anonymous'] as const,
+  candidateAnalytics: (userId?: string, timeRange?: string) => ['analytics', 'candidate', userId || 'anonymous', timeRange || '30d'] as const,
+  recruiterPipeline: (userId?: string) => ['recruiter', 'pipeline', userId || 'anonymous'] as const,
+  recruiterCandidates: (userId?: string) => ['recruiter', 'candidates', userId || 'anonymous'] as const,
 };
 
 /**
@@ -22,19 +22,19 @@ export const QUERY_KEYS = {
 export function useUserProfile() {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
-  const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: QUERY_KEYS.profile,
+    queryKey: QUERY_KEYS.profile(user?.id),
     queryFn: async () => {
+      if (!user?.id) return null;
       const p = await usersApi.getProfile();
       if (p && user) {
         setUser({
           ...user,
           fullName: p.fullName || p.full_name || user.fullName,
-          headline: p.headline || user.headline,
-          location: p.location || user.location,
-          bio: p.bio || user.bio,
+          headline: p.headline !== undefined ? p.headline : user.headline,
+          location: p.location !== undefined ? p.location : user.location,
+          bio: p.bio !== undefined ? p.bio : user.bio,
           skills: p.skills || user.skills,
           experiences: p.experiences || user.experiences,
           socialLinks: p.socialLinks || p.social_links || user.socialLinks,
@@ -42,7 +42,7 @@ export function useUserProfile() {
       }
       return p;
     },
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 15 * 60 * 1000,
     placeholderData: user
@@ -60,15 +60,16 @@ export function useUserProfile() {
 }
 
 /**
- * Hook for dashboard data (feed + applications for candidates, candidates + jobs for recruiters)
+ * Hook for dashboard data
  */
 export function useDashboardData(role?: string) {
   const user = useAuthStore((state) => state.user);
   const currentRole = role || user?.role || 'JOB_SEEKER';
 
   return useQuery({
-    queryKey: QUERY_KEYS.dashboard(currentRole),
+    queryKey: QUERY_KEYS.dashboard(user?.id, currentRole),
     queryFn: async () => {
+      if (!user?.id) return { jobs: [], applications: [], candidates: [] };
       if (currentRole === 'RECRUITER') {
         const [candidateList, feedJobs] = await Promise.allSettled([
           usersApi.getCandidates(),
@@ -91,8 +92,8 @@ export function useDashboardData(role?: string) {
         };
       }
     },
-    enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 }
@@ -115,9 +116,9 @@ export function useJobFeed(page = 1, limit = 10) {
 export function useUserApplications(page = 1) {
   const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: QUERY_KEYS.applications(page),
+    queryKey: QUERY_KEYS.applications(user?.id, page),
     queryFn: () => jobsApi.getApplications(page),
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -129,9 +130,9 @@ export function useUserApplications(page = 1) {
 export function useSavedJobs() {
   const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: QUERY_KEYS.savedJobs,
+    queryKey: QUERY_KEYS.savedJobs(user?.id),
     queryFn: () => jobsApi.getSavedJobs(),
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
@@ -143,9 +144,9 @@ export function useSavedJobs() {
 export function useActiveResume() {
   const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: QUERY_KEYS.activeResume,
+    queryKey: QUERY_KEYS.activeResume(user?.id),
     queryFn: () => resumeApi.getActiveResume(),
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });

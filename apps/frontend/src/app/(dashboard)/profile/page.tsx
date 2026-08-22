@@ -70,6 +70,21 @@ export default function ProfilePage() {
   const [resumeFileName, setResumeFileName] = useState('');
   const [atsScore, setAtsScore] = useState(0);
 
+  // Re-synchronize when authenticated user ID changes
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName || '');
+      setHeadline(user.headline || '');
+      setLocation(user.location || '');
+      setBio(user.bio || '');
+      setSkills(user.skills || []);
+      setExperiences(user.experiences || []);
+      if (user.socialLinks && user.socialLinks.length > 0) {
+        setSocialLinks(user.socialLinks);
+      }
+    }
+  }, [user?.id]);
+
   // Synchronize when server profile data arrives without wiping user input
   useEffect(() => {
     if (profileData && !isEditing) {
@@ -141,8 +156,8 @@ export default function ProfilePage() {
       }
 
       // Invalidate React Query cache
-      queryClient.setQueryData(QUERY_KEYS.profile, updated);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+      queryClient.setQueryData(QUERY_KEYS.profile(user?.id), updated);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile(user?.id) });
 
       setIsEditing(false);
       setSaveSuccess(true);
@@ -178,8 +193,8 @@ export default function ProfilePage() {
       }
       setResumeFileName(file.name);
       await uploadResume(file);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeResume });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeResume(user?.id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile(user?.id) });
     }
   };
 
@@ -461,7 +476,7 @@ export default function ProfilePage() {
                           skills: merged,
                           experiences: pd.experience || experiences,
                         } as any);
-                        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+                        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile(user?.id) });
                         setSaveSuccess(true);
                         setTimeout(() => setSaveSuccess(false), 3000);
                       } catch (e) {

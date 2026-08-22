@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/ui-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useQueryClient } from '@tanstack/react-query';
 import { SearchModal } from '@/components/search/search-modal';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useTheme } from 'next-themes';
@@ -123,8 +124,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, pathname, router]);
 
+  const queryClient = useQueryClient();
+
   const handleLogout = () => {
     logout();
+    queryClient.clear();
     router.push('/login');
   };
 

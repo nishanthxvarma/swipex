@@ -45,7 +45,16 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setTokens: (tokens) => set({ tokens }),
       login: (user, tokens) => set({ user, tokens, isAuthenticated: true }),
-      logout: () => set({ user: null, tokens: null, isAuthenticated: false }),
+      logout: () => {
+        set({ user: null, tokens: null, isAuthenticated: false });
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('swipex-auth-storage');
+          } catch (e) {
+            console.error('Error clearing localStorage on logout', e);
+          }
+        }
+      },
       setLoading: (isLoading) => set({ isLoading }),
     }),
     {
