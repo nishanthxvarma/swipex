@@ -141,3 +141,91 @@ async def test_full_recruiter_to_candidate_to_application_to_pipeline_lifecycle(
     # 16. Recruiter deletes job
     del_res = await client.delete(f"/api/v1/jobs/{job_id}", headers=rec_headers)
     assert del_res.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_recruiter_job_creation_and_contract_validation(client):
+    # 1. Register Recruiter
+    recruiter_email = f"recruiter_{uuid.uuid4().hex[:8]}@swipex.io"
+    rec_reg = await client.post("/api/v1/auth/register", json={
+        "email": recruiter_email,
+        "password": "Password1234!",
+        "fullName": "Recruiter Jane",
+        "role": "recruiter"
+    })
+    assert rec_reg.status_code == 201
+    rec_token = rec_reg.json()["access_token"]
+    rec_headers = {"Authorization": f"Bearer {rec_token}"}
+
+    # 2. Register Job Seeker
+    seeker_email = f"seeker_{uuid.uuid4().hex[:8]}@swipex.io"
+    seeker_reg = await client.post("/api/v1/auth/register", json={
+        "email": seeker_email,
+        "password": "Password1234!",
+        "fullName": "Seeker Bob",
+        "role": "job_seeker"
+    })
+    assert seeker_reg.status_code == 201
+    seeker_token = seeker_reg.json()["access_token"]
+    seeker_headers = {"Authorization": f"Bearer {seeker_token}"}
+
+    # 3. Unauthenticated attempt -> 401
+    unauth_res = await client.post("/api/v1/jobs/", json={"title": "Test Job"})
+    assert unauth_res.status_code == 401
+
+    # 4. Job Seeker attempt -> 403 Forbidden
+    seeker_res = await client.post("/api/v1/jobs/", json={"title": "Test Job"}, headers=seeker_headers)
+    assert seeker_res.status_code == 403
+
+    # 5. Invalid payload: missing title -> 422
+    empty_title_res = await client.post("/api/v1/jobs/", json={"title": "   "}, headers=rec_headers)
+    assert empty_title_res.status_code == 422
+
+    # 6. Invalid payload: min_salary > max_salary -> 422
+    invalid_salary_res = await client.post("/api/v1/jobs/", json={
+        "title": "Backend Dev",
+        "salaryMin": 150000,
+        "salaryMax": 100000
+    }, headers=rec_headers)
+    assert invalid_salary_res.status_code == 422
+
+    # 7. Valid job creation with string comma-separated skills
+    create_res = await client.post("/api/v1/jobs/", json={
+        "title": "Frontend Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "salaryMin": 60000,
+        "salaryMax": 90000,
+        "skillsRequired": "React, TypeScript, JavaScript, HTML, CSS, Tailwind CSS",
+        "description": "Build responsive and accessible web applications using React and TypeScript."
+    }, headers=rec_headers)
+    assert create_res.status_code == 200
+    job_data = create_res.json()
+    job_id = job_data["id"]
+    assert job_data["title"] == "Frontend Developer"
+    assert job_data["location"] == "Remote"
+    assert "React" in job_data["skillsRequired"]
+    assert "TypeScript" in job_data["skillsRequired"]
+    assert job_data["isActive"] is True
+
+    # 8. Recruiter sees job in their list
+    rec_jobs_res = await client.get("/api/v1/jobs/recruiter/mine", headers=rec_headers)
+    assert rec_jobs_res.status_code == 200
+    rec_jobs = rec_jobs_res.json()
+    assert any(j["id"] == job_id for j in rec_jobs)
+
+    # 9. Job seeker sees the job in the feed / list
+    feed_res = await client.get("/api/v1/jobs/", headers=seeker_headers)
+    assert feed_res.status_code == 200
+    feed_jobs = feed_res.json()
+    assert any(j["id"] == job_id for j in feed_jobs)
+
+    # 10. Recruiter pauses job
+    pause_res = await client.put(f"/api/v1/jobs/{job_id}/status", json={"isActive": False}, headers=rec_headers)
+    assert pause_res.status_code == 200
+    assert pause_res.json()["isActive"] is False
+
+    # 11. Recruiter resumes job
+    resume_res = await client.put(f"/api/v1/jobs/{job_id}/status", json={"status": "Active"}, headers=rec_headers)
+    assert resume_res.status_code == 200
+    assert resume_res.json()["isActive"] is True

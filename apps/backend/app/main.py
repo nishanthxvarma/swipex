@@ -62,6 +62,27 @@ async def migrate_database():
         "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP",
         # resume_analysis_history table
         "CREATE TABLE IF NOT EXISTS resume_analysis_history (id UUID PRIMARY KEY, resume_id UUID REFERENCES resumes(id) ON DELETE CASCADE, parser_version VARCHAR NOT NULL DEFAULT '2.0.0', scoring_version VARCHAR NOT NULL DEFAULT '2.0.0', ats_score FLOAT DEFAULT 0.0, ats_breakdown JSON, health_report JSON, suggestions JSON, created_at TIMESTAMP DEFAULT NOW())",
+        # companies table — ensure table exists and has necessary columns
+        "CREATE TABLE IF NOT EXISTS companies (id UUID PRIMARY KEY, name VARCHAR NOT NULL, logo_url VARCHAR, description VARCHAR, industry VARCHAR, size VARCHAR, website VARCHAR, tech_stack JSON, culture VARCHAR, benefits JSON, rating FLOAT, employee_count INTEGER, founded_year INTEGER, headquarters VARCHAR, created_at TIMESTAMP DEFAULT NOW())",
+        # jobs table — columns added for recruiter job management and rich job data
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS recruiter_id UUID REFERENCES users(id)",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applications_count INTEGER DEFAULT 0",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_currency VARCHAR DEFAULT 'USD'",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_remote BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS skills_required JSON DEFAULT '[]'",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS skills_preferred JSON DEFAULT '[]'",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS benefits JSON DEFAULT '[]'",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS application_deadline TIMESTAMP",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS posted_at TIMESTAMP DEFAULT NOW()",
+        "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()",
+        # applications table
+        "ALTER TABLE applications ADD COLUMN IF NOT EXISTS cover_letter VARCHAR",
+        "ALTER TABLE applications ADD COLUMN IF NOT EXISTS resume_url VARCHAR",
+        "ALTER TABLE applications ADD COLUMN IF NOT EXISTS ats_score FLOAT",
+        "ALTER TABLE applications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()",
+        # recruiter_candidate_actions table
+        "CREATE TABLE IF NOT EXISTS recruiter_candidate_actions (id UUID PRIMARY KEY, recruiter_id UUID NOT NULL REFERENCES users(id), candidate_id UUID NOT NULL REFERENCES users(id), job_id UUID REFERENCES jobs(id), action VARCHAR NOT NULL, notes VARCHAR, created_at TIMESTAMP DEFAULT NOW())",
     ]
     async with engine.begin() as conn:
         for stmt in migrations:

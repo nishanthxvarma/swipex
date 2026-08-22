@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth-store';
 export const QUERY_KEYS = {
   profile: (userId?: string) => ['user', 'profile', userId || 'anonymous'] as const,
   dashboard: (userId?: string, role?: string) => ['dashboard', userId || 'anonymous', role || 'candidate'] as const,
-  jobFeed: (page: number, limit: number) => ['jobs', 'feed', page, limit] as const,
+  jobFeed: (page: number = 1, limit: number = 10) => ['jobs', 'feed', page, limit] as const,
   applications: (userId?: string, page?: number) => ['applications', userId || 'anonymous', page || 1] as const,
   savedJobs: (userId?: string) => ['jobs', 'saved', userId || 'anonymous'] as const,
   activeResume: (userId?: string) => ['resume', 'active', userId || 'anonymous'] as const,

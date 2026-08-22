@@ -20,6 +20,10 @@ import { Button } from '@/components/ui/button';
 import { jobsApi } from '@swipex/api';
 import { cn } from '@/lib/utils';
 
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/hooks/queries';
+import { useAuthStore } from '@/stores/auth-store';
+
 interface RecruiterJob {
   id: string;
   title: string;
@@ -33,6 +37,8 @@ interface RecruiterJob {
 }
 
 export default function RecruiterJobsPage() {
+  const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
   const [jobs, setJobs] = useState<RecruiterJob[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,6 +94,7 @@ export default function RecruiterJobsPage() {
       const skillsArray = skills.split(',').map((s) => s.trim()).filter(Boolean);
       await jobsApi.createJob({
         title: title.trim(),
+        department: department.trim() || 'Engineering',
         location: location.trim() || 'Remote',
         salaryMin: parseInt(salaryMin, 10) || 120000,
         salaryMax: parseInt(salaryMax, 10) || 180000,
@@ -96,6 +103,8 @@ export default function RecruiterJobsPage() {
         requirements: `Proficiency with ${skillsArray.join(', ')}`,
       });
       setCreatedSuccess(true);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobFeed() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard(user?.id, 'recruiter') });
       setTimeout(async () => {
         setCreatedSuccess(false);
         setTitle('');
@@ -103,9 +112,20 @@ export default function RecruiterJobsPage() {
         setIsAddModalOpen(false);
         await loadJobs();
       }, 1000);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Job creation error:', err);
-      setActionError('Failed to create new job posting.');
+      const detail = err?.response?.data?.detail || err?.message;
+      if (err?.response?.status === 401) {
+        setActionError('Your session has expired. Please log in again.');
+      } else if (err?.response?.status === 403) {
+        setActionError('You do not have permission to create job postings.');
+      } else if (err?.response?.status === 422) {
+        setActionError(typeof detail === 'string' ? `Invalid details: ${detail}` : 'Some job posting details are invalid. Please review the form.');
+      } else if (typeof detail === 'string' && !detail.includes('Internal server error') && !detail.includes('SQL')) {
+        setActionError(`Failed to create job: ${detail}`);
+      } else {
+        setActionError('Failed to create new job posting. Please try again.');
+      }
     } finally {
       setIsCreating(false);
     }
@@ -119,6 +139,8 @@ export default function RecruiterJobsPage() {
     );
     try {
       await jobsApi.updateJobStatus(id, newIsActive);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobFeed() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard(user?.id, 'recruiter') });
     } catch (err) {
       console.error('Failed to persist status change:', err);
       setActionError('Failed to update job status on server.');
@@ -131,6 +153,8 @@ export default function RecruiterJobsPage() {
     setJobs((prev) => prev.filter((j) => j.id !== id));
     try {
       await jobsApi.deleteJob(id);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobFeed() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard(user?.id, 'recruiter') });
     } catch (err) {
       console.error('Failed to delete job from server:', err);
       setActionError('Failed to delete job posting.');

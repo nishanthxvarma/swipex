@@ -186,16 +186,21 @@ async def create_job(
 ):
     role = current_user.get("role", "job_seeker")
     if role not in ("recruiter", "admin"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required to post jobs")
     user_id = parse_id(current_user["sub"])
-    # Adapt dictionary keys to JobModel fields
+    
     title = job_data.get("title")
+    if not title or not str(title).strip():
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Job title is required")
+    
     description = job_data.get("description", "")
-    company_id = job_data.get("companyId")
+    department = job_data.get("department", "Engineering")
+    
+    company_id = job_data.get("companyId") or job_data.get("company_id")
     if company_id:
         company_id = parse_id(company_id)
     else:
-        # Fetch the first company in database as default
+        # Fetch or auto-seed the default company in database
         from sqlalchemy import select
         from app.models.job import CompanyModel
         stmt = select(CompanyModel).limit(1)
@@ -203,22 +208,79 @@ async def create_job(
         c = res.scalars().first()
         if c:
             company_id = c.id
+        else:
+            default_company = CompanyModel(
+                name="SwipeX Technologies",
+                description="Next-generation AI recruitment platform.",
+                industry="Technology",
+                size="50-200",
+                website="https://swipexai.vercel.app"
+            )
+            job_service.job_repo.db.add(default_company)
+            await job_service.job_repo.db.flush()
+            company_id = default_company.id
     
-    from app.models.job import JobModel
-    skills_req = job_data.get("skillsRequired") or job_data.get("skills") or ["React", "TypeScript"]
-    if isinstance(skills_req, str):
-        skills_req = [s.strip() for s in skills_req.split(",") if s.strip()]
+    from app.models.job import JobModel, JobTypeEnum, ExperienceLevelEnum
+    
+    # Skills normalization
+    raw_skills = job_data.get("skillsRequired") or job_data.get("skills_required") or job_data.get("skills") or []
+    if isinstance(raw_skills, str):
+        skills_req = [s.strip() for s in raw_skills.split(",") if s.strip()]
+    elif isinstance(raw_skills, list):
+        skills_req = [str(s).strip() for s in raw_skills if str(s).strip()]
+    else:
+        skills_req = []
+        
+    if not skills_req:
+        skills_req = ["React", "TypeScript"]
+    
+    # Normalize salary
+    salary_min = job_data.get("salaryMin") or job_data.get("salary_min") or job_data.get("min_salary") or 0
+    salary_max = job_data.get("salaryMax") or job_data.get("salary_max") or job_data.get("max_salary") or 0
+    try:
+        salary_min = float(salary_min)
+    except (ValueError, TypeError):
+        salary_min = 0.0
+    try:
+        salary_max = float(salary_max)
+    except (ValueError, TypeError):
+        salary_max = salary_min if salary_min > 0 else 0.0
+
+    if salary_max > 0 and salary_min > 0 and salary_min > salary_max:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Minimum salary cannot exceed maximum salary"
+        )
+
+    # Job type & experience level validation/fallback
+    raw_job_type = str(job_data.get("jobType") or job_data.get("job_type") or "full_time").lower().strip()
+    try:
+        job_type_enum = JobTypeEnum(raw_job_type)
+    except ValueError:
+        job_type_enum = JobTypeEnum.full_time
+
+    raw_exp = str(job_data.get("experienceLevel") or job_data.get("experience_level") or "mid").lower().strip()
+    try:
+        exp_enum = ExperienceLevelEnum(raw_exp)
+    except ValueError:
+        exp_enum = ExperienceLevelEnum.mid
 
     job = JobModel(
-        title=title, 
-        description=description, 
+        title=str(title).strip(), 
+        description=str(description).strip() if description else f"Position for {title} in {department}", 
         company_id=company_id,
         recruiter_id=user_id,
-        location=job_data.get("location", "Remote"),
-        salary_min=float(job_data.get("salaryMin", 100000)),
-        salary_max=float(job_data.get("salaryMax", 150000)),
+        location=str(job_data.get("location", "Remote")).strip(),
+        salary_min=salary_min,
+        salary_max=salary_max,
+        salary_currency=str(job_data.get("salaryCurrency", "USD")),
+        job_type=job_type_enum,
+        experience_level=exp_enum,
         skills_required=skills_req,
-        requirements=job_data.get("requirements", "")
+        skills_preferred=job_data.get("skillsPreferred") or job_data.get("skills_preferred") or [],
+        requirements=job_data.get("requirements", ""),
+        is_remote=bool(job_data.get("isRemote", False) or "remote" in str(job_data.get("location", "")).lower()),
+        is_active=True
     )
     res = await job_service.job_repo.create(job)
     return format_job(res)
