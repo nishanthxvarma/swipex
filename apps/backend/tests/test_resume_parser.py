@@ -98,3 +98,101 @@ AWS Certified Solutions Architect
     assert len(parsed["education"]) >= 1
     assert "Berkeley" in parsed["education"][0]["college"] or "University" in parsed["education"][0]["college"]
     assert len(parsed["certifications"]) >= 1
+
+def test_candidate_real_resume_regression_fixture():
+    resume_text = b"""
+Nishanth Varma Gottumukkala
++91 9391152853 | nishanthvarma2007@gmail.com | linkedin.com/in/nishanthvarma | github.com/nishanthvarma | leetcode.com/nishanthvarma
+Visakhapatnam, India
+
+EDUCATION
+Vignan's Institute of Information Technology
+Bachelor of Technology in Computer Science and Engineering
+CGPA: 9.33 / 10.0 | 2021 - 2025
+Relevant Coursework: Data Structures & Algorithms, Database Management Systems, Operating Systems, Computer Networks, Object-Oriented Programming
+
+SKILLS & TECHNOLOGIES
+Programming Languages: Python, Java, C, JavaScript, SQL, HTML/CSS
+Frameworks & Libraries: React, Node.js, Express.js, Tailwind CSS, Next.js
+Databases: MongoDB, PostgreSQL, MySQL
+Cloud & DevOps: Google Cloud Platform (GCP), Git, GitHub, Docker
+Developer Tools: VS Code, Postman, Linux
+
+PROJECTS
+Data Verace | Python, React, FastAPI, PostgreSQL, Machine Learning
+- Designed and engineered an automated data verification and authenticity platform analyzing high-volume document pipelines.
+- Built an interactive React dashboard with RESTful APIs, reducing data mismatch detection latency by 45%.
+- Implemented robust validation algorithms handling structured schemas with 99.2% accuracy.
+
+Smart Hall Booking & Faculty Approval System | React, Node.js, Express.js, MongoDB
+- Architected an end-to-end institutional hall reservation workflow with multi-level role-based faculty approval routing.
+- Integrated real-time booking clash detection, eliminating double bookings across 12 campus seminar halls.
+- Implemented JWT authentication and automated email status updates for over 2,000 active students and faculty.
+
+EXPERIENCE
+AlgoZenith VIIT - Student Chapter | Event Manager & Technical Lead
+August 2023 - Present | Visakhapatnam, India
+- Organized and conducted 10+ competitive programming contests, technical workshops, and hackathons with 500+ participants.
+- Mentored junior engineers on Data Structures, Algorithms, and full-stack web development best practices.
+- Managed technical logistics, event schedules, and cross-functional teams to ensure seamless event execution.
+
+CERTIFICATIONS
+- Google Cloud Certified - Cloud Digital Leader
+- HackerRank Certified - Problem Solving (Intermediate), Python, SQL
+- Postman API Fundamentals Student Expert
+
+ACHIEVEMENTS
+- Solved 400+ Data Structures & Algorithms problems across LeetCode, Codeforces, and GeeksforGeeks.
+- 1st Place Winner in VIIT Annual Hackathon among 50+ participating engineering teams.
+- Maintained top 5% academic standing with a 9.33 CGPA throughout undergraduate program.
+"""
+    from app.ai.ats_engine import ats_engine
+    parsed = parser_service.parse(resume_text, "txt", "NV_Resume.pdf")
+
+    # Assertions for Section 14 & 15 acceptance criteria:
+    assert parsed["personalInfo"]["name"] == "Nishanth Varma Gottumukkala"
+    assert parsed["personalInfo"]["email"] == "nishanthvarma2007@gmail.com"
+    assert "+91 9391152853" in parsed["personalInfo"]["phone"]
+    assert "linkedin.com/in/nishanthvarma" in parsed["personalInfo"]["linkedin"]
+    assert "github.com/nishanthvarma" in parsed["personalInfo"]["github"]
+    assert "leetcode.com/nishanthvarma" in parsed["personalInfo"]["portfolio"]
+
+    # Education assertions
+    assert len(parsed["education"]) >= 1
+    assert "Vignan" in parsed["education"][0]["college"]
+    assert "Bachelor" in parsed["education"][0]["degree"] or "Technology" in parsed["education"][0]["degree"]
+    assert "9.33" in parsed["education"][0]["cgpa"]
+
+    # Project assertions
+    assert len(parsed["projects"]) >= 2
+    proj_titles = [p["title"] for p in parsed["projects"]]
+    assert any("Data Verace" in t for t in proj_titles)
+    assert any("Smart Hall Booking" in t for t in proj_titles)
+
+    # Experience assertions
+    assert len(parsed["experience"]) >= 1
+    assert any("AlgoZenith" in e["company"] or "Event Manager" in e["role"] for e in parsed["experience"])
+
+    # Skills assertions
+    skills = parsed["skills"]
+    assert "Python" in skills["programmingLanguages"]
+    assert "Java" in skills["programmingLanguages"]
+    assert "C" in skills["programmingLanguages"]
+    assert "React" in skills["frameworks"]
+    assert "Node.js" in skills["frameworks"]
+    assert "MongoDB" in skills["databases"]
+    assert "PostgreSQL" in skills["databases"]
+    assert "Google Cloud Platform (GCP)" in skills["cloud"]
+
+    # Certifications & Achievements
+    assert len(parsed["certifications"]) >= 2
+    assert len(parsed["achievements"]) >= 2
+
+    # ATS Scoring assertions
+    ats = ats_engine.calculate_score(parsed)
+    assert ats["overallScore"] >= 85.0
+    assert ats["breakdown"]["contactInfo"]["score"] >= 8.0
+    assert ats["breakdown"]["skills"]["score"] >= 20.0
+    assert ats["breakdown"]["projects"]["score"] >= 15.0
+    assert ats["breakdown"]["education"]["score"] >= 12.0
+

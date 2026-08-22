@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { JobRecommendation } from '@swipex/types';
-import { Sparkles, MapPin, DollarSign, ArrowUpRight, CheckCircle, XCircle, Award } from 'lucide-react';
+import { Sparkles, MapPin, DollarSign, ArrowUpRight, Award, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -51,7 +51,7 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
         <div className="flex flex-wrap items-center gap-2">
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-xl border border-primary/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Learning Enabled (Adapting to Swipe Preferences)</span>
+            <span>AI Learning Enabled</span>
           </div>
 
           <div className="flex flex-wrap gap-1 p-1 glass-1 rounded-xl text-xs font-bold border">
@@ -72,76 +72,89 @@ export const AiJobRecommendationsSection: React.FC<AiJobRecommendationsSectionPr
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {filtered.map((job) => {
-          const badgeClass =
-            job.tier === 'Top Match'
-              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-              : job.tier === 'Good Match'
-              ? 'bg-primary/10 text-primary border-primary/20'
-              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 border border-dashed rounded-2xl p-6 space-y-3">
+          <Briefcase className="w-8 h-8 text-primary mx-auto opacity-60" />
+          <p className="text-sm font-semibold text-foreground">No matching jobs are currently available.</p>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            New job postings will automatically be evaluated against your resume taxonomy.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => router.push('/jobs')} className="rounded-xl text-xs">
+            Browse All Jobs
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {filtered.map((job) => {
+            const badgeClass =
+              job.tier === 'Top Match'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                : job.tier === 'Good Match'
+                ? 'bg-primary/10 text-primary border-primary/20'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
 
-          return (
-            <div
-              key={job.id}
-              className="p-5 rounded-2xl border glass-1/30 hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-2">
-                <div className="flex justify-between items-start">
-                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeClass}`}>
-                    {job.tier} ({job.matchPercentage}% Match)
-                  </span>
-                  <span className="text-[11px] font-bold text-[#66788A] flex items-center gap-1">
-                    <Award className="w-3.5 h-3.5 text-emerald-500" /> Exp ATS: {job.expectedAtsScore}
-                  </span>
-                </div>
+            return (
+              <div
+                key={job.id}
+                className="p-5 rounded-2xl border glass-1/30 hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeClass}`}>
+                      {job.tier} ({job.matchPercentage}% Match)
+                    </span>
+                    <span className="text-[11px] font-bold text-[#66788A] flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-emerald-500" /> Exp ATS: {job.expectedAtsScore}
+                    </span>
+                  </div>
 
-                <h4 className="font-bold text-base text-[#F5FAFF] leading-snug">{job.jobTitle}</h4>
-                <p className="text-xs font-semibold text-primary">{job.companyName}</p>
+                  <h4 className="font-bold text-base text-[#F5FAFF] leading-snug">{job.jobTitle}</h4>
+                  <p className="text-xs font-semibold text-primary">{job.companyName}</p>
 
-                <div className="flex items-center gap-3 text-xs text-[#66788A] font-medium pt-0.5">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" /> {job.location}
-                  </span>
-                  <span className="flex items-center gap-1 font-semibold text-[#F5FAFF]">
-                    <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> {job.salary}
-                  </span>
-                </div>
+                  <div className="flex items-center gap-3 text-xs text-[#66788A] font-medium pt-0.5">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" /> {job.location}
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-[#F5FAFF]">
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> {job.salary}
+                    </span>
+                  </div>
 
-                <p className="text-xs text-[#66788A] glass-1 p-2.5 rounded-xl border leading-relaxed">
-                  {job.reason}
-                </p>
+                  <p className="text-xs text-[#66788A] glass-1 p-2.5 rounded-xl border leading-relaxed">
+                    {job.reason}
+                  </p>
 
-                {/* Skills tags */}
-                <div className="space-y-1 pt-1">
-                  <div className="flex flex-wrap gap-1 text-[11px]">
-                    {job.matchingSkills?.slice(0, 4).map((s, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md font-semibold border border-emerald-500/20">
-                        ✓ {s}
-                      </span>
-                    ))}
-                    {job.missingSkills?.slice(0, 2).map((m, idx) => (
-                      <span key={idx} className="px-2 py-0.5 glass-1 text-[#66788A] rounded-md font-semibold border">
-                        + {m}
-                      </span>
-                    ))}
+                  {/* Skills tags */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex flex-wrap gap-1 text-[11px]">
+                      {job.matchingSkills?.slice(0, 4).map((s, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md font-semibold border border-emerald-500/20">
+                          ✓ {s}
+                        </span>
+                      ))}
+                      {job.missingSkills?.slice(0, 2).map((m, idx) => (
+                        <span key={idx} className="px-2 py-0.5 glass-1 text-[#66788A] rounded-md font-semibold border">
+                          + {m}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-2 border-t flex justify-end">
-                <Button
-                  onClick={() => router.push('/jobs')}
-                  size="sm"
-                  className="rounded-xl font-bold text-xs w-full sm:w-auto"
-                >
-                  View Job Listing <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
+                <div className="pt-2 border-t flex justify-end">
+                  <Button
+                    onClick={() => router.push('/jobs')}
+                    size="sm"
+                    className="rounded-xl font-bold text-xs w-full sm:w-auto"
+                  >
+                    View Job Listing <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

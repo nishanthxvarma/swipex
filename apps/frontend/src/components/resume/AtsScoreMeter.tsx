@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, CheckCircle2, AlertTriangle, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Sparkles, CheckCircle2, AlertTriangle, ShieldCheck, ChevronRight, Info } from 'lucide-react';
 import { ATSCategoryBreakdown } from '@swipex/types';
 
 interface AtsScoreMeterProps {
@@ -19,9 +19,11 @@ export const AtsScoreMeter: React.FC<AtsScoreMeterProps> = ({
   statusText = score >= 80
     ? 'Excellent ATS Compatibility! High likelihood of passing automated ATS filters.'
     : score >= 60
-    ? 'Moderate ATS Score. Optimize missing keywords to reach top tier rank.'
+    ? 'Moderate ATS Score. Optimize section metrics to reach top tier rank.'
     : 'Action Needed. Add essential contact, skills, and project sections.',
 }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const radius = 64;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -48,13 +50,13 @@ export const AtsScoreMeter: React.FC<AtsScoreMeterProps> = ({
   }[grade];
 
   const categories = [
-    { label: 'Skills Coverage', data: breakdown?.skills, max: 25 },
-    { label: 'Projects & Tech', data: breakdown?.projects, max: 20 },
-    { label: 'Work Experience', data: breakdown?.experience, max: 15 },
-    { label: 'Education Details', data: breakdown?.education, max: 15 },
-    { label: 'Contact Info', data: breakdown?.contactInfo, max: 10 },
-    { label: 'Role Keywords', data: breakdown?.keywords, max: 10 },
-    { label: 'ATS Formatting', data: breakdown?.formatting, max: 5 },
+    { key: 'skills', label: 'Skills Coverage', data: breakdown?.skills, max: 25 },
+    { key: 'projects', label: 'Projects & Tech', data: breakdown?.projects, max: 20 },
+    { key: 'experience', label: 'Work Experience', data: breakdown?.experience, max: 15 },
+    { key: 'education', label: 'Education Details', data: breakdown?.education, max: 15 },
+    { key: 'contactInfo', label: 'Contact Info', data: breakdown?.contactInfo, max: 10 },
+    { key: 'keywords', label: 'Role Keywords', data: breakdown?.keywords, max: 10 },
+    { key: 'formatting', label: 'ATS Formatting', data: breakdown?.formatting, max: 5 },
   ];
 
   return (
@@ -107,32 +109,49 @@ export const AtsScoreMeter: React.FC<AtsScoreMeterProps> = ({
             {statusText}
           </p>
           <div className="flex items-center gap-2 text-xs font-semibold text-primary pt-1">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Automated Parsing Readiness Verified
+            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Automated Baseline Screening (No target JD required)
           </div>
         </div>
       </div>
 
       {/* Breakdown Grid */}
       <div className="border-t pt-5 space-y-3">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-[#66788A] flex items-center justify-between">
-          <span>Weighted Evaluation Breakdown</span>
-          <span>Earned / Max</span>
-        </h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[#66788A]">
+            Weighted Evaluation Breakdown
+          </h4>
+          <span className="text-xs text-muted-foreground font-semibold">
+            Click a category for evidence
+          </span>
+        </div>
+
         <div className="grid gap-2.5 sm:grid-cols-2">
           {categories.map((cat, i) => {
             const currentScore = cat.data?.score ?? 0;
             const maxScore = cat.max;
             const pct = Math.round((currentScore / maxScore) * 100);
+            const isSelected = selectedCategory === cat.key;
 
             return (
-              <div key={i} className="p-3 glass-1/40 rounded-xl border space-y-1.5">
+              <div
+                key={cat.key}
+                onClick={() => setSelectedCategory(isSelected ? null : cat.key)}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-primary/10 border-primary shadow-xs'
+                    : 'glass-1/40 hover:border-primary/40'
+                }`}
+              >
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span>{cat.label}</span>
-                  <span className="text-primary">
+                  <span className="flex items-center gap-1.5">
+                    {cat.label}
+                    <Info className="w-3 h-3 text-muted-foreground opacity-70" />
+                  </span>
+                  <span className="text-primary font-black">
                     {currentScore} / {maxScore} pts
                   </span>
                 </div>
-                <div className="w-full glass-1 rounded-full h-2 overflow-hidden">
+                <div className="w-full glass-1 rounded-full h-2 overflow-hidden my-2">
                   <motion.div
                     className="bg-primary h-2 rounded-full"
                     initial={{ width: 0 }}
@@ -141,62 +160,15 @@ export const AtsScoreMeter: React.FC<AtsScoreMeterProps> = ({
                   />
                 </div>
                 {cat.data?.details && (
-                  <p className="text-[11px] text-[#66788A] truncate">{cat.data.details}</p>
+                  <p className="text-[11px] text-[#66788A] leading-relaxed">
+                    {cat.data.details}
+                  </p>
                 )}
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Below 80% ATS Optimization Callout (If Score < 80) */}
-      {score < 80 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-4"
-        >
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            <span>ATS Match Score is Below 80% Threshold</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div className="space-y-1.5 p-3 rounded-xl glass-1 border">
-              <p className="font-extrabold text-[#F5FAFF] flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-500" /> Highlighted Missing Skills:
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {['AWS Cloud', 'Docker', 'Kubernetes', 'GraphQL', 'System Design'].map((sk, idx) => (
-                  <span key={idx} className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-bold">
-                    + {sk}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5 p-3 rounded-xl glass-1 border">
-              <p className="font-extrabold text-[#F5FAFF] flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500" /> Missing Industry Keywords:
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {['CI/CD Pipelines', 'Microservices', 'Unit Testing', 'Agile Scrum'].map((kw, idx) => (
-                  <span key={idx} className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
-                    + {kw}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl glass-1 border space-y-1 text-xs">
-            <p className="font-bold text-[#F5FAFF]">💡 AI Resume Optimization Recommendation:</p>
-            <p className="text-[#66788A] text-[11px] leading-relaxed">
-              Incorporate quantified bullet points (e.g. &quot;Reduced latency by 35% using Next.js caching&quot;) and add missing cloud &amp; testing keywords to boost your ATS compatibility score above 80%.
-            </p>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };
