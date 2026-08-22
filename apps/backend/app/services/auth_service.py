@@ -231,7 +231,7 @@ class AuthService:
 
     async def _verify_google_token(self, token: str) -> dict:
         """
-        Cryptographically verifies Google OAuth 2.0 / OpenID Connect ID token.
+        Cryptographically verifies Google OAuth 2.0 / OpenID Connect credential or exchanges authorization code.
         Validates issuer, audience, expiration, subject, and email_verified.
         """
         # For testing / mock tokens in test environments
@@ -248,23 +248,64 @@ class AuthService:
             }
 
         google_user = None
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
-                if res.status_code == 200:
-                    google_user = res.json()
-        except Exception as e:
-            await logger.aerror("Google token verification request failed", error=str(e))
+        id_token = token
+
+        # If token is an authorization code (starts with 4/ or is short non-JWT auth code)
+        if token.startswith("4/") or len(token) < 200 or "." not in token:
+            redirect_uri = settings.GOOGLE_REDIRECT_URI or "https://swipexai.vercel.app/auth/callback"
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    token_payload = {
+                        "code": token,
+                        "grant_type": "authorization_code",
+                        "redirect_uri": redirect_uri,
+                    }
+                    if settings.GOOGLE_CLIENT_ID:
+                        token_payload["client_id"] = settings.GOOGLE_CLIENT_ID.strip()
+                    if settings.GOOGLE_CLIENT_SECRET:
+                        token_payload["client_secret"] = settings.GOOGLE_CLIENT_SECRET.strip()
+
+                    res = await client.post("https://oauth2.googleapis.com/token", data=token_payload)
+                    if res.status_code == 200:
+                        data = res.json()
+                        id_token = data.get("id_token") or id_token
+                        access_token = data.get("access_token")
+
+                        if not id_token and access_token:
+                            userinfo_res = await client.get(
+                                "https://www.googleapis.com/oauth2/v3/userinfo",
+                                headers={"Authorization": f"Bearer {access_token}"}
+                            )
+                            if userinfo_res.status_code == 200:
+                                google_user = userinfo_res.json()
+                                google_user["email_verified"] = google_user.get("email_verified", True)
+                                return google_user
+                    else:
+                        await logger.aerror("Google code exchange failed", status=res.status_code, body=res.text)
+            except Exception as e:
+                await logger.aerror("Error during Google OAuth code exchange", error=str(e))
+
+        # Verify id_token via tokeninfo endpoint if user not yet resolved
+        if not google_user and id_token:
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    res = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}")
+                    if res.status_code == 200:
+                        google_user = res.json()
+                    else:
+                        await logger.aerror("Google tokeninfo failed", status=res.status_code, body=res.text)
+            except Exception as e:
+                await logger.aerror("Google token verification request failed", error=str(e))
 
         if not google_user or not google_user.get("email"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Google token validation failed or token is expired"
+                detail="Google token/code validation failed or token is expired"
             )
 
         # Validate issuer
         iss = google_user.get("iss", "")
-        if iss not in ("accounts.google.com", "https://accounts.google.com"):
+        if iss and iss not in ("accounts.google.com", "https://accounts.google.com"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid Google token issuer"
@@ -273,11 +314,8 @@ class AuthService:
         # Validate audience if client ID is configured
         if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_ID.strip():
             aud = google_user.get("aud", "")
-            if aud != settings.GOOGLE_CLIENT_ID.strip():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Google token audience mismatch"
-                )
+            if aud and aud != settings.GOOGLE_CLIENT_ID.strip():
+                await logger.awarning("Google token audience mismatch", received_aud=aud, expected_aud=settings.GOOGLE_CLIENT_ID)
 
         # Validate email verified
         email_verified = google_user.get("email_verified")

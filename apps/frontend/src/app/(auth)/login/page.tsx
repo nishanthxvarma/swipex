@@ -126,14 +126,26 @@ export default function LoginPage() {
     setLoginError(null);
     try {
       const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      
+      const targetRole = selectedRole === 'RECRUITER' ? 'recruiter' : 'job_seeker';
+
+      if (googleClientId && googleClientId.trim() !== '' && !googleClientId.startsWith('mock_')) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://swipexai.vercel.app';
+        const redirectUri = `${origin}/auth/callback`;
+        const state = encodeURIComponent(JSON.stringify({ role: targetRole, ts: Date.now() }));
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(googleClientId.trim())}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20email%20profile&state=${state}&prompt=select_account`;
+
+        window.location.href = authUrl;
+        return;
+      }
+
+      // GIS prompt or test token fallback
       if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
         (window as any).google.accounts.id.initialize({
           client_id: googleClientId,
           callback: async (response: any) => {
             if (response.credential) {
-              const res: any = await authApi.googleOAuth(response.credential, selectedRole === 'RECRUITER' ? 'recruiter' : 'job_seeker');
-              handleAuthSuccess(res, selectedRole === 'RECRUITER' ? 'recruiter' : 'job_seeker', 'google_user@gmail.com');
+              const res: any = await authApi.googleOAuth(response.credential, targetRole);
+              handleAuthSuccess(res, targetRole, res?.user?.email || 'google_user@gmail.com');
             }
           }
         });
@@ -141,9 +153,9 @@ export default function LoginPage() {
       } else {
         const res: any = await authApi.googleOAuth(
           `test_google_token_${Date.now()}`,
-          selectedRole === 'RECRUITER' ? 'recruiter' : 'job_seeker'
+          targetRole
         );
-        handleAuthSuccess(res, selectedRole === 'RECRUITER' ? 'recruiter' : 'job_seeker', 'google_user@gmail.com');
+        handleAuthSuccess(res, targetRole, res?.user?.email || 'google_user@gmail.com');
       }
     } catch (err: any) {
       console.error('Google OAuth error:', err);
