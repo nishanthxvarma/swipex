@@ -51,6 +51,17 @@ async def migrate_database():
         "CREATE TABLE IF NOT EXISTS password_reset_tokens (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) ON DELETE CASCADE, token_hash VARCHAR NOT NULL, expires_at TIMESTAMP NOT NULL, is_used BOOLEAN DEFAULT FALSE NOT NULL, created_at TIMESTAMP DEFAULT NOW())",
         # refresh_tokens table
         "CREATE TABLE IF NOT EXISTS refresh_tokens (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) ON DELETE CASCADE, token_hash VARCHAR NOT NULL, expires_at TIMESTAMP NOT NULL, is_revoked BOOLEAN DEFAULT FALSE NOT NULL, created_at TIMESTAMP DEFAULT NOW())",
+        # resumes table — columns added for versioning and analysis metadata
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS version_number INTEGER DEFAULT 1",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS parser_version VARCHAR DEFAULT '2.0.0'",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS scoring_version VARCHAR DEFAULT '2.0.0'",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS model_version VARCHAR DEFAULT 'deterministic-v2'",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS extraction_confidence FLOAT DEFAULT 1.0",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS raw_text VARCHAR",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS evidence_spans JSON",
+        "ALTER TABLE resumes ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP",
+        # resume_analysis_history table
+        "CREATE TABLE IF NOT EXISTS resume_analysis_history (id UUID PRIMARY KEY, resume_id UUID REFERENCES resumes(id) ON DELETE CASCADE, parser_version VARCHAR NOT NULL DEFAULT '2.0.0', scoring_version VARCHAR NOT NULL DEFAULT '2.0.0', ats_score FLOAT DEFAULT 0.0, ats_breakdown JSON, health_report JSON, suggestions JSON, created_at TIMESTAMP DEFAULT NOW())",
     ]
     async with engine.begin() as conn:
         for stmt in migrations:
