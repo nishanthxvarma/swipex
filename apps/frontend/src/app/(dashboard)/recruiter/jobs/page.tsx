@@ -47,14 +47,24 @@ export default function RecruiterJobsPage() {
 
   // Form State
   const [title, setTitle] = useState('');
-  const [department, setDepartment] = useState('Engineering');
-  const [location, setLocation] = useState('Remote');
-  const [salaryMin, setSalaryMin] = useState('140000');
-  const [salaryMax, setSalaryMax] = useState('180000');
-  const [skills, setSkills] = useState('React, TypeScript, Node.js');
+  const [companyName, setCompanyName] = useState(
+    (user as any)?.company || (user?.headline?.includes('at ') ? user.headline.split('at ')[1]?.trim() : '') || ''
+  );
+  const [department, setDepartment] = useState('');
+  const [location, setLocation] = useState('');
+  const [salaryMin, setSalaryMin] = useState('');
+  const [salaryMax, setSalaryMax] = useState('');
+  const [skills, setSkills] = useState('');
   const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [createdSuccess, setCreatedSuccess] = useState(false);
+
+  const handleOpenAddModal = () => {
+    if (!companyName && ((user as any)?.company || user?.headline?.includes('at '))) {
+      setCompanyName((user as any)?.company || user?.headline?.split('at ')[1]?.trim() || '');
+    }
+    setIsAddModalOpen(true);
+  };
 
   const loadJobs = useCallback(async () => {
     setIsLoading(true);
@@ -87,20 +97,52 @@ export default function RecruiterJobsPage() {
 
   const handleAddJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !companyName.trim() || !description.trim()) {
+      setActionError('Please fill in all required fields (Job Title, Company Name, Role Description).');
+      return;
+    }
+
+    const minVal = salaryMin.trim() ? parseInt(salaryMin, 10) : undefined;
+    const maxVal = salaryMax.trim() ? parseInt(salaryMax, 10) : undefined;
+
+    if (minVal !== undefined && isNaN(minVal)) {
+      setActionError('Minimum salary must be a valid number.');
+      return;
+    }
+    if (maxVal !== undefined && isNaN(maxVal)) {
+      setActionError('Maximum salary must be a valid number.');
+      return;
+    }
+    if (minVal !== undefined && minVal < 0) {
+      setActionError('Minimum salary cannot be negative.');
+      return;
+    }
+    if (maxVal !== undefined && maxVal < 0) {
+      setActionError('Maximum salary cannot be negative.');
+      return;
+    }
+    if (minVal !== undefined && maxVal !== undefined && minVal > maxVal) {
+      setActionError('Minimum salary cannot exceed maximum salary.');
+      return;
+    }
+
     setIsCreating(true);
     setActionError(null);
     try {
-      const skillsArray = skills.split(',').map((s) => s.trim()).filter(Boolean);
+      const rawSkills = skills.split(',').map((s) => s.trim()).filter(Boolean);
+      const skillsArray = Array.from(new Set(rawSkills));
+
       await jobsApi.createJob({
         title: title.trim(),
+        company: companyName.trim(),
+        companyName: companyName.trim(),
         department: department.trim() || 'Engineering',
         location: location.trim() || 'Remote',
-        salaryMin: parseInt(salaryMin, 10) || 120000,
-        salaryMax: parseInt(salaryMax, 10) || 180000,
-        description: description.trim() || `Position for ${title.trim()} in ${department}`,
-        skillsRequired: skillsArray.length > 0 ? skillsArray : ['React', 'TypeScript'],
-        requirements: `Proficiency with ${skillsArray.join(', ')}`,
+        salaryMin: minVal,
+        salaryMax: maxVal,
+        description: description.trim(),
+        skillsRequired: skillsArray.length > 0 ? skillsArray : ['General'],
+        requirements: skillsArray.length > 0 ? `Proficiency with ${skillsArray.join(', ')}` : '',
       });
       setCreatedSuccess(true);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobFeed() });
@@ -108,6 +150,11 @@ export default function RecruiterJobsPage() {
       setTimeout(async () => {
         setCreatedSuccess(false);
         setTitle('');
+        setDepartment('');
+        setLocation('');
+        setSalaryMin('');
+        setSalaryMax('');
+        setSkills('');
         setDescription('');
         setIsAddModalOpen(false);
         await loadJobs();
@@ -184,7 +231,7 @@ export default function RecruiterJobsPage() {
           </p>
         </div>
 
-        <Button onClick={() => setIsAddModalOpen(true)} variant="primary" className="rounded-xl shadow-md font-bold">
+        <Button onClick={handleOpenAddModal} variant="primary" className="rounded-xl shadow-md font-bold">
           <Plus className="w-4 h-4 mr-2" /> Post New Position
         </Button>
       </div>
@@ -214,7 +261,7 @@ export default function RecruiterJobsPage() {
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             Create your first job requisition to start matching with candidates in real-time.
           </p>
-          <Button onClick={() => setIsAddModalOpen(true)} variant="primary" className="rounded-xl font-bold text-xs">
+          <Button onClick={handleOpenAddModal} variant="primary" className="rounded-xl font-bold text-xs">
             <Plus className="w-4 h-4 mr-1.5" /> Post Job
           </Button>
         </div>
@@ -352,6 +399,20 @@ export default function RecruiterJobsPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Company Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. SwipeX Technologies"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
@@ -359,7 +420,7 @@ export default function RecruiterJobsPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="Engineering"
+                      placeholder="e.g. Engineering"
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
@@ -371,7 +432,7 @@ export default function RecruiterJobsPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="Remote / San Francisco"
+                      placeholder="e.g. Bengaluru, India or Remote"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
@@ -386,7 +447,7 @@ export default function RecruiterJobsPage() {
                     </label>
                     <input
                       type="number"
-                      placeholder="120000"
+                      placeholder="e.g. 120000"
                       value={salaryMin}
                       onChange={(e) => setSalaryMin(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
@@ -398,7 +459,7 @@ export default function RecruiterJobsPage() {
                     </label>
                     <input
                       type="number"
-                      placeholder="180000"
+                      placeholder="e.g. 160000"
                       value={salaryMax}
                       onChange={(e) => setSalaryMax(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
@@ -408,11 +469,11 @@ export default function RecruiterJobsPage() {
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
-                    Skills Required (comma-separated)
+                    Skills Required
                   </label>
                   <input
                     type="text"
-                    placeholder="React, TypeScript, Next.js, PostgreSQL"
+                    placeholder="e.g. React, TypeScript, Node.js"
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground"
@@ -421,11 +482,12 @@ export default function RecruiterJobsPage() {
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
-                    Role Description
+                    Role Description *
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="Describe role responsibilities and requirements..."
+                    required
+                    placeholder="Describe the role, responsibilities, requirements, and qualifications..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl glass-1 border border-border focus:border-primary focus:outline-hidden text-sm text-foreground resize-none"
@@ -446,7 +508,7 @@ export default function RecruiterJobsPage() {
                     type="submit"
                     variant="primary"
                     className="flex-1 rounded-xl font-bold"
-                    disabled={isCreating || !title.trim()}
+                    disabled={isCreating || !title.trim() || !companyName.trim() || !description.trim()}
                   >
                     {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
                     Create Position

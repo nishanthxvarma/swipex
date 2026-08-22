@@ -189,30 +189,34 @@ async def test_recruiter_job_creation_and_contract_validation(client):
     }, headers=rec_headers)
     assert invalid_salary_res.status_code == 422
 
-    # 7. Valid job creation with string comma-separated skills
+    # 7. Valid job creation with string comma-separated skills (with duplicate skill to test deduplication)
     create_res = await client.post("/api/v1/jobs/", json={
         "title": "Frontend Developer",
+        "companyName": "Acme Innovations",
         "department": "Engineering",
         "location": "Remote",
         "salaryMin": 60000,
         "salaryMax": 90000,
-        "skillsRequired": "React, TypeScript, JavaScript, HTML, CSS, Tailwind CSS",
+        "skillsRequired": "React, TypeScript, JavaScript, HTML, CSS, Tailwind CSS, React",
         "description": "Build responsive and accessible web applications using React and TypeScript."
     }, headers=rec_headers)
     assert create_res.status_code == 200
     job_data = create_res.json()
     job_id = job_data["id"]
     assert job_data["title"] == "Frontend Developer"
+    assert job_data["company"] == "Acme Innovations"
     assert job_data["location"] == "Remote"
     assert "React" in job_data["skillsRequired"]
     assert "TypeScript" in job_data["skillsRequired"]
+    # Check deduplication: "React" should only appear once in skillsRequired
+    assert job_data["skillsRequired"].count("React") == 1
     assert job_data["isActive"] is True
 
     # 8. Recruiter sees job in their list
     rec_jobs_res = await client.get("/api/v1/jobs/recruiter/mine", headers=rec_headers)
     assert rec_jobs_res.status_code == 200
     rec_jobs = rec_jobs_res.json()
-    assert any(j["id"] == job_id for j in rec_jobs)
+    assert any(j["id"] == job_id and j["company"] == "Acme Innovations" for j in rec_jobs)
 
     # 9. Job seeker sees the job in the feed / list
     feed_res = await client.get("/api/v1/jobs/", headers=seeker_headers)
@@ -220,12 +224,18 @@ async def test_recruiter_job_creation_and_contract_validation(client):
     feed_jobs = feed_res.json()
     assert any(j["id"] == job_id for j in feed_jobs)
 
-    # 10. Recruiter pauses job
+    # 10. Job seeker received a persisted notification about the new job opportunity
+    notifs_res = await client.get("/api/v1/notifications", headers=seeker_headers)
+    assert notifs_res.status_code == 200
+    notif_list = notifs_res.json().get("notifications", [])
+    assert any(n.get("metadata", {}).get("jobId") == job_id or "Frontend Developer" in n.get("message", "") for n in notif_list)
+
+    # 11. Recruiter pauses job
     pause_res = await client.put(f"/api/v1/jobs/{job_id}/status", json={"isActive": False}, headers=rec_headers)
     assert pause_res.status_code == 200
     assert pause_res.json()["isActive"] is False
 
-    # 11. Recruiter resumes job
+    # 12. Recruiter resumes job
     resume_res = await client.put(f"/api/v1/jobs/{job_id}/status", json={"status": "Active"}, headers=rec_headers)
     assert resume_res.status_code == 200
     assert resume_res.json()["isActive"] is True

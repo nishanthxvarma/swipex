@@ -182,57 +182,91 @@ async def list_recruiter_jobs_endpoint(
 async def create_job(
     job_data: dict,
     current_user: dict = Depends(get_current_user),
-    job_service: JobService = Depends(get_job_service)
+    job_service: JobService = Depends(get_job_service),
+    notif_service: NotificationService = Depends(get_notification_service)
 ):
     role = current_user.get("role", "job_seeker")
     if role not in ("recruiter", "admin"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recruiter access required to post jobs")
     user_id = parse_id(current_user["sub"])
     
-    title = job_data.get("title")
-    if not title or not str(title).strip():
+    title = str(job_data.get("title") or "").strip()
+    if not title:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Job title is required")
     
-    description = job_data.get("description", "")
-    department = job_data.get("department", "Engineering")
+    description = str(job_data.get("description") or "").strip()
+    if not description:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Role description is required")
+        
+    department = str(job_data.get("department") or "Engineering").strip()
+    
+    # Resolve company name & company entity
+    company_name_input = str(
+        job_data.get("companyName") or job_data.get("company") or job_data.get("company_name") or ""
+    ).strip()
     
     company_id = job_data.get("companyId") or job_data.get("company_id")
+    resolved_company = None
+    
+    from sqlalchemy import select
+    from app.models.job import CompanyModel, JobModel, JobTypeEnum, ExperienceLevelEnum
+    
     if company_id:
         company_id = parse_id(company_id)
+        stmt = select(CompanyModel).where(CompanyModel.id == company_id)
+        res = await job_service.job_repo.db.execute(stmt)
+        resolved_company = res.scalars().first()
+    elif company_name_input:
+        stmt = select(CompanyModel).where(CompanyModel.name.ilike(company_name_input))
+        res = await job_service.job_repo.db.execute(stmt)
+        resolved_company = res.scalars().first()
+        if not resolved_company:
+            # Create new company record
+            resolved_company = CompanyModel(
+                name=company_name_input,
+                description=f"{company_name_input} is an innovative organization.",
+                industry=department or "Technology",
+                website=f"https://{company_name_input.lower().replace(' ', '')}.com",
+                headquarters=str(job_data.get("location") or "Remote").strip()
+            )
+            job_service.job_repo.db.add(resolved_company)
+            await job_service.job_repo.db.flush()
+        company_id = resolved_company.id
     else:
-        # Fetch or auto-seed the default company in database
-        from sqlalchemy import select
-        from app.models.job import CompanyModel
+        # Fallback to first existing company or create default
         stmt = select(CompanyModel).limit(1)
         res = await job_service.job_repo.db.execute(stmt)
-        c = res.scalars().first()
-        if c:
-            company_id = c.id
-        else:
-            default_company = CompanyModel(
-                name="SwipeX Technologies",
-                description="Next-generation AI recruitment platform.",
+        resolved_company = res.scalars().first()
+        if not resolved_company:
+            resolved_company = CompanyModel(
+                name="SwipeX Partner",
+                description="Next-generation partner company.",
                 industry="Technology",
-                size="50-200",
                 website="https://swipexai.vercel.app"
             )
-            job_service.job_repo.db.add(default_company)
+            job_service.job_repo.db.add(resolved_company)
             await job_service.job_repo.db.flush()
-            company_id = default_company.id
-    
-    from app.models.job import JobModel, JobTypeEnum, ExperienceLevelEnum
-    
-    # Skills normalization
+        company_id = resolved_company.id
+
+    # Skills normalization & deduplication
     raw_skills = job_data.get("skillsRequired") or job_data.get("skills_required") or job_data.get("skills") or []
     if isinstance(raw_skills, str):
-        skills_req = [s.strip() for s in raw_skills.split(",") if s.strip()]
+        raw_list = [s.strip() for s in raw_skills.split(",") if s.strip()]
     elif isinstance(raw_skills, list):
-        skills_req = [str(s).strip() for s in raw_skills if str(s).strip()]
+        raw_list = [str(s).strip() for s in raw_skills if str(s).strip()]
     else:
-        skills_req = []
+        raw_list = []
+        
+    seen = set()
+    skills_req = []
+    for s in raw_list:
+        clean = s.strip()
+        if clean and clean.lower() not in seen:
+            seen.add(clean.lower())
+            skills_req.append(clean)
         
     if not skills_req:
-        skills_req = ["React", "TypeScript"]
+        skills_req = ["General"]
     
     # Normalize salary
     salary_min = job_data.get("salaryMin") or job_data.get("salary_min") or job_data.get("min_salary") or 0
@@ -245,6 +279,12 @@ async def create_job(
         salary_max = float(salary_max)
     except (ValueError, TypeError):
         salary_max = salary_min if salary_min > 0 else 0.0
+
+    if salary_min < 0 or salary_max < 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Salary cannot be negative"
+        )
 
     if salary_max > 0 and salary_min > 0 and salary_min > salary_max:
         raise HTTPException(
@@ -266,11 +306,11 @@ async def create_job(
         exp_enum = ExperienceLevelEnum.mid
 
     job = JobModel(
-        title=str(title).strip(), 
-        description=str(description).strip() if description else f"Position for {title} in {department}", 
+        title=title, 
+        description=description, 
         company_id=company_id,
         recruiter_id=user_id,
-        location=str(job_data.get("location", "Remote")).strip(),
+        location=str(job_data.get("location", "Remote")).strip() or "Remote",
         salary_min=salary_min,
         salary_max=salary_max,
         salary_currency=str(job_data.get("salaryCurrency", "USD")),
@@ -283,6 +323,42 @@ async def create_job(
         is_active=True
     )
     res = await job_service.job_repo.create(job)
+    
+    # Attach resolved company for immediate accurate serialization
+    if resolved_company:
+        res.company = resolved_company
+        
+    # Create persistent job opportunity notifications for active job seekers
+    try:
+        from app.models.user import UserModel, RoleEnum
+        stmt = select(UserModel.id).where(
+            UserModel.role == RoleEnum.job_seeker,
+            UserModel.is_active == True
+        )
+        seekers_res = await job_service.job_repo.db.execute(stmt)
+        seeker_ids = seekers_res.scalars().all()
+        
+        comp_display = resolved_company.name if resolved_company else "SwipeX Partner"
+        notif_title = "New job opportunity"
+        notif_message = f"{res.title} at {comp_display} is now available."
+        notif_meta = {
+            "jobId": str(res.id),
+            "company": comp_display,
+            "title": res.title
+        }
+        
+        for s_id in seeker_ids:
+            await notif_service.create_notification(
+                user_id=s_id,
+                type_str="job_recommendation",
+                title=notif_title,
+                message=notif_message,
+                metadata=notif_meta
+            )
+    except Exception:
+        # Prevent non-fatal notification issue from failing job creation response
+        pass
+
     return format_job(res)
 
 @router.put("/{job_id}/status")

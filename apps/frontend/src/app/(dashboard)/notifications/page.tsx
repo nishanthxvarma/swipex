@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { 
   Bell, CheckCircle2, Trash2, Filter, Settings, Sparkles, Calendar, Briefcase, Award, ShieldAlert, Check
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useNotificationStore } from '@/stores/notification-store';
 import { NotificationType } from '@swipex/types';
 
 export default function NotificationCenterPage() {
+  const router = useRouter();
   const {
     notifications,
     unreadCount,
@@ -22,6 +24,18 @@ export default function NotificationCenterPage() {
 
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'applications' | 'interviews' | 'jobs'>('all');
   const [showPreferences, setShowPreferences] = useState(false);
+
+  const handleNotificationClick = (notif: any) => {
+    if (!notif.isRead) {
+      markAsRead(notif.id);
+    }
+    const jobId = notif.metadata?.jobId || notif.metadata_json?.jobId;
+    if (jobId || notif.type.includes('job')) {
+      router.push('/jobs');
+    } else if (notif.type.includes('application')) {
+      router.push('/applications');
+    }
+  };
 
   const getIconForType = (type: string) => {
     switch (type) {
@@ -173,18 +187,21 @@ export default function NotificationCenterPage() {
                 notif.isRead ? 'glass-1' : 'bg-primary/5 border-primary/20 shadow-xs'
               }`}
             >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-background border shadow-xs shrink-0 mt-0.5">
+              <div 
+                onClick={() => handleNotificationClick(notif)}
+                className="flex items-start gap-4 flex-1 cursor-pointer group"
+              >
+                <div className="p-3 rounded-2xl bg-background border shadow-xs shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
                   {getIconForType(notif.type)}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-[#F5FAFF]">{notif.title}</h4>
+                    <h4 className="font-bold text-sm text-[#F5FAFF] group-hover:text-primary transition-colors">{notif.title}</h4>
                     {!notif.isRead && (
                       <span className="w-2 h-2 rounded-full bg-primary" />
                     )}
                   </div>
-                  <p className="text-xs text-[#66788A] leading-relaxed">{notif.message}</p>
+                  <p className="text-xs text-[#66788A] leading-relaxed group-hover:text-foreground/90 transition-colors">{notif.message}</p>
                   <p className="text-[10px] text-[#66788A] font-mono pt-1">
                     {new Date(notif.createdAt).toLocaleString()}
                   </p>
