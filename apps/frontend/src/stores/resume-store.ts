@@ -15,10 +15,9 @@ import { useAuthStore } from './auth-store';
 import { API_BASE_URL } from '@swipex/config';
 
 const getApiClient = () => {
-  const token = useAuthStore.getState().tokens?.accessToken || null;
   return new ApiClient(
     API_BASE_URL,
-    () => token,
+    () => useAuthStore.getState().tokens?.accessToken || null,
     (t) => {}
   );
 };
@@ -27,19 +26,25 @@ function mapErrorMessage(err: any, fallback: string): string {
   if (!err) return fallback;
   if (typeof err === 'string') return err;
   if (err.message && typeof err.message === 'string') {
-    if (err.message.includes('405') || err.code === 'HTTP_405') {
-      return 'Resume analysis service endpoint mismatch. Please check your connection.';
-    }
-    if (err.message.includes('413') || err.code === 'HTTP_413') {
-      return 'File size exceeds maximum allowed limit of 5 MB.';
-    }
-    if (err.message.includes('415') || err.code === 'HTTP_415') {
-      return 'Unsupported document format. Please upload a PDF or DOCX file.';
-    }
-    if (err.message.includes('401') || err.code === 'HTTP_401') {
+    if (err.code === 'HTTP_401' || err.message.includes('401') || err.message.includes('Not authenticated')) {
       return 'Authentication session expired. Please log in again.';
     }
-    if (err.message.includes('422') || err.code === 'HTTP_422') {
+    if (err.code === 'HTTP_403' || err.message.includes('403')) {
+      return 'You do not have permission to perform this resume action.';
+    }
+    if (err.code === 'HTTP_405') {
+      return 'Resume service endpoint method mismatch (HTTP 405). Please check your connection.';
+    }
+    if (err.code === 'HTTP_404') {
+      return 'Resume resource or endpoint not found (HTTP 404).';
+    }
+    if (err.code === 'HTTP_413' || err.message.includes('413')) {
+      return 'File size exceeds maximum allowed limit of 5 MB.';
+    }
+    if (err.code === 'HTTP_415' || err.message.includes('415')) {
+      return 'Unsupported document format. Please upload a PDF or DOCX file.';
+    }
+    if (err.code === 'HTTP_422' || err.message.includes('422')) {
       return 'Could not parse resume data. Please ensure the document contains readable text.';
     }
     return err.message;

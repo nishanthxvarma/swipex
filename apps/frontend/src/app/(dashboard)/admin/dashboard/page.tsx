@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
     try {
       const client = new ApiClient(
         API_BASE_URL,
-        () => token || null,
+        () => useAuthStore.getState().tokens?.accessToken || token || null,
         () => {}
       );
       const api = new AnalyticsApi(client);
